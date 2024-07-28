@@ -19,3 +19,5 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+/.vs/MineLights/FileContentIndex/1b46a4bc-8361-4800-a18e-e09dcbc138e6.vsidx
+/.vs
