@@ -127,12 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CorsairKeyIdEnum.h" />
+    <ClInclude Include="CorsairLedIdEnum.h" />
+    <ClInclude Include="CUESDK.h" />
+    <ClInclude Include="CUESDKGlobal.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="iCueLightController.h" />
     <ClInclude Include="MineLights.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\MineLightsOLD\Server\MineLight\iCueLightController.cpp" />
     <ClCompile Include="MineLights.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +147,12 @@
   <ItemGroup>
     <Image Include="MineLights.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="CUESDK.x64_2019.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CUESDK.x64_2019.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

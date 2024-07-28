@@ -21,3 +21,13 @@ gradle-app.setting
 .classpath
 /.vs/MineLights/FileContentIndex/1b46a4bc-8361-4800-a18e-e09dcbc138e6.vsidx
 /.vs
+/Server/MineLights/MineLights/x64/Debug
+/Server/MineLights/x64/Debug
+/Server/MineLights/.vs/MineLights/FileContentIndex
+/Server/MineLights/.vs/MineLights/v17/ipch/AutoPCH
+/Server/MineLights/.vs/MineLights/v17/DocumentLayout.json
+/Server/MineLights/.vs/MineLights/v17/.suo
+/Server/MineLights/.vs/MineLights/v17/Browse.VC.db
+/Server/MineLights/.vs/MineLights/v17/Browse.VC.db-shm
+/Server/MineLights/.vs/MineLights/v17/Browse.VC.db-wal
+/Server/MineLights/.vs/MineLights/v17/Browse.VC.opendb

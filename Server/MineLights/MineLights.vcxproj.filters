@@ -27,9 +27,27 @@
     <ClInclude Include="MineLights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="iCueLightController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CorsairKeyIdEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CorsairLedIdEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CUESDK.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CUESDKGlobal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MineLights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\MineLightsOLD\Server\MineLight\iCueLightController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,5 +63,15 @@
     <Image Include="MineLights.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="CUESDK.x64_2019.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CUESDK.x64_2019.dll">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
