@@ -14,7 +14,7 @@ void InitTrayIcon(HWND hWnd) {
     nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid.uCallbackMessage = WM_USER + 1;
     //nid.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1)); // Use your custom icon
-    lstrcpy(nid.szTip, L"My App"); // Tooltip text
+    lstrcpy(nid.szTip, L"MineLights"); // Tooltip text
     Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
@@ -25,13 +25,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         if (lParam == WM_RBUTTONDOWN) {
             // Show context menu
             HMENU hmenu = CreatePopupMenu();
-            InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, IDM_EXIT, L"Exit"); // Add menu item
+            InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, IDM_EXIT, L"Exit");
             POINT pt;
             GetCursorPos(&pt);
             TrackPopupMenu(hmenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
         }
         break;
-        // Handle other messages as needed
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDM_EXIT) {
+            // Clean up and exit the application
+            DestroyWindow(hWnd);
+        }
+        break;
     }
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
@@ -44,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hInstance = hInstance;
     wc.lpszClassName = L"MyAppClass";
     RegisterClass(&wc);
-    HWND hWnd = CreateWindow(wc.lpszClassName, L"My App", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindow(wc.lpszClassName, L"MineLights", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
 
     // Initialize the tray icon
     InitTrayIcon(hWnd);
