@@ -133,12 +133,13 @@
     <ClInclude Include="CUESDKGlobal.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="iCueLightController.h" />
+    <ClInclude Include="libs\jsoncpp-master\include\json.h" />
     <ClInclude Include="MineLights.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\MineLightsOLD\Server\MineLight\iCueLightController.cpp" />
+    <ClCompile Include="iCueLightController.cpp" />
     <ClCompile Include="MineLights.cpp" />
   </ItemGroup>
   <ItemGroup>
