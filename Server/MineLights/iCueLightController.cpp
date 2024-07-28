@@ -11,13 +11,16 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include <sstream>
-#include <json/json.h>
+#include <json.hpp>
+
+#pragma comment(lib, "Ws2_32.lib")
 
 using namespace std;
+using json = nlohmann::json;
 
 void receiveUDP() {
     WSADATA wsaData;
-    int sockfd;
+    SOCKET sockfd;
     struct sockaddr_in serverAddr, clientAddr;
     char buffer[1024];
     int addrLen = sizeof(clientAddr);
@@ -41,13 +44,6 @@ void receiveUDP() {
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(9876);
 
-    if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        cerr << "Bind failed: " << WSAGetLastError() << endl;
-        closesocket(sockfd);
-        WSACleanup();
-        return;
-    }
-
     while (true) {
         // Receive data
         int n = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &addrLen);
@@ -55,18 +51,24 @@ void receiveUDP() {
             cerr << "Receive failed: " << WSAGetLastError() << endl;
             break;
         }
-        buffer[n] = '\0';
+        char buffer[1025];
 
-        Json::Value jsonData;
-        Json::CharReaderBuilder readerBuilder;
-        std::string errs;
-        std::istringstream ss(buffer);
-        if (!Json::parseFromStream(readerBuilder, ss, &jsonData, &errs)) {
-            cerr << "Failed to parse JSON: " << errs << endl;
-            continue;
+        // Process the received data
+        try {
+            json jsonData = json::parse(buffer);
+            string key = jsonData["key"];
+            string value = jsonData["value"];
+
+            cout << "Received key: " << key << ", value: " << value << endl;
+
+
+        }
+        catch (json::parse_error& e) {
+            cerr << "JSON parse error: " << e.what() << endl;
         }
     }
 }
+
 
 iCueLightController::iCueLightController()
 {
@@ -83,7 +85,7 @@ iCueLightController::iCueLightController()
         CorsairSetLedsColors(1, &mojangRed);
     }
 
-
     // start thread to recieve UDP
-    std::thread t1(receiveUDP);
+    thread t1(receiveUDP);
+    t1.join();
 }
