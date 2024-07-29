@@ -1,4 +1,5 @@
 # MineLights
+![_bfb50031-5cf5-4366-aa3d-ec005d0aa4bf](https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8)
 
 MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition (targeting latest, 1.21). Currently, it only supports Corsair iCue however due to the modular design, other RGB softwares could (and will) be easily added.
 
