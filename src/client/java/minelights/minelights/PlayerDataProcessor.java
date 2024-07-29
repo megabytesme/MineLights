@@ -31,6 +31,7 @@ public class PlayerDataProcessor {
             playerDto.setWeather("Clear");
         }
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
+        playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).getIdAsString());
 
         // Serialize playerDto to JSON
         Gson gson = new Gson();
