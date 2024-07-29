@@ -6,6 +6,11 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 ## Features
 
 - **iCue Integration**: Sync your in-game events with your iCue-compatible RGB devices.
+- **Biome-specific colours**: Each biome you traverse in-game will have its own specific colours!
+- **Weather integration**: The weather in the current biome will show on your devices!
+
+## Supported RGB software
+- **Corsair iCue** - full device support upto [iCue SDK 3.0.464](https://github.com/CorsairOfficial/cue-sdk/releases/tag/v3.0.464).
 
 ## Installation
 
@@ -13,16 +18,19 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 2. **Download Fabric API**: [Fabric API](https://www.curseforge.com/minecraft/mc-mods/irisshaders)
 3. **Download MineLights**: MineLights Release (TBD)
 4. **Place the downloaded files** in your Minecraft `mods` folder.
+5. **Install MineLights helper** application.
 
 ## Usage
 
 1. **Launch Minecraft** with the Fabric profile.
-2. **Ensure third-party RGB integrations are enabled** in whichever software you use!
-3. **Enjoy synchronized RGB lighting** while you play!
+2. **Launch MineLights helper** application.
+3. **Ensure third-party RGB integrations are enabled** in whichever software you use!
+4. **Enjoy synchronized RGB lighting** while you play!
 
 ## Roadmap
 
-- **Windows Dynamic Lighting**: Integration with Windows Dynamic Lighting is in development and will be available in future updates (hopefully this becomes the final standard someday 😂).
+- **Support Windows Dynamic Lighting**: Integration with Windows Dynamic Lighting is in development and will be available in future updates (hopefully this becomes the final standard someday 😂).
+- **Update Corsair iCue SDK from V3 to V4**: Currently using [iCue SDK 3.0.464](https://github.com/CorsairOfficial/cue-sdk/releases/tag/v3.0.464) (latest v3 release) since V4 is not as fully documented as I'd like it to be. Also, V3 supports everything currently.
 
 ## Contributing
 
