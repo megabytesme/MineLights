@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <WS2tcpip.h>
 #pragma comment (lib, "ws2_32.lib")
 #include <bitset>
@@ -18,6 +19,14 @@
 
 using json = nlohmann::json;
 
+struct PlayerDto {
+    std::string worldLevel;
+    float health;
+    int hunger;
+    std::string weather;
+    std::string currentBlock;
+};
+
 void receiveUDP() {
     // Initialise Winsock
     WSADATA data;
@@ -28,7 +37,7 @@ void receiveUDP() {
     if (wsOk != 0)
     {
         // Broken, exit
-        wsOk;
+        throw wsOk;
         return;
     }
 
@@ -42,7 +51,7 @@ void receiveUDP() {
     // Bind the socket to an IP address and port
     if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
     {
-        WSAGetLastError();
+        throw WSAGetLastError();
         return;
     }
 
@@ -60,17 +69,19 @@ void receiveUDP() {
             break;
         }
 
-        // Process the received data
-        try {
-            json jsonData = json::parse(buf);
-            std::string key = jsonData["key"];
-            std::string value = jsonData["value"];
+        // Null-terminate the received data
+        buf[n] = '\0';
 
-            std::cout << "Received key: " << key << ", value: " << value << std::endl;
-        }
-        catch (json::parse_error& e) {
-            std::cerr << "JSON parse error: " << e.what() << std::endl;
-        }
+        // Parse the received data as JSON
+        json receivedJson = json::parse(buf);
+
+        // Process the received data and turn it into a "playerDto" object
+        PlayerDto player;
+        player.worldLevel = receivedJson["worldLevel"];
+        player.health = receivedJson["health"];
+        player.hunger = receivedJson["hunger"];
+        player.weather = receivedJson["weather"];
+        player.currentBlock = receivedJson["currentBlock"];
     }
 
     closesocket(in);
