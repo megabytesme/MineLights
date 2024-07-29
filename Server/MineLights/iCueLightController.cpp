@@ -13,6 +13,9 @@
 #include <thread>
 #include <string>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
 
 #include <json.hpp>
 #include "iCueLightController.h"
@@ -92,28 +95,120 @@ void receiveUDP() {
 
 void worldLevelEffects() {
     while (true) {
-        if (player.worldLevel == "overworld") {
-            CorsairLedColor overworldColor = { CLI_Invalid, 0, 255, 0 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                overworldColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &overworldColor);
+        if (player.weather == "Rain") {
+
+        }
+        else {
+            if (player.worldLevel == "overworld") {
+                CorsairLedColor overworldColor = { CLI_Invalid, 0, 255, 0 };
+                for (int i = 0; i < CLI_Last; i++)
+                {
+                    overworldColor.ledId = (CorsairLedId)i;
+                    CorsairSetLedsColors(1, &overworldColor);
+                }
+            }
+            else if (player.worldLevel == "the_nether") {
+                CorsairLedColor netherColor = { CLI_Invalid, 255, 0, 0 };
+                for (int i = 0; i < CLI_Last; i++)
+                {
+                    netherColor.ledId = (CorsairLedId)i;
+                    CorsairSetLedsColors(1, &netherColor);
+                }
+            }
+            else if (player.worldLevel == "the_end") {
+                CorsairLedColor endColor = { CLI_Invalid, 128, 0, 128 };
+                for (int i = 0; i < CLI_Last; i++)
+                {
+                    endColor.ledId = (CorsairLedId)i;
+                    CorsairSetLedsColors(1, &endColor);
+                }
             }
         }
-        else if (player.worldLevel == "the_nether") {
-            CorsairLedColor netherColor = { CLI_Invalid, 255, 0, 0 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                netherColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &netherColor);
+
+    }
+}
+
+void weatherEffects() {
+    while (true) {
+        if (player.weather == "clear") {
+            // Clear weather, no effects
+        }
+        else if (player.weather == "Rain") {
+            // Create an alternating pattern
+            for (int round = 0; round < 3; round++) {
+                for (int i = 0; i < CLI_Last; i++) {
+                    CorsairLedColor patternColor;
+                    if (i % 2 == 0) {
+                        // Even LEDs: Set to blue
+                        patternColor = { CLI_Invalid, 0, 0, 255 };
+                    }
+                    else {
+                        // Odd LEDs: Set to green
+                        patternColor = { CLI_Invalid, 0, 255, 0 };
+                    }
+                    patternColor.ledId = static_cast<CorsairLedId>(i);
+                    CorsairSetLedsColors(1, &patternColor);
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                for (int i = 0; i < CLI_Last; i++) {
+                    CorsairLedColor patternColor;
+                    if (i % 2 == 0) {
+                        // Even LEDs: Set to green
+                        patternColor = { CLI_Invalid, 0, 255, 0 };
+                    }
+                    else {
+                        // Odd LEDs: Set to blue
+                        patternColor = { CLI_Invalid, 0, 0, 255 };
+                    }
+                    patternColor.ledId = static_cast<CorsairLedId>(i);
+                    CorsairSetLedsColors(1, &patternColor);
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
-        else if (player.worldLevel == "the_end") {
-            CorsairLedColor endColor = { CLI_Invalid, 128, 0, 128 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                endColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &endColor);
+        else if (player.weather == "Thunderstorm") {
+            // Create an alternating pattern with random flashes
+            for (int round = 0; round < 3; round++) {
+                for (int i = 0; i < CLI_Last; i++) {
+                    CorsairLedColor patternColor;
+                    if (i % 2 == 0) {
+                        // Even LEDs: Set to blue
+                        patternColor = { CLI_Invalid, 0, 0, 255 };
+                    }
+                    else {
+                        // Odd LEDs: Set to green
+                        patternColor = { CLI_Invalid, 0, 255, 0 };
+                    }
+                    patternColor.ledId = static_cast<CorsairLedId>(i);
+                    CorsairSetLedsColors(1, &patternColor);
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                // Random flash
+                if (rand() % 2 == 0) {
+                    for (int i = 0; i < CLI_Last; i++) {
+                        CorsairLedColor flashColor = { CLI_Invalid, 255, 255, 255 };
+                        flashColor.ledId = static_cast<CorsairLedId>(i);
+                        CorsairSetLedsColors(1, &flashColor);
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+
+                for (int i = 0; i < CLI_Last; i++) {
+                    CorsairLedColor patternColor;
+                    if (i % 2 == 0) {
+                        // Even LEDs: Set to green
+                        patternColor = { CLI_Invalid, 0, 255, 0 };
+                    }
+                    else {
+                        // Odd LEDs: Set to blue
+                        patternColor = { CLI_Invalid, 0, 0, 255 };
+                    }
+                    patternColor.ledId = static_cast<CorsairLedId>(i);
+                    CorsairSetLedsColors(1, &patternColor);
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
     }
@@ -137,6 +232,8 @@ iCueLightController::iCueLightController()
     // start thread to recieve UDP
     std::thread t1(receiveUDP);
     std::thread t2(worldLevelEffects);
+    std::thread t3(weatherEffects);
     t1.join();
     t2.join();
+    t3.join();
 }
