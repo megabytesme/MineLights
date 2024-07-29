@@ -10,8 +10,9 @@ public class UDPClient {
             DatagramSocket socket = new DatagramSocket();
             InetAddress address = InetAddress.getByName("localhost");
             byte[] buffer = playerDataJson.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 9876);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 63212);
             socket.send(packet);
+            System.out.println("Sent packet: " + packet);
             socket.close();
         } catch (Exception e) {
             e.printStackTrace();
