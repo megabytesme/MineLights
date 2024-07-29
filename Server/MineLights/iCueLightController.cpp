@@ -1,77 +1,84 @@
-#define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
+#include <iostream>
+#include <WS2tcpip.h>
+#pragma comment (lib, "ws2_32.lib")
+#include <bitset>
+// disable deprecation
+#pragma warning(disable: 4996)
 
+// cuesdk includes
+#define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
+#include "CUESDK.h"
 #include <atomic>
 #include <thread>
 #include <string>
 #include <cmath>
-#include "iCueLightController.h"
-#include "CUESDK.h"
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iostream>
-#include <sstream>
 #include <json.hpp>
+#include "iCueLightController.h"
 
-#pragma comment(lib, "Ws2_32.lib")
-
-using namespace std;
 using json = nlohmann::json;
 
 void receiveUDP() {
-    WSADATA wsaData;
-    SOCKET sockfd;
-    struct sockaddr_in serverAddr, clientAddr;
-    char buffer[1024];
-    int addrLen = sizeof(clientAddr);
+    // Initialise Winsock
+    WSADATA data;
+    WORD version = MAKEWORD(2, 2);
 
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        cerr << "WSAStartup failed" << endl;
+    // Start Winsock
+    int wsOk = WSAStartup(version, &data);
+    if (wsOk != 0)
+    {
+        // Broken, exit
+        wsOk;
         return;
     }
 
-    // Create socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET) {
-        cerr << "Socket creation failed: " << WSAGetLastError() << endl;
-        WSACleanup();
+    // Create a hint structure for the server
+    SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
+    sockaddr_in serverHint;
+    serverHint.sin_addr.S_un.S_addr = ADDR_ANY;
+    serverHint.sin_family = AF_INET;
+    serverHint.sin_port = htons(63212);
+
+    // Bind the socket to an IP address and port
+    if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
+    {
+        WSAGetLastError();
         return;
     }
 
-    // Bind the socket to port 9876
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(9876);
+    // Create a sockaddr_in structure for the client
+    sockaddr_in client;
+    int clientLength = sizeof(client);
 
+    // while loop
     while (true) {
         // Receive data
-        int n = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &addrLen);
+        char buf[1025];
+        int n = recvfrom(in, buf, sizeof(buf), 0, (sockaddr*)&client, &clientLength);
         if (n == SOCKET_ERROR) {
-            cerr << "Receive failed: " << WSAGetLastError() << endl;
+            int result = WSAGetLastError();
             break;
         }
-        char buffer[1025];
 
         // Process the received data
         try {
-            json jsonData = json::parse(buffer);
-            string key = jsonData["key"];
-            string value = jsonData["value"];
+            json jsonData = json::parse(buf);
+            std::string key = jsonData["key"];
+            std::string value = jsonData["value"];
 
-            cout << "Received key: " << key << ", value: " << value << endl;
-
-
+            std::cout << "Received key: " << key << ", value: " << value << std::endl;
         }
         catch (json::parse_error& e) {
-            cerr << "JSON parse error: " << e.what() << endl;
+            std::cerr << "JSON parse error: " << e.what() << std::endl;
         }
     }
+
+    closesocket(in);
+    WSACleanup();
 }
 
-
 iCueLightController::iCueLightController()
-{
+{       
     // initialize SDK
     CorsairPerformProtocolHandshake();
     CorsairRequestControl(CAM_ExclusiveLightingControl);
@@ -86,6 +93,6 @@ iCueLightController::iCueLightController()
     }
 
     // start thread to recieve UDP
-    thread t1(receiveUDP);
+    std::thread t1(receiveUDP);
     t1.join();
 }
