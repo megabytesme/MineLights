@@ -28,7 +28,9 @@ struct PlayerDto {
     float hunger;
     std::string weather;
     std::string currentBlock;
+    std::string currentBiome;
 };
+
 
 PlayerDto player;
 
@@ -87,10 +89,136 @@ void receiveUDP() {
         player.hunger = receivedJson["hunger"];
         player.weather = receivedJson["weather"];
         player.currentBlock = receivedJson["currentBlock"];
+        player.currentBiome = receivedJson["currentBiome"];
     }
 
     closesocket(in);
     WSACleanup();
+}
+
+void effects() {
+    // Map of biomes to colors
+    std::map<std::string, CorsairLedColor> netherBiomes;
+    std::map<std::string, CorsairLedColor> overworldBiomes;
+    std::map<std::string, CorsairLedColor> endBiomes;
+
+    // Add biomes to respective maps
+    netherBiomes["minecraft:nether_wastes"] = { CLI_Invalid, 230, 30, 5 };
+    netherBiomes["minecraft:crimson_forest"] = { CLI_Invalid, 255, 20, 5 };
+    netherBiomes["minecraft:warped_forest"] = { CLI_Invalid, 0, 128, 128 };
+    netherBiomes["minecraft:soul_sand_valley"] = { CLI_Invalid, 194, 178, 128 };
+    netherBiomes["minecraft:basalt_deltas"] = { CLI_Invalid, 128, 128, 128 };
+    overworldBiomes["minecraft:plains"] = { CLI_Invalid, 124, 252, 0 }; 
+    overworldBiomes["minecraft:forest"] = { CLI_Invalid, 34, 139, 34 };
+    overworldBiomes["minecraft:mountains"] = { CLI_Invalid, 169, 169, 169 };
+    overworldBiomes["minecraft:desert"] = { CLI_Invalid, 237, 201, 175 };
+    overworldBiomes["minecraft:ocean"] = { CLI_Invalid, 0, 105, 148 };
+    overworldBiomes["minecraft:jungle"] = { CLI_Invalid, 0, 100, 0 };
+    overworldBiomes["minecraft:savanna"] = { CLI_Invalid, 244, 164, 96 };
+    overworldBiomes["minecraft:badlands"] = { CLI_Invalid, 210, 105, 30 };
+    overworldBiomes["minecraft:swamp"] = { CLI_Invalid, 32, 178, 170 };
+    overworldBiomes["minecraft:taiga"] = { CLI_Invalid, 0, 128, 128 };
+    overworldBiomes["minecraft:snowy_tundra"] = { CLI_Invalid, 255, 250, 250 };
+    overworldBiomes["minecraft:mushroom_fields"] = { CLI_Invalid, 255, 0, 255 };
+    overworldBiomes["minecraft:beach"] = { CLI_Invalid, 238, 214, 175 };
+    overworldBiomes["minecraft:river"] = { CLI_Invalid, 0, 191, 255 };
+    overworldBiomes["minecraft:dark_forest"] = { CLI_Invalid, 0, 100, 0 };
+    overworldBiomes["minecraft:birch_forest"] = { CLI_Invalid, 255, 255, 255 };
+    overworldBiomes["minecraft:swamp_hills"] = { CLI_Invalid, 32, 178, 170 };
+    overworldBiomes["minecraft:taiga_hills"] = { CLI_Invalid, 0, 128, 128 };
+    overworldBiomes["minecraft:snowy_taiga"] = { CLI_Invalid, 255, 250, 250 };
+    overworldBiomes["minecraft:giant_tree_taiga"] = { CLI_Invalid, 34, 139, 34 };
+    overworldBiomes["minecraft:wooded_mountains"] = { CLI_Invalid, 169, 169, 169 };
+    overworldBiomes["minecraft:savanna_plateau"] = { CLI_Invalid, 244, 164, 96 };
+    overworldBiomes["minecraft:shattered_savanna"] = { CLI_Invalid, 244, 164, 96 };
+    overworldBiomes["minecraft:bamboo_jungle"] = { CLI_Invalid, 0, 100, 0 };
+    overworldBiomes["minecraft:snowy_taiga_hills"] = { CLI_Invalid, 255, 250, 250 };
+    overworldBiomes["minecraft:giant_spruce_taiga"] = { CLI_Invalid, 34, 139, 34 };
+    overworldBiomes["minecraft:snowy_beach"] = { CLI_Invalid, 255, 250, 250 };
+    overworldBiomes["minecraft:stone_shore"] = { CLI_Invalid, 169, 169, 169 };
+    overworldBiomes["minecraft:warm_ocean"] = { CLI_Invalid, 0, 105, 148 };
+    overworldBiomes["minecraft:lukewarm_ocean"] = { CLI_Invalid, 0, 105, 148 };
+    overworldBiomes["minecraft:cold_ocean"] = { CLI_Invalid, 0, 105, 148 };
+    overworldBiomes["minecraft:deep_ocean"] = { CLI_Invalid, 0, 0, 128 };
+    overworldBiomes["minecraft:deep_lukewarm_ocean"] = { CLI_Invalid, 0, 0, 128 };
+    overworldBiomes["minecraft:deep_cold_ocean"] = { CLI_Invalid, 0, 0, 128 };
+    overworldBiomes["minecraft:deep_frozen_ocean"] = { CLI_Invalid, 173, 216, 230 };
+    endBiomes["minecraft:the_end"] = { CLI_Invalid, 128, 0, 128 };
+    endBiomes["minecraft:end_highlands"] = { CLI_Invalid, 128, 0, 128 };
+    endBiomes["minecraft:end_midlands"] = { CLI_Invalid, 128, 0, 128 };
+    endBiomes["minecraft:end_barrens"] = { CLI_Invalid, 128, 0, 128 };
+    endBiomes["minecraft:small_end_islands"] = { CLI_Invalid, 128, 0, 128 };
+
+    while (true) {
+        // Determine the biome color
+        CorsairLedColor biomeColor;
+        if (overworldBiomes.find(player.currentBiome) != overworldBiomes.end()) {
+            biomeColor = overworldBiomes[player.currentBiome];
+        }
+        else if (netherBiomes.find(player.currentBiome) != netherBiomes.end()) {
+            biomeColor = netherBiomes[player.currentBiome];
+        }
+        else if (endBiomes.find(player.currentBiome) != endBiomes.end()) {
+            biomeColor = endBiomes[player.currentBiome];
+        }
+        else {
+            // Default color if biome is not found
+            biomeColor = { CLI_Invalid, 255, 255, 255 };
+        }
+
+        // Set the LED colors to the biome color
+        for (int i = 0; i < CLI_Last; i++) {
+            biomeColor.ledId = (CorsairLedId)i;
+            CorsairSetLedsColors(1, &biomeColor);
+        }
+
+        // Handle weather effects
+        while (player.weather == "Rain" || player.weather == "Thunderstorm") {
+            // Create an alternating pattern
+            for (int i = 0; i < CLI_Last; i++) {
+                CorsairLedColor patternColor;
+                if (i % 2 == 0) {
+                    // Even LEDs: Set to blue
+                    patternColor = { CLI_Invalid, 0, 0, 255 };
+                }
+                else {
+                    // Odd LEDs: Set to green
+                    patternColor = { CLI_Invalid, 66, 108, 0 };
+                }
+                patternColor.ledId = static_cast<CorsairLedId>(i);
+                CorsairSetLedsColors(1, &patternColor);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+            // Random flash if thunderstorm
+            if (player.weather == "Thunderstorm") {
+                if (rand() % 2 == 0) {
+                    for (int i = 0; i < CLI_Last; i++) {
+                        CorsairLedColor flashColor = { CLI_Invalid, 255, 255, 255 };
+                        flashColor.ledId = static_cast<CorsairLedId>(i);
+                        CorsairSetLedsColors(1, &flashColor);
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                }
+            }
+
+            // Continue the alternating pattern
+            for (int i = 0; i < CLI_Last; i++) {
+                CorsairLedColor patternColor;
+                if (i % 2 == 0) {
+                    // Even LEDs: Set to green
+                    patternColor = { CLI_Invalid, 66, 108, 0 };
+                }
+                else {
+                    // Odd LEDs: Set to blue
+                    patternColor = { CLI_Invalid, 0, 0, 255 };
+                }
+                patternColor.ledId = static_cast<CorsairLedId>(i);
+                CorsairSetLedsColors(1, &patternColor);
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
 }
 
 void worldEffects() {
@@ -183,7 +311,7 @@ iCueLightController::iCueLightController()
 
     // start thread to recieve UDP
     std::thread t1(receiveUDP);
-    std::thread t2(worldEffects);
+    std::thread t2(effects);
     t1.join();
     t2.join();
 }
