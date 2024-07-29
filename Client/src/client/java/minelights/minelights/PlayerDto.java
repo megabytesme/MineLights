@@ -6,6 +6,7 @@ public class PlayerDto {
     private int hunger;
     private String weather;
     private String currentBlock;
+    private String currentBiome;
 
     public String getWorldLevel() {
         return worldLevel;
@@ -45,5 +46,13 @@ public class PlayerDto {
 
     public void setCurrentBlock(String currentBlock) {
         this.currentBlock = currentBlock;
+    }
+
+    public String getCurrentBiome() {
+        return currentBiome;
+    }
+
+    public void setCurrentBiome(String currentBiome) {
+        this.currentBiome = currentBiome;
     }
 }
