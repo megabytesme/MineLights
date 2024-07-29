@@ -27,6 +27,8 @@ struct PlayerDto {
     std::string currentBlock;
 };
 
+PlayerDto player;
+
 void receiveUDP() {
     // Initialise Winsock
     WSADATA data;
@@ -63,10 +65,11 @@ void receiveUDP() {
     while (true) {
         // Receive data
         char buf[1025];
+        ZeroMemory(buf, 1025);
         int n = recvfrom(in, buf, sizeof(buf), 0, (sockaddr*)&client, &clientLength);
         if (n == SOCKET_ERROR) {
-            int result = WSAGetLastError();
-            break;
+            throw WSAGetLastError();
+            continue;
         }
 
         // Null-terminate the received data
@@ -76,7 +79,6 @@ void receiveUDP() {
         json receivedJson = json::parse(buf);
 
         // Process the received data and turn it into a "playerDto" object
-        PlayerDto player;
         player.worldLevel = receivedJson["worldLevel"];
         player.health = receivedJson["health"];
         player.hunger = receivedJson["hunger"];
@@ -86,6 +88,35 @@ void receiveUDP() {
 
     closesocket(in);
     WSACleanup();
+}
+
+void worldLevelEffects() {
+    while (true) {
+        if (player.worldLevel == "overworld") {
+            CorsairLedColor overworldColor = { CLI_Invalid, 0, 255, 0 };
+            for (int i = 0; i < CLI_Last; i++)
+            {
+                overworldColor.ledId = (CorsairLedId)i;
+                CorsairSetLedsColors(1, &overworldColor);
+            }
+        }
+        else if (player.worldLevel == "the_nether") {
+            CorsairLedColor netherColor = { CLI_Invalid, 255, 0, 0 };
+            for (int i = 0; i < CLI_Last; i++)
+            {
+                netherColor.ledId = (CorsairLedId)i;
+                CorsairSetLedsColors(1, &netherColor);
+            }
+        }
+        else if (player.worldLevel == "the_end") {
+            CorsairLedColor endColor = { CLI_Invalid, 128, 0, 128 };
+            for (int i = 0; i < CLI_Last; i++)
+            {
+                endColor.ledId = (CorsairLedId)i;
+                CorsairSetLedsColors(1, &endColor);
+            }
+        }
+    }
 }
 
 iCueLightController::iCueLightController()
@@ -105,5 +136,7 @@ iCueLightController::iCueLightController()
 
     // start thread to recieve UDP
     std::thread t1(receiveUDP);
+    std::thread t2(worldLevelEffects);
     t1.join();
+    t2.join();
 }
