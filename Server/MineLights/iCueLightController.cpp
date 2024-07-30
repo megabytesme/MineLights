@@ -96,72 +96,123 @@ void receiveUDP() {
     WSACleanup();
 }
 
+// Define the Biome structure with RGB color properties
+struct Biome {
+    std::string name;
+    bool hasRain;
+    bool isSnowy;
+    int red;
+    int green;
+    int blue;
+};
+
+// List of biomes with their properties and RGB colors
+std::vector<Biome> biomes = {
+    {"minecraft:plains", true, false, 124, 252, 0},
+    {"minecraft:forest", true, false, 34, 139, 34},
+    {"minecraft:mountains", true, true, 169, 169, 169},
+    {"minecraft:desert", false, false, 237, 201, 175},
+    {"minecraft:ocean", true, false, 0, 105, 148},
+    {"minecraft:jungle", true, false, 0, 100, 0},
+    {"minecraft:savanna", false, false, 244, 164, 96},
+    {"minecraft:badlands", false, false, 210, 105, 30},
+    {"minecraft:swamp", true, false, 32, 178, 170},
+    {"minecraft:taiga", true, true, 0, 128, 128},
+    {"minecraft:snowy_tundra", true, true, 255, 250, 250},
+    {"minecraft:mushroom_fields", true, false, 255, 0, 255},
+    {"minecraft:beach", true, false, 238, 214, 175},
+    {"minecraft:river", true, false, 0, 191, 255},
+    {"minecraft:dark_forest", true, false, 0, 100, 0},
+    {"minecraft:birch_forest", true, false, 255, 255, 255},
+    {"minecraft:swamp_hills", true, false, 32, 178, 170},
+    {"minecraft:taiga_hills", true, true, 0, 128, 128},
+    {"minecraft:snowy_taiga", true, true, 255, 250, 250},
+    {"minecraft:giant_tree_taiga", true, false, 34, 139, 34},
+    {"minecraft:wooded_mountains", true, true, 169, 169, 169},
+    {"minecraft:savanna_plateau", false, false, 244, 164, 96},
+    {"minecraft:shattered_savanna", false, false, 244, 164, 96},
+    {"minecraft:bamboo_jungle", true, false, 0, 100, 0},
+    {"minecraft:snowy_taiga_hills", true, true, 255, 250, 250},
+    {"minecraft:giant_spruce_taiga", true, false, 34, 139, 34},
+    {"minecraft:snowy_beach", true, true, 255, 250, 250},
+    {"minecraft:stone_shore", true, false, 169, 169, 169},
+    {"minecraft:warm_ocean", true, false, 0, 105, 148},
+    {"minecraft:lukewarm_ocean", true, false, 0, 105, 148},
+    {"minecraft:cold_ocean", true, false, 0, 105, 148},
+    {"minecraft:deep_ocean", true, false, 0, 0, 128},
+    {"minecraft:deep_lukewarm_ocean", true, false, 0, 0, 128},
+    {"minecraft:deep_cold_ocean", true, false, 0, 0, 128},
+    {"minecraft:deep_frozen_ocean", true, true, 173, 216, 230},
+    {"minecraft:the_void", false, false, 10, 10, 10},
+    {"minecraft:sunflower_plains", true, false, 255, 223, 0},
+    {"minecraft:snowy_plains", true, true, 255, 250, 250},
+    {"minecraft:ice_spikes", true, true, 173, 216, 230},
+    {"minecraft:mangrove_swamp", true, false, 34, 139, 34},
+    {"minecraft:flower_forest", true, false, 255, 182, 193},
+    {"minecraft:old_growth_birch_forest", true, false, 255, 255, 255},
+    {"minecraft:old_growth_pine_taiga", true, false, 0, 100, 0},
+    {"minecraft:old_growth_spruce_taiga", true, false, 34, 139, 34},
+    {"minecraft:sparse_jungle", true, false, 0, 100, 0},
+    {"minecraft:eroded_badlands", false, false, 210, 105, 30},
+    {"minecraft:wooded_badlands", false, false, 244, 164, 96},
+    {"minecraft:meadow", true, false, 124, 252, 0},
+    {"minecraft:cherry_grove", true, false, 255, 182, 193},
+    {"minecraft:grove", true, false, 0, 100, 0},
+    {"minecraft:snowy_slopes", true, true, 255, 250, 250},
+    {"minecraft:frozen_peaks", true, true, 173, 216, 230},
+    {"minecraft:jagged_peaks", true, false, 0, 100, 0},
+    {"minecraft:stony_peaks", true, false, 169, 169, 169},
+    {"minecraft:frozen_river", true, true, 255, 250, 250},
+    {"minecraft:stony_shore", true, false, 169, 169, 169},
+    {"minecraft:dripstone_caves", true, false, 0, 100, 0},
+    {"minecraft:lush_caves", true, false, 255, 182, 193},
+    {"minecraft:deep_dark", true, false, 10, 10, 10},
+    {"minecraft:nether_wastes", false, false, 230, 30, 5},
+    {"minecraft:crimson_forest", false, false, 255, 20, 5},
+    {"minecraft:warped_forest", false, false, 0, 128, 128},
+    {"minecraft:soul_sand_valley", false, false, 194, 178, 128},
+    {"minecraft:basalt_deltas", false, false, 128, 128, 128},
+    {"minecraft:end_barrens", false, false, 128, 128, 128},
+    {"minecraft:end_highlands", false, false, 128, 128, 128},
+    {"minecraft:end_midlands", false, false, 128, 128, 128},
+    {"minecraft:small_end_islands", false, false, 128, 128, 128},
+    {"minecraft:the_end", false, false, 128, 128, 128}
+};
+
 CorsairLedColor determineBiomeColor(const std::string& biome) {
-    // Map of biomes to colors
-    std::map<std::string, CorsairLedColor> netherBiomes;
-    std::map<std::string, CorsairLedColor> overworldBiomes;
-    std::map<std::string, CorsairLedColor> endBiomes;
+    for (const auto& b : biomes) {
+        if (b.name == biome) {
+            return { CLI_Invalid, b.red, b.green, b.blue };
+        }
+    }
 
-    // Add biomes to respective maps
-    netherBiomes["minecraft:nether_wastes"] = { CLI_Invalid, 230, 30, 5 };
-    netherBiomes["minecraft:crimson_forest"] = { CLI_Invalid, 255, 20, 5 };
-    netherBiomes["minecraft:warped_forest"] = { CLI_Invalid, 0, 128, 128 };
-    netherBiomes["minecraft:soul_sand_valley"] = { CLI_Invalid, 194, 178, 128 };
-    netherBiomes["minecraft:basalt_deltas"] = { CLI_Invalid, 128, 128, 128 };
-    overworldBiomes["minecraft:plains"] = { CLI_Invalid, 124, 252, 0 };
-    overworldBiomes["minecraft:forest"] = { CLI_Invalid, 34, 139, 34 };
-    overworldBiomes["minecraft:mountains"] = { CLI_Invalid, 169, 169, 169 };
-    overworldBiomes["minecraft:desert"] = { CLI_Invalid, 237, 201, 175 };
-    overworldBiomes["minecraft:ocean"] = { CLI_Invalid, 0, 105, 148 };
-    overworldBiomes["minecraft:jungle"] = { CLI_Invalid, 0, 100, 0 };
-    overworldBiomes["minecraft:savanna"] = { CLI_Invalid, 244, 164, 96 };
-    overworldBiomes["minecraft:badlands"] = { CLI_Invalid, 210, 105, 30 };
-    overworldBiomes["minecraft:swamp"] = { CLI_Invalid, 32, 178, 170 };
-    overworldBiomes["minecraft:taiga"] = { CLI_Invalid, 0, 128, 128 };
-    overworldBiomes["minecraft:snowy_tundra"] = { CLI_Invalid, 255, 250, 250 };
-    overworldBiomes["minecraft:mushroom_fields"] = { CLI_Invalid, 255, 0, 255 };
-    overworldBiomes["minecraft:beach"] = { CLI_Invalid, 238, 214, 175 };
-    overworldBiomes["minecraft:river"] = { CLI_Invalid, 0, 191, 255 };
-    overworldBiomes["minecraft:dark_forest"] = { CLI_Invalid, 0, 100, 0 };
-    overworldBiomes["minecraft:birch_forest"] = { CLI_Invalid, 255, 255, 255 };
-    overworldBiomes["minecraft:swamp_hills"] = { CLI_Invalid, 32, 178, 170 };
-    overworldBiomes["minecraft:taiga_hills"] = { CLI_Invalid, 0, 128, 128 };
-    overworldBiomes["minecraft:snowy_taiga"] = { CLI_Invalid, 255, 250, 250 };
-    overworldBiomes["minecraft:giant_tree_taiga"] = { CLI_Invalid, 34, 139, 34 };
-    overworldBiomes["minecraft:wooded_mountains"] = { CLI_Invalid, 169, 169, 169 };
-    overworldBiomes["minecraft:savanna_plateau"] = { CLI_Invalid, 244, 164, 96 };
-    overworldBiomes["minecraft:shattered_savanna"] = { CLI_Invalid, 244, 164, 96 };
-    overworldBiomes["minecraft:bamboo_jungle"] = { CLI_Invalid, 0, 100, 0 };
-    overworldBiomes["minecraft:snowy_taiga_hills"] = { CLI_Invalid, 255, 250, 250 };
-    overworldBiomes["minecraft:giant_spruce_taiga"] = { CLI_Invalid, 34, 139, 34 };
-    overworldBiomes["minecraft:snowy_beach"] = { CLI_Invalid, 255, 250, 250 };
-    overworldBiomes["minecraft:stone_shore"] = { CLI_Invalid, 169, 169, 169 };
-    overworldBiomes["minecraft:warm_ocean"] = { CLI_Invalid, 0, 105, 148 };
-    overworldBiomes["minecraft:lukewarm_ocean"] = { CLI_Invalid, 0, 105, 148 };
-    overworldBiomes["minecraft:cold_ocean"] = { CLI_Invalid, 0, 105, 148 };
-    overworldBiomes["minecraft:deep_ocean"] = { CLI_Invalid, 0, 0, 128 };
-    overworldBiomes["minecraft:deep_lukewarm_ocean"] = { CLI_Invalid, 0, 0, 128 };
-    overworldBiomes["minecraft:deep_cold_ocean"] = { CLI_Invalid, 0, 0, 128 };
-    overworldBiomes["minecraft:deep_frozen_ocean"] = { CLI_Invalid, 173, 216, 230 };
-    endBiomes["minecraft:the_end"] = { CLI_Invalid, 128, 0, 128 };
-    endBiomes["minecraft:end_highlands"] = { CLI_Invalid, 128, 0, 128 };
-    endBiomes["minecraft:end_midlands"] = { CLI_Invalid, 128, 0, 128 };
-    endBiomes["minecraft:end_barrens"] = { CLI_Invalid, 128, 0, 128 };
-    endBiomes["minecraft:small_end_islands"] = { CLI_Invalid, 128, 0, 128 };
+    return { CLI_Invalid, 0, 0, 0 };
+}
 
-    if (overworldBiomes.find(biome) != overworldBiomes.end()) {
-        return overworldBiomes[biome];
+CorsairLedColor getBiomeRainColor(const std::string& biome) {
+    for (const auto& b : biomes) {
+        if (b.name == biome) {
+            if (b.isSnowy) {
+                return { CLI_Invalid, 255, 255, 255 }; // White
+            }
+            else if (b.hasRain) {
+                return { CLI_Invalid, 0, 0, 255 }; // Blue
+            }
+            else {
+                return determineBiomeColor(b.name);
+            }
+        }
     }
-    else if (netherBiomes.find(biome) != netherBiomes.end()) {
-        return netherBiomes[biome];
-    }
-    else if (endBiomes.find(biome) != endBiomes.end()) {
-        return endBiomes[biome];
-    }
-    else {
-        // Default color if biome is not found
-        return { CLI_Invalid, 255, 255, 255 };
-    }
+}
+
+bool isPlayerInRainyBiome(const std::string& biome) {
+	for (const auto& b : biomes) {
+		if (b.name == biome) {
+			return b.hasRain;
+		}
+	}
+
+	return false;
 }
 
 bool isPlayerInSpecialBlock(const std::string& blockName) {
@@ -229,7 +280,7 @@ void worldEffects() {
                 }
 
                 // Handle weather effects
-                while (player.weather == "Rain" && !isPlayerInSpecialBlock(player.currentBlock) || player.weather == "Thunderstorm" && !isPlayerInSpecialBlock(player.currentBlock)) {
+                while ((player.weather == "Rain" || player.weather == "Thunderstorm") && !isPlayerInSpecialBlock(player.currentBlock) && isPlayerInRainyBiome(player.currentBiome)) {
                     // Update the biome color again in case the biome has changed
                     biomeColor = determineBiomeColor(player.currentBiome);
 
@@ -237,8 +288,8 @@ void worldEffects() {
                     for (int i = 0; i < CLI_Last; i++) {
                         CorsairLedColor patternColor;
                         if (i % 2 == 0) {
-                            // Even LEDs: Set to blue
-                            patternColor = { CLI_Invalid, 0, 0, 255 };
+                            // Even LEDs: Set to rain color
+                            patternColor = getBiomeRainColor(player.currentBiome);
                         }
                         else {
                             // Odd LEDs: Set to biome color
@@ -269,8 +320,8 @@ void worldEffects() {
                             patternColor = biomeColor;
                         }
                         else {
-                            // Odd LEDs: Set to blue
-                            patternColor = { CLI_Invalid, 0, 0, 255 };
+                            // Odd LEDs: Set to rain color
+                            patternColor = getBiomeRainColor(player.currentBiome);
                         }
                         patternColor.ledId = static_cast<CorsairLedId>(i);
                         CorsairSetLedsColors(1, &patternColor);
