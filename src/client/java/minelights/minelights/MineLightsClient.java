@@ -33,7 +33,8 @@ public class MineLightsClient implements ClientModInitializer {
             try {
                 String processName = "MineLights.exe";
                 String command = "taskkill /F /IM " + processName;
-                Process process = Runtime.getRuntime().exec(command);
+                ProcessBuilder processBuilder = new ProcessBuilder(command);
+                Process process = processBuilder.start();
                 process.waitFor();
             } catch (Exception e) {
                 e.printStackTrace();
