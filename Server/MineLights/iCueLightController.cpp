@@ -193,7 +193,7 @@ CorsairLedColor getBiomeRainColor(const std::string& biome) {
     for (const auto& b : biomes) {
         if (b.name == biome) {
             if (b.isSnowy) {
-                return { CLI_Invalid, 255, 255, 255 }; // White
+                return { CLI_Invalid, 100, 100, 100 }; // White
             }
             else if (b.hasRain) {
                 return { CLI_Invalid, 0, 0, 255 }; // Blue
