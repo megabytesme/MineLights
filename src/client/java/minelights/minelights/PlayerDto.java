@@ -1,19 +1,19 @@
 package minelights.minelights;
 
 public class PlayerDto {
-    private String worldLevel;
+    private boolean inGame;
     private float health;
     private int hunger;
     private String weather;
     private String currentBlock;
     private String currentBiome;
 
-    public String getWorldLevel() {
-        return worldLevel;
+    public boolean getInGame() {
+        return inGame;
     }
 
-    public void setWorldLevel(String worldLevel) {
-        this.worldLevel = worldLevel;
+    public void setInGame(boolean inGame) {
+        this.inGame = inGame;
     }
 
     public float getHealth() {
