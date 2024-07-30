@@ -96,7 +96,7 @@ void receiveUDP() {
     WSACleanup();
 }
 
-void effects() {
+CorsairLedColor determineBiomeColor(const std::string& biome) {
     // Map of biomes to colors
     std::map<std::string, CorsairLedColor> netherBiomes;
     std::map<std::string, CorsairLedColor> overworldBiomes;
@@ -108,7 +108,7 @@ void effects() {
     netherBiomes["minecraft:warped_forest"] = { CLI_Invalid, 0, 128, 128 };
     netherBiomes["minecraft:soul_sand_valley"] = { CLI_Invalid, 194, 178, 128 };
     netherBiomes["minecraft:basalt_deltas"] = { CLI_Invalid, 128, 128, 128 };
-    overworldBiomes["minecraft:plains"] = { CLI_Invalid, 124, 252, 0 }; 
+    overworldBiomes["minecraft:plains"] = { CLI_Invalid, 124, 252, 0 };
     overworldBiomes["minecraft:forest"] = { CLI_Invalid, 34, 139, 34 };
     overworldBiomes["minecraft:mountains"] = { CLI_Invalid, 169, 169, 169 };
     overworldBiomes["minecraft:desert"] = { CLI_Invalid, 237, 201, 175 };
@@ -149,22 +149,24 @@ void effects() {
     endBiomes["minecraft:end_barrens"] = { CLI_Invalid, 128, 0, 128 };
     endBiomes["minecraft:small_end_islands"] = { CLI_Invalid, 128, 0, 128 };
 
+    if (overworldBiomes.find(biome) != overworldBiomes.end()) {
+        return overworldBiomes[biome];
+    }
+    else if (netherBiomes.find(biome) != netherBiomes.end()) {
+        return netherBiomes[biome];
+    }
+    else if (endBiomes.find(biome) != endBiomes.end()) {
+        return endBiomes[biome];
+    }
+    else {
+        // Default color if biome is not found
+        return { CLI_Invalid, 255, 255, 255 };
+    }
+}
+
+void worldEffects() {
     while (true) {
-        // Determine the biome color
-        CorsairLedColor biomeColor;
-        if (overworldBiomes.find(player.currentBiome) != overworldBiomes.end()) {
-            biomeColor = overworldBiomes[player.currentBiome];
-        }
-        else if (netherBiomes.find(player.currentBiome) != netherBiomes.end()) {
-            biomeColor = netherBiomes[player.currentBiome];
-        }
-        else if (endBiomes.find(player.currentBiome) != endBiomes.end()) {
-            biomeColor = endBiomes[player.currentBiome];
-        }
-        else {
-            // Default color if biome is not found
-            biomeColor = { CLI_Invalid, 255, 255, 255 };
-        }
+        CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
 
         // Set the LED colors to the biome color
         for (int i = 0; i < CLI_Last; i++) {
@@ -174,6 +176,9 @@ void effects() {
 
         // Handle weather effects
         while (player.weather == "Rain" || player.weather == "Thunderstorm") {
+            // Update the biome color again in case the biome has changed
+            biomeColor = determineBiomeColor(player.currentBiome);
+
             // Create an alternating pattern
             for (int i = 0; i < CLI_Last; i++) {
                 CorsairLedColor patternColor;
@@ -182,8 +187,8 @@ void effects() {
                     patternColor = { CLI_Invalid, 0, 0, 255 };
                 }
                 else {
-                    // Odd LEDs: Set to green
-                    patternColor = { CLI_Invalid, 66, 108, 0 };
+                    // Odd LEDs: Set to biome color
+                    patternColor = biomeColor;
                 }
                 patternColor.ledId = static_cast<CorsairLedId>(i);
                 CorsairSetLedsColors(1, &patternColor);
@@ -206,8 +211,8 @@ void effects() {
             for (int i = 0; i < CLI_Last; i++) {
                 CorsairLedColor patternColor;
                 if (i % 2 == 0) {
-                    // Even LEDs: Set to green
-                    patternColor = { CLI_Invalid, 66, 108, 0 };
+                    // Even LEDs: Set to biome color
+                    patternColor = biomeColor;
                 }
                 else {
                     // Odd LEDs: Set to blue
@@ -216,84 +221,10 @@ void effects() {
                 patternColor.ledId = static_cast<CorsairLedId>(i);
                 CorsairSetLedsColors(1, &patternColor);
             }
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     }
 }
-
-void worldEffects() {
-    while (true) {
-        if (player.worldLevel == "overworld") {
-            while (player.weather == "Rain" || player.weather == "Thunderstorm") {
-                // Create an alternating pattern
-                for (int i = 0; i < CLI_Last; i++) {
-                    CorsairLedColor patternColor;
-                    if (i % 2 == 0) {
-                        // Even LEDs: Set to blue
-                        patternColor = { CLI_Invalid, 0, 0, 255 };
-                    }
-                    else {
-                        // Odd LEDs: Set to green
-                        patternColor = { CLI_Invalid, 66, 108, 0 };
-                    }
-                    patternColor.ledId = static_cast<CorsairLedId>(i);
-                    CorsairSetLedsColors(1, &patternColor);
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-                // Random flash if thunderstorm
-                if (player.weather == "Thunderstorm") {
-                    if (rand() % 2 == 0) {
-                        for (int i = 0; i < CLI_Last; i++) {
-                            CorsairLedColor flashColor = { CLI_Invalid, 255, 255, 255 };
-                            flashColor.ledId = static_cast<CorsairLedId>(i);
-                            CorsairSetLedsColors(1, &flashColor);
-                        }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                    }
-                }
-
-                for (int i = 0; i < CLI_Last; i++) {
-                    CorsairLedColor patternColor;
-                    if (i % 2 == 0) {
-                        // Even LEDs: Set to green
-                        patternColor = { CLI_Invalid, 66, 108, 0 };
-                    }
-                    else {
-                        // Odd LEDs: Set to blue
-                        patternColor = { CLI_Invalid, 0, 0, 255 };
-                    }
-                    patternColor.ledId = static_cast<CorsairLedId>(i);
-                    CorsairSetLedsColors(1, &patternColor);
-                }
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-            CorsairLedColor overworldColor = { CLI_Invalid, 66, 108, 0 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                overworldColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &overworldColor);
-            }
-        }
-        if (player.worldLevel == "the_nether") {
-            CorsairLedColor netherColor = { CLI_Invalid, 230, 30, 5 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                netherColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &netherColor);
-            }
-        }
-        if (player.worldLevel == "the_end") {
-            CorsairLedColor endColor = { CLI_Invalid, 128, 0, 128 };
-            for (int i = 0; i < CLI_Last; i++)
-            {
-                endColor.ledId = (CorsairLedId)i;
-                CorsairSetLedsColors(1, &endColor);
-            }
-        }
-    }
-}
-
 
 iCueLightController::iCueLightController()
 {       
@@ -311,7 +242,7 @@ iCueLightController::iCueLightController()
 
     // start thread to recieve UDP
     std::thread t1(receiveUDP);
-    std::thread t2(effects);
+    std::thread t2(worldEffects);
     t1.join();
     t2.join();
 }
