@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include "Resource.h"
 #include "iCueLightController.h"
+#include <thread>
 
 // Define constants
 #define IDM_EXIT 1001
@@ -48,6 +49,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+// Function to run iCueLightController in a separate thread
+void RunICueLightController() {
+    iCueLightController();
+}
+
 // Main function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     // Create a hidden window
@@ -64,7 +70,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     InitTrayIcon(hWnd);
 
-    iCueLightController();
+    // Start iCueLightController in a separate thread
+    std::thread icueThread(RunICueLightController);
+    icueThread.detach();
 
     // Message loop
     MSG msg;
@@ -72,6 +80,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
 
     return (int)msg.wParam;
 }
