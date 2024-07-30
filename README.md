@@ -8,6 +8,7 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 - **iCue Integration**: Sync your in-game events with your iCue-compatible RGB devices.
 - **Biome-specific colours**: Each biome you traverse in-game will have its own specific colours!
 - **Weather integration**: The weather in the current biome will show on your devices!
+- **Block effects**: When standing in certain blocks (such as lava, fire and portals), effects will show on the keyboard!
 
 ## Supported RGB software
 - **Corsair iCue** - full device support upto [iCue SDK 3.0.464](https://github.com/CorsairOfficial/cue-sdk/releases/tag/v3.0.464).
@@ -16,14 +17,13 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 
 1. **Download Fabric Loader**: [Fabric](https://fabricmc.net/)
 2. **Download Fabric API**: [Fabric API](https://www.curseforge.com/minecraft/mc-mods/irisshaders)
-3. **Download MineLights**: MineLights Release (TBD)
-4. **Place the downloaded files** in your Minecraft `mods` folder.
-5. **Install MineLights helper** application.
+3. **Download latest MineLights release**: [MineLights Releases](https://github.com/megabytesme/MineLights/releases)
+4. **Extract and place the downloaded files** in your Minecraft `mods` folder.
 
 ## Usage
 
 1. **Launch Minecraft** with the Fabric profile.
-2. **Launch MineLights helper** application.
+2. **If requested** allow "MineLights" and "Java" access to networks.
 3. **Ensure third-party RGB integrations are enabled** in whichever software you use!
 4. **Enjoy synchronized RGB lighting** while you play!
 
