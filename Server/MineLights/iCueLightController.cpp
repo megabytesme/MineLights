@@ -270,7 +270,7 @@ void worldEffects() {
                     CorsairSetLedsColors(1, &color);
                 }
             }
-            while (!isPlayerInSpecialBlock(player.currentBlock)) {
+            while (!isPlayerInSpecialBlock(player.currentBlock) && player.inGame) {
                 CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
 
                 // Set the LED colors to the biome color
