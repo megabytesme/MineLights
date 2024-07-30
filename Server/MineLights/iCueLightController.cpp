@@ -164,6 +164,14 @@ CorsairLedColor determineBiomeColor(const std::string& biome) {
     }
 }
 
+bool isPlayerInSpecialBlock(const std::string& blockName) {
+    if (blockName == "block.minecraft.nether_portal" || blockName == "block.minecraft.end_portal" || blockName == "block.minecraft.lava" || blockName == "block.minecraft.fire") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void worldEffects() {
     while (true) {
         if (!player.inGame) {
@@ -210,7 +218,8 @@ void worldEffects() {
                     color.ledId = static_cast<CorsairLedId>(i);
                     CorsairSetLedsColors(1, &color);
                 }
-            } else {
+            }
+            while (!isPlayerInSpecialBlock(player.currentBlock)) {
                 CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
 
                 // Set the LED colors to the biome color
@@ -220,7 +229,7 @@ void worldEffects() {
                 }
 
                 // Handle weather effects
-                while (player.weather == "Rain" || player.weather == "Thunderstorm") {
+                while (player.weather == "Rain" && !isPlayerInSpecialBlock(player.currentBlock) || player.weather == "Thunderstorm" && !isPlayerInSpecialBlock(player.currentBlock)) {
                     // Update the biome color again in case the biome has changed
                     biomeColor = determineBiomeColor(player.currentBiome);
 
