@@ -10,7 +10,7 @@ public class MineLightsClient implements ClientModInitializer {
     public void onInitializeClient() {
         try {
             String modsFolder = System.getProperty("user.dir") + "/mods";
-            ProcessBuilder processBuilder = new ProcessBuilder(modsFolder + "/MineLights.exe");
+            ProcessBuilder processBuilder = new ProcessBuilder(modsFolder + "/MineLights/MineLights.exe");
             processBuilder.start();
         } catch (Exception e) {
             e.printStackTrace();
