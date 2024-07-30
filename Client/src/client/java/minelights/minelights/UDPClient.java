@@ -12,7 +12,6 @@ public class UDPClient {
             byte[] buffer = playerDataJson.getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 63212);
             socket.send(packet);
-            System.out.println("Sent packet: " + packet);
             socket.close();
         } catch (Exception e) {
             e.printStackTrace();
