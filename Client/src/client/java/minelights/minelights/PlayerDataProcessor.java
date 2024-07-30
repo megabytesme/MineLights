@@ -18,7 +18,8 @@ public class PlayerDataProcessor {
 
         // Set the player data
         PlayerDto playerDto = new PlayerDto();
-        playerDto.setWorldLevel(world.getRegistryKey().getValue().getPath());
+        
+        playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
         playerDto.setHunger(player.getHungerManager().getFoodLevel());
         if (world.isRaining()) {
@@ -30,7 +31,7 @@ public class PlayerDataProcessor {
         } else {
             playerDto.setWeather("Clear");
         }
-        
+
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
         playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).getIdAsString());
