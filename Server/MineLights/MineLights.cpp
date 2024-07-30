@@ -64,6 +64,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     InitTrayIcon(hWnd);
 
+    iCueLightController();
+
     // Message loop
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
