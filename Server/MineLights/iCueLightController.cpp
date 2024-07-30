@@ -9,6 +9,7 @@
 // cuesdk includes
 #define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
 #include "CUESDK.h"
+#include "CorsairLedIdEnum.h"
 #include <atomic>
 #include <thread>
 #include <string>
@@ -226,6 +227,40 @@ void worldEffects() {
     }
 }
 
+void setLedColorWithBrightness(CorsairLedId ledId, int r, int g, int b, float brightness) {
+    CorsairLedColor color = { ledId, static_cast<int>(r * brightness), static_cast<int>(g * brightness), static_cast<int>(b * brightness) };
+    CorsairSetLedsColors(1, &color);
+}
+
+void playerEffects() {
+    const std::vector<CorsairLedId> redLeds = { CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_E, CorsairLedId::CLK_T, CorsairLedId::CLK_U, CorsairLedId::CLK_D, CorsairLedId::CLK_H, CorsairLedId::CLK_V, CorsairLedId::CLK_B, CorsairLedId::CLK_Space };
+    const std::vector<CorsairLedId> whiteLeds = { CorsairLedId::CLK_R, CorsairLedId::CLK_F, CorsairLedId::CLK_Y, CorsairLedId::CLK_G };
+
+    while (true) {
+        if (player.health < 10) {
+            // Heartbeat pattern: increase and decrease brightness
+            for (float brightness = 0.0f; brightness <= 1.0f; brightness += 0.1f) {
+                for (auto led : redLeds) {
+                    setLedColorWithBrightness(led, 255, 0, 0, brightness);
+                }
+                for (auto led : whiteLeds) {
+                    setLedColorWithBrightness(led, 255, 255, 255, brightness);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+            for (float brightness = 1.0f; brightness >= 0.0f; brightness -= 0.1f) {
+                for (auto led : redLeds) {
+                    setLedColorWithBrightness(led, 255, 0, 0, brightness);
+                }
+                for (auto led : whiteLeds) {
+                    setLedColorWithBrightness(led, 255, 255, 255, brightness);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+        }
+    }
+}
+
 iCueLightController::iCueLightController()
 {       
     // initialize SDK
@@ -243,6 +278,8 @@ iCueLightController::iCueLightController()
     // start thread to recieve UDP
     std::thread t1(receiveUDP);
     std::thread t2(worldEffects);
+    std::thread t3(playerEffects);
     t1.join();
     t2.join();
+    t3.join();
 }
