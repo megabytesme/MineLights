@@ -16,8 +16,8 @@ void InitTrayIcon(HWND hWnd) {
     nid.uID = 1;
     nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid.uCallbackMessage = TRAY_ICON_MESSAGE;
-    //nid.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1)); // Use your custom icon
-    lstrcpy(nid.szTip, L"MineLights"); // Tooltip text
+    nid.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1));
+    lstrcpy(nid.szTip, L"MineLights Helper");
     Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
@@ -57,7 +57,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = L"MineLightsClass";
     RegisterClass(&wc);
 
-    HWND hWnd = CreateWindow(L"MineLightsClass", L"MineLights", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
+    HWND hWnd = CreateWindow(L"MineLightsClass", L"MineLights Helper", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
     if (!hWnd) {
         return 0;
     }
