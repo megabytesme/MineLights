@@ -36,10 +36,6 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 
 Contributions are welcome! Please fork the repository and submit a pull request.
 
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
 ## Contact
 
 For any questions or suggestions, feel free to open an issue.
