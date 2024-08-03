@@ -1,7 +1,10 @@
+#include <winsock2.h>
 #include <Windows.h>
 #include "Resource.h"
-#include "iCueLightController.h"
 #include <thread>
+#include "Biome.h"
+#include "Player.h"
+#include "PlayerProcessor.h"
 
 // Define constants
 #define IDM_EXIT 1001
@@ -49,9 +52,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-// Function to run iCueLightController in a separate thread
-void RunICueLightController() {
-    iCueLightController();
+void RunPlayerProcessor() {
+    PlayerProcessor();
 }
 
 // Main function
@@ -71,7 +73,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     InitTrayIcon(hWnd);
 
     // Start iCueLightController in a separate thread
-    std::thread icueThread(RunICueLightController);
+    std::thread icueThread(RunPlayerProcessor);
     icueThread.detach();
 
     // Message loop
