@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Biome.h" />
     <ClInclude Include="CorsairKeyIdEnum.h" />
     <ClInclude Include="CorsairLedIdEnum.h" />
     <ClInclude Include="CUESDK.h" />
@@ -152,12 +153,17 @@
     <ClInclude Include="iCueLightController.h" />
     <ClInclude Include="libs\jsoncpp-master\include\json.h" />
     <ClInclude Include="MineLights.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerProcessor.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Biome.cpp" />
     <ClCompile Include="iCueLightController.cpp" />
     <ClCompile Include="MineLights.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MineLights.rc" />
