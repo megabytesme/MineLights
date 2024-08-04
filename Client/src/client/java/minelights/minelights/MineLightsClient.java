@@ -32,7 +32,7 @@ public class MineLightsClient implements ClientModInitializer {
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             try {
                 String processName = "MineLights.exe";
-                String command = "taskkill /F /IM " + processName;
+                String[] command = {"taskkill", "/F", "/IM", processName};
                 ProcessBuilder processBuilder = new ProcessBuilder(command);
                 Process process = processBuilder.start();
                 process.waitFor();

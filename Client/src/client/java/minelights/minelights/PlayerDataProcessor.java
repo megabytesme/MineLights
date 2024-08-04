@@ -2,6 +2,7 @@ package minelights.minelights;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.world.World;
 import com.google.gson.Gson;
 
@@ -35,6 +36,32 @@ public class PlayerDataProcessor {
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
         playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).getIdAsString());
+
+        if (player.isOnFire()) {
+            playerDto.setIsOnFire(true);
+        } else {
+            playerDto.setIsOnFire(false);
+        }
+
+        if (player.hasStatusEffect(StatusEffects.POISON)) {
+            playerDto.setIsPoisoned(true);
+        } else {
+            playerDto.setIsPoisoned(false);
+        }
+
+        if (player.hasStatusEffect(StatusEffects.WITHER)) {
+            playerDto.setIsWithering(true);
+        } else {
+            playerDto.setIsWithering(false);
+        }
+        
+        if (player.hurtTime > 0) {
+            playerDto.setIsTakingDamage(true);
+        } else {
+            playerDto.setIsTakingDamage(false);
+        }
+
+        playerDto.setExperience(player.experienceProgress);
 
         // Serialize playerDto to JSON
         Gson gson = new Gson();

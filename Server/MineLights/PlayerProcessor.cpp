@@ -11,6 +11,7 @@
 #include <thread>
 #include "Player.h"
 #include "iCueLightController.h"
+#include "MysticLight.h"
 
 using json = nlohmann::json;
 
@@ -67,22 +68,33 @@ static void UDPServer() {
         player.inGame = receivedJson["inGame"];
         player.health = receivedJson["health"];
         player.hunger = receivedJson["hunger"];
+        player.experience = receivedJson["experience"];
         player.weather = receivedJson["weather"];
         player.currentBlock = receivedJson["currentBlock"];
         player.currentBiome = receivedJson["currentBiome"];
+        player.isOnFire = receivedJson["isOnFire"];
+        player.isPoisoned = receivedJson["isPoisoned"];
+        player.isWithering = receivedJson["isWithering"];
+        player.isTakingDamage = receivedJson["isTakingDamage"];
     }
 
     closesocket(in);
     WSACleanup();
 }
 
-void RunRGBControllers() {
+void RuniCueController() {
     iCueLightController();
+}
+
+void RunMysticLightController() {
+    MysticLightController();
 }
 
 PlayerProcessor::PlayerProcessor() {
     std::thread t1(UDPServer);
-    std::thread t2(RunRGBControllers);
+    std::thread t2(RuniCueController);
+    //std::thread t3(RunMysticLightController);
     t1.join();
     t2.join();
+    //t3.join();
 }
