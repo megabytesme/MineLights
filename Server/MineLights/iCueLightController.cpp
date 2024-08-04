@@ -93,7 +93,7 @@ void worldEffects() {
                     color.ledId = static_cast<CorsairLedId>(i);
                     CorsairSetLedsColors(1, &color);
                 }
-            } else if (player.currentBlock == "block.minecraft.lava" || player.currentBlock == "block.minecraft.fire") {
+            } else if (player.isOnFire) {
                 for (int i = 0; i < CLI_Last; i++) {
                     CorsairLedColor color;
                     if (rand() % 10 < 2) { // 20% chance to twinkle
@@ -175,31 +175,106 @@ void setLedColorWithBrightness(CorsairLedId ledId, int r, int g, int b, float br
 }
 
 void playerEffects() {
-    const std::vector<CorsairLedId> redLeds = { CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_E, CorsairLedId::CLK_T, CorsairLedId::CLK_U, CorsairLedId::CLK_D, CorsairLedId::CLK_H, CorsairLedId::CLK_V, CorsairLedId::CLK_B, CorsairLedId::CLK_Space };
-    const std::vector<CorsairLedId> whiteLeds = { CorsairLedId::CLK_R, CorsairLedId::CLK_F, CorsairLedId::CLK_Y, CorsairLedId::CLK_G };
+    const std::vector<CorsairLedId> movementLeds = { CorsairLedId::CLK_W, CorsairLedId::CLK_A, CorsairLedId::CLK_S, CorsairLedId::CLK_D, CorsairLedId::CLK_LeftCtrl, CorsairLedId::CLK_LeftShift, CorsairLedId::CLK_Space };
 
     while (true) {
         if (player.inGame) {
+            if (player.currentBlock == "block.minecraft.water") {
+                for (auto led : movementLeds) {
+                    setLedColorWithBrightness(led, 0, 0, 255, 1.0f);
+                }
+            } else if (player.currentBlock == "block.minecraft.lava" || player.currentBlock == "block.minecraft.fire") {
+                for (auto led : movementLeds) {
+					setLedColorWithBrightness(led, 255, 0, 0, 1.0f);
+				}
+			} else {
+				for (auto led : movementLeds) {
+					setLedColorWithBrightness(led, 255, 255, 255, 1.0f);
+				}
+			}
+        }
+    }
+}
+
+void healthEffects() {
+    const std::vector<CorsairLedId> heartRedLeds = { CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_E, CorsairLedId::CLK_T, CorsairLedId::CLK_U, CorsairLedId::CLK_D, CorsairLedId::CLK_H, CorsairLedId::CLK_V, CorsairLedId::CLK_B, CorsairLedId::CLK_Space };
+    const std::vector<CorsairLedId> heartWhiteLeds = { CorsairLedId::CLK_R, CorsairLedId::CLK_F, CorsairLedId::CLK_Y, CorsairLedId::CLK_G };
+
+	while (true) {
+		if (player.inGame) {
             if (player.health < 10) {
                 // Heartbeat pattern: increase and decrease brightness
                 for (float brightness = 0.0f; brightness <= 1.0f; brightness += 0.1f) {
-                    for (auto led : redLeds) {
+                    for (auto led : heartRedLeds) {
                         setLedColorWithBrightness(led, 255, 0, 0, brightness);
                     }
-                    for (auto led : whiteLeds) {
+                    for (auto led : heartWhiteLeds) {
                         setLedColorWithBrightness(led, 255, 255, 255, brightness);
                     }
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
                 for (float brightness = 1.0f; brightness >= 0.0f; brightness -= 0.1f) {
-                    for (auto led : redLeds) {
+                    for (auto led : heartRedLeds) {
                         setLedColorWithBrightness(led, 255, 0, 0, brightness);
                     }
-                    for (auto led : whiteLeds) {
+                    for (auto led : heartWhiteLeds) {
                         setLedColorWithBrightness(led, 255, 255, 255, brightness);
                     }
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
+            }
+		}
+	}
+}
+
+void playerBarEffects() {
+	const std::vector<CorsairLedId> healthLeds = { CorsairLedId::CLK_F1, CorsairLedId::CLK_F2, CorsairLedId::CLK_F3, CorsairLedId::CLK_F4 };
+    const std::vector<CorsairLedId> hungerLeds = { CorsairLedId::CLK_F5, CorsairLedId::CLK_F6, CorsairLedId::CLK_F7, CorsairLedId::CLK_F8 };
+
+	while (true) {
+        if (player.inGame) {
+            for (int i = 0; i < 4; i++) {
+				CorsairLedColor healthColor = { healthLeds[i], 30, 0, 0 };
+				CorsairLedColor hungerColor = { hungerLeds[i], 30, 15, 0 };
+
+				if (player.health > i * 5) {
+                    if (player.isPoisoned) {
+                        healthColor = { healthLeds[i], 148, 120, 24 };
+                    } else {
+                        healthColor = { healthLeds[i], 255, 0, 0 };
+                    }
+				}
+
+				if (player.hunger > i * 5) {
+					hungerColor = { hungerLeds[i], 255, 165, 0 };
+				}
+
+                if (player.isWithering) {
+                    healthColor = { healthLeds[i], 43, 43, 43 };
+                }
+
+				CorsairSetLedsColors(1, &healthColor);
+				CorsairSetLedsColors(1, &hungerColor);
+			}
+        }
+	}
+}
+
+void experienceBar() {
+    const std::vector<CorsairLedId> experienceLeds = { CorsairLedId::CLK_1, CorsairLedId::CLK_2, CorsairLedId::CLK_3, CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_8, CorsairLedId::CLK_9, CorsairLedId::CLK_0 };
+
+    while (true) {
+        if (player.inGame) {
+            int ledsToLight = static_cast<int>(player.experience * experienceLeds.size());
+
+            for (int i = 0; i < experienceLeds.size(); i++) {
+                CorsairLedColor experienceColor = { experienceLeds[i], 0, 0, 0 };
+
+                if (i < ledsToLight) {
+                    experienceColor = { experienceLeds[i], 0, 255, 0 };
+                }
+
+                CorsairSetLedsColors(1, &experienceColor);
             }
         }
     }
@@ -213,6 +288,12 @@ iCueLightController::iCueLightController()
 
     std::thread t1(worldEffects);
     std::thread t2(playerEffects);
+    std::thread t3(healthEffects);
+    std::thread t4(playerBarEffects);
+    std::thread t5(experienceBar);
     t1.join();
     t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
 }

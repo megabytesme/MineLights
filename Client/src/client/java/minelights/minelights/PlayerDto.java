@@ -4,9 +4,14 @@ public class PlayerDto {
     private boolean inGame;
     private float health;
     private int hunger;
+    private float experience;
     private String weather;
     private String currentBlock;
     private String currentBiome;
+    private boolean isOnFire;
+    private boolean isPoisoned;
+    private boolean isWithering;
+    private boolean isTakingDamage;
 
     public boolean getInGame() {
         return inGame;
@@ -54,5 +59,45 @@ public class PlayerDto {
 
     public void setCurrentBiome(String currentBiome) {
         this.currentBiome = currentBiome;
+    }
+
+    public boolean getIsOnFire() {
+        return isOnFire;
+    }
+
+    public void setIsOnFire(boolean isOnFire) {
+        this.isOnFire = isOnFire;
+    }
+
+    public boolean getIsPoisoned() {
+        return isPoisoned;
+    }
+
+    public void setIsPoisoned(boolean isPoisoned) {
+        this.isPoisoned = isPoisoned;
+    }
+
+    public boolean getIsWithering() {
+        return isWithering;
+    }
+
+    public void setIsWithering(boolean isWithering) {
+        this.isWithering = isWithering;
+    }
+
+    public boolean getIsTakingDamage() {
+        return isTakingDamage;
+    }
+
+    public void setIsTakingDamage(boolean isTakingDamage) {
+        this.isTakingDamage = isTakingDamage;
+    }
+
+    public float getExperience() {
+        return experience;
+    }
+
+    public void setExperience(float experience) {
+        this.experience = experience;
     }
 }
