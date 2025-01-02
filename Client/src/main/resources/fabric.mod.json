@@ -3,15 +3,15 @@
 	"id": "mine-lights",
 	"version": "${version}",
 	"name": "MineLights",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
 	"authors": [
-		"Me!"
+		"MegaBytesMe"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/megabytesme/MineLights/issues",
+		"sources": "https://github.com/megabytesme/MineLights"
 	},
-	"license": "CC0-1.0",
+	"license": "CC BY-NC-SA 4.0",
 	"icon": "assets/mine-lights/icon.png",
 	"environment": "*",
 	"entrypoints": {
