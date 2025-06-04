@@ -1,41 +1,27 @@
 {
-	"schemaVersion": 1,
-	"id": "mine-lights",
-	"version": "${version}",
-	"name": "MineLights",
-	"description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
-	"authors": [
-		"MegaBytesMe"
-	],
-	"contact": {
-		"homepage": "https://github.com/megabytesme/MineLights/issues",
-		"sources": "https://github.com/megabytesme/MineLights"
-	},
-	"license": "CC BY-NC-SA 4.0",
-	"icon": "assets/mine-lights/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"minelights.minelights.MineLights"
-		],
-		"client": [
-			"minelights.minelights.MineLightsClient"
-		]
-	},
-	"mixins": [
-		"mine-lights.mixins.json",
-		{
-			"config": "mine-lights.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.21",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
-	}
+  "schemaVersion": 1,
+  "id": "mine-lights",
+  "version": "${version}",
+  "name": "MineLights",
+  "description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
+  "authors": ["MegaBytesMe"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/minelights",
+    "sources": "https://github.com/megabytesme/MineLights",
+    "issues": "https://github.com/megabytesme/MineLights/issues"
+  },
+  "license": "CC BY-NC-SA 4.0",
+  "icon": "assets/mine-lights/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": ["megabytesme.minelights.MineLightsClient"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {}
 }
