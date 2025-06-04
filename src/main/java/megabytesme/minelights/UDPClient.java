@@ -1,4 +1,4 @@
-package minelights.minelights;
+package megabytesme.minelights;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
