@@ -13,12 +13,39 @@ MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Mi
 ## Supported RGB software
 - **Corsair iCue** - full device support upto [iCue SDK 3.0.464](https://github.com/CorsairOfficial/cue-sdk/releases/tag/v3.0.464).
 
-## Installation
+## 🛠️ Installation
 
-1. **Download Fabric Loader**: [Fabric](https://fabricmc.net/)
-2. **Download Fabric API**: [Fabric API](https://www.curseforge.com/minecraft/mc-mods/irisshaders)
-3. **Download latest MineLights release**: [MineLights Releases](https://github.com/megabytesme/MineLights/releases)
-4. **Extract and place the downloaded files** in your Minecraft `mods` folder.
+1.  **Download the LATEST MineLights Release Package:**
+    *   Go to the [MineLights GitHub Releases page](https://github.com/megabytesme/MineLights/releases).
+    *   Download the latest release `.zip` file that supports your Minecraft version (e.g., `MineLights-v1.1.2.zip`). **This is a complete package, not just a mod JAR!**
+
+2.  **Install MineLights (CRITICAL STEPS - Read Carefully!):**
+
+    a.  Locate the `MineLights-vX.X.X.zip` file you just downloaded.
+
+    b.  **Extract the contents** of this `.zip` file to a temporary location (e.g., your Desktop).
+
+    c.  After extracting, you will have a folder (e.g., `MineLights-v1.1.2`). **Open this folder.**
+
+    d.  Inside, you should see the mod's `.jar` file (e.g., `mine-lights-1.1.2.jar`), and a `MineLights` folder (which contains other files essential for the mod to work).
+   
+    e.  Select **BOTH** of these items (the `mine-lights-x.x.x.jar` file AND the `MineLights` folder) from inside the extracted folder.
+    
+    f.  Copy these selected items and **paste them directly into your Minecraft `mods` folder.**
+
+    **Your `mods` folder should now look something like this (along with other mods you may have):**
+    ```
+    .minecraft/
+    └── mods/
+        ├── mine-lights-1.1.2.jar   <-- The JAR from the extracted MineLights package
+        ├── MineLights/             <-- The 'MineLights' folder from the extracted MineLights package
+        └── (other mods...)
+    ```
+
+    ⚠️ **IMPORTANT!**
+    *   **DO NOT** just place the downloaded `MineLights-vX.X.X.zip` file into your `mods` folder.
+    *   **DO NOT** just extract only the `mine-lights-x.x.x.jar` from the zip and place it alone into the `mods` folder.
+    *   **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly.**
 
 ## Usage
 
