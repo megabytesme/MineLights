@@ -1,4 +1,4 @@
-package minelights.minelights;
+package megabytesme.minelights;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -19,7 +19,7 @@ public class PlayerDataProcessor {
 
         // Set the player data
         PlayerDto playerDto = new PlayerDto();
-        
+
         playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
         playerDto.setHunger(player.getHungerManager().getFoodLevel());
@@ -54,7 +54,7 @@ public class PlayerDataProcessor {
         } else {
             playerDto.setIsWithering(false);
         }
-        
+
         if (player.hurtTime > 0) {
             playerDto.setIsTakingDamage(true);
         } else {

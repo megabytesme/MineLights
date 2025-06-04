@@ -1,4 +1,4 @@
-package minelights.minelights;
+package megabytesme.minelights;
 
 import com.google.gson.Gson;
 
@@ -20,5 +20,5 @@ public class PlayerConnectionHandler {
 
         // Send the JSON data via UDP
         UDPClient.sendPlayerData(playerDtoJson);
-    }    
+    }
 }

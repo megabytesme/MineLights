@@ -1,4 +1,4 @@
-package minelights.minelights;
+package megabytesme.minelights;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -19,7 +19,8 @@ public class MineLightsClient implements ClientModInitializer {
         PlayerDataProcessor playerDataProcessor = new PlayerDataProcessor();
         PlayerConnectionHandler playerConnectionHandler = new PlayerConnectionHandler();
 
-        // This entrypoint is suitable for setting up client-specific logic, such as rendering.
+        // This entrypoint is suitable for setting up client-specific logic, such as
+        // rendering.
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             playerDataProcessor.processPlayerData(client);
         });
@@ -32,7 +33,7 @@ public class MineLightsClient implements ClientModInitializer {
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             try {
                 String processName = "MineLights.exe";
-                String[] command = {"taskkill", "/F", "/IM", processName};
+                String[] command = { "taskkill", "/F", "/IM", processName };
                 ProcessBuilder processBuilder = new ProcessBuilder(command);
                 Process process = processBuilder.start();
                 process.waitFor();
