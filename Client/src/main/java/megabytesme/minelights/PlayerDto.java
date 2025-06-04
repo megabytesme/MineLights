@@ -1,4 +1,4 @@
-package minelights.minelights;
+package megabytesme.minelights;
 
 public class PlayerDto {
     private boolean inGame;
