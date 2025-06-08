@@ -11,7 +11,7 @@
 #include <thread>
 #include "Player.h"
 #include "iCueLightController.h"
-#include "MysticLight.h"
+// #include "MysticLight.h"
 
 using json = nlohmann::json;
 
@@ -86,9 +86,9 @@ void RuniCueController() {
     iCueLightController();
 }
 
-void RunMysticLightController() {
-    MysticLightController();
-}
+//void RunMysticLightController() {
+//    MysticLightController();
+//}
 
 PlayerProcessor::PlayerProcessor() {
     std::thread t1(UDPServer);
