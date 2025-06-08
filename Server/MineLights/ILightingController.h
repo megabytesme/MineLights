@@ -1,12 +1,15 @@
 #pragma once
-#include "LightingCommon.h"
+
+#include <vector>
+#include <string>
+#include <map>
+#include "CUESDK.h"
 
 class ILightingController {
 public:
     virtual ~ILightingController() = default;
     virtual bool Initialize() = 0;
-    virtual void Render(const FrameState& state) = 0;
-
-    virtual std::vector<GenericLedId> GetAllLedIds() const = 0;
-    virtual std::map<NamedKey, GenericLedId> GetNamedKeyMap() const = 0;
+    virtual void Render(const std::vector<CorsairLedColor>& colors) = 0;
+    virtual std::map<std::string, CorsairLedId> GetNamedKeyMap() const = 0;
+    virtual std::vector<CorsairLedId> GetAllLedIds() const = 0;
 };

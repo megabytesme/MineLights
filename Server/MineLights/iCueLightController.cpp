@@ -1,86 +1,41 @@
 #define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
+#include <vector>
 #include "CUESDK.h"
-#include "CorsairLedIdEnum.h"
 #include "iCueLightController.h"
 
 bool iCueLightController::Initialize() {
     CorsairPerformProtocolHandshake();
-    if (CorsairGetLastError()) {
+    if (CorsairGetLastError() != CE_Success) {
         return false;
     }
-    CorsairRequestControl(CAM_ExclusiveLightingControl);
-    return true;
+    return CorsairRequestControl(CAM_ExclusiveLightingControl);
 }
 
-void iCueLightController::Render(const FrameState& state) {
-    std::vector<CorsairLedColor> colorsToSend;
-    for (uint32_t i = 0; i < CLI_Last; ++i) {
-        colorsToSend.push_back({
-            static_cast<CorsairLedId>(i),
-            state.background_color.r,
-            state.background_color.g,
-            state.background_color.b
-            });
-    }
-
-    for (auto& led : colorsToSend) {
-        if (state.key_colors.count(led.ledId)) {
-            const auto& color = state.key_colors.at(led.ledId);
-            led.r = color.r;
-            led.g = color.g;
-            led.b = color.b;
-        }
-    }
-
-    if (!colorsToSend.empty()) {
-        CorsairSetLedsColors(static_cast<int>(colorsToSend.size()), colorsToSend.data());
+void iCueLightController::Render(const std::vector<CorsairLedColor>& colors) {
+    if (!colors.empty()) {
+        CorsairSetLedsColors(static_cast<int>(colors.size()), const_cast<CorsairLedColor*>(colors.data()));
     }
 }
 
-std::vector<GenericLedId> iCueLightController::GetAllLedIds() const {
-    std::vector<GenericLedId> ids;
+std::map<std::string, CorsairLedId> iCueLightController::GetNamedKeyMap() const {
+    std::map<std::string, CorsairLedId> keyMap;
+    keyMap["F1"] = CLK_F1; keyMap["F2"] = CLK_F2; keyMap["F3"] = CLK_F3; keyMap["F4"] = CLK_F4;
+    keyMap["F5"] = CLK_F5; keyMap["F6"] = CLK_F6; keyMap["F7"] = CLK_F7; keyMap["F8"] = CLK_F8;
+    keyMap["1"] = CLK_1; keyMap["2"] = CLK_2; keyMap["3"] = CLK_3; keyMap["4"] = CLK_4;
+    keyMap["5"] = CLK_5; keyMap["6"] = CLK_6; keyMap["7"] = CLK_7; keyMap["8"] = CLK_8;
+    keyMap["9"] = CLK_9; keyMap["0"] = CLK_0;
+    keyMap["W"] = CLK_W; keyMap["A"] = CLK_A; keyMap["S"] = CLK_S; keyMap["D"] = CLK_D;
+    keyMap["LCTRL"] = CLK_LeftCtrl; keyMap["LSHIFT"] = CLK_LeftShift; keyMap["SPACE"] = CLK_Space;
+    keyMap["Q"] = CLK_Q; keyMap["E"] = CLK_E; keyMap["R"] = CLK_R; keyMap["T"] = CLK_T;
+    keyMap["Y"] = CLK_Y; keyMap["U"] = CLK_U; keyMap["F"] = CLK_F; keyMap["G"] = CLK_G;
+    keyMap["H"] = CLK_H; keyMap["V"] = CLK_V; keyMap["B"] = CLK_B;
+    return keyMap;
+}
+
+std::vector<CorsairLedId> iCueLightController::GetAllLedIds() const {
+    std::vector<CorsairLedId> ids;
     for (int i = 1; i < CLI_Last; ++i) {
-        ids.push_back(static_cast<GenericLedId>(i));
+        ids.push_back(static_cast<CorsairLedId>(i));
     }
     return ids;
-}
-
-std::map<NamedKey, GenericLedId> iCueLightController::GetNamedKeyMap() const {
-    std::map<NamedKey, GenericLedId> keyMap;
-    keyMap[NamedKey::F1] = CLK_F1;
-    keyMap[NamedKey::F2] = CLK_F2;
-    keyMap[NamedKey::F3] = CLK_F3;
-    keyMap[NamedKey::F4] = CLK_F4;
-    keyMap[NamedKey::F5] = CLK_F5;
-    keyMap[NamedKey::F6] = CLK_F6;
-    keyMap[NamedKey::F7] = CLK_F7;
-    keyMap[NamedKey::F8] = CLK_F8;
-    keyMap[NamedKey::N1] = CLK_1;
-    keyMap[NamedKey::N2] = CLK_2;
-    keyMap[NamedKey::N3] = CLK_3;
-    keyMap[NamedKey::N4] = CLK_4;
-    keyMap[NamedKey::N5] = CLK_5;
-    keyMap[NamedKey::N6] = CLK_6;
-    keyMap[NamedKey::N7] = CLK_7;
-    keyMap[NamedKey::N8] = CLK_8;
-    keyMap[NamedKey::N9] = CLK_9;
-    keyMap[NamedKey::N0] = CLK_0;
-    keyMap[NamedKey::W] = CLK_W;
-    keyMap[NamedKey::A] = CLK_A;
-    keyMap[NamedKey::S] = CLK_S;
-    keyMap[NamedKey::D] = CLK_D;
-    keyMap[NamedKey::E] = CLK_E;
-    keyMap[NamedKey::R] = CLK_R;
-    keyMap[NamedKey::T] = CLK_T;
-    keyMap[NamedKey::Y] = CLK_Y;
-    keyMap[NamedKey::U] = CLK_U;
-    keyMap[NamedKey::F] = CLK_F;
-    keyMap[NamedKey::G] = CLK_G;
-    keyMap[NamedKey::H] = CLK_H;
-    keyMap[NamedKey::V] = CLK_V;
-    keyMap[NamedKey::B] = CLK_B;
-    keyMap[NamedKey::LeftControl] = CLK_LeftCtrl;
-    keyMap[NamedKey::LeftShift] = CLK_LeftShift;
-    keyMap[NamedKey::Space] = CLK_Space;
-    return keyMap;
 }
