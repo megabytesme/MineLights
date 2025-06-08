@@ -189,8 +189,8 @@ void paintHealthEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
         return;
     }
 
-    const std::vector<CorsairLedId> heartRedLeds = { CLK_4, CLK_5, CLK_6, CLK_7, CLK_E, CLK_T, CLK_U, CLK_D, CLK_H, CLK_V, CLK_B, CLK_Space };
-    const std::vector<CorsairLedId> heartWhiteLeds = { CLK_R, CLK_F, CLK_Y, CLK_G };
+    const std::vector<CorsairLedId> heartRedLeds = { CLK_4, CLK_5, CLK_6, CLK_7, CLK_E, CLK_T, CLK_U, CLK_D, CLK_F, CLK_H, CLK_V, CLK_B, CLK_Space };
+    const std::vector<CorsairLedId> heartWhiteLeds = { CLK_R, CLK_Y, CLK_G };
 
     auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeatStep).count() > 40) {
