@@ -2,18 +2,14 @@
 #include <Windows.h>
 #include "Resource.h"
 #include <thread>
-#include "Biome.h"
-#include "Player.h"
-#include "PlayerProcessor.h"
+#include <memory>
+#include "PlayerProcessor.h" 
 
-// Define constants
 #define IDM_EXIT 1001
 #define TRAY_ICON_MESSAGE (WM_USER + 1)
 
-// Declare global variables
 NOTIFYICONDATA nid;
 
-// Initialize the system tray icon
 void InitTrayIcon(HWND hWnd) {
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = hWnd;
@@ -25,17 +21,15 @@ void InitTrayIcon(HWND hWnd) {
     Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
-// Handle tray icon messages
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
-    case TRAY_ICON_MESSAGE: // Tray icon clicked
+    case TRAY_ICON_MESSAGE:
         if (lParam == WM_RBUTTONDOWN) {
-            // Show context menu
             HMENU hmenu = CreatePopupMenu();
             InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, IDM_EXIT, L"Exit");
             POINT pt;
             GetCursorPos(&pt);
-            SetForegroundWindow(hWnd); // Necessary to ensure the menu is shown
+            SetForegroundWindow(hWnd);
             TrackPopupMenu(hmenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
             DestroyMenu(hmenu);
         }
@@ -43,7 +37,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     case WM_COMMAND:
         if (LOWORD(wParam) == IDM_EXIT) {
-            // Clean up and exit the application
             Shell_NotifyIcon(NIM_DELETE, &nid);
             PostQuitMessage(0);
         }
@@ -52,13 +45,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void RunPlayerProcessor() {
-    PlayerProcessor();
-}
-
-// Main function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    // Create a hidden window
+    std::unique_ptr<PlayerProcessor> playerProcessor;
+
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
@@ -72,17 +61,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     InitTrayIcon(hWnd);
 
-    // Start iCueLightController in a separate thread
-    std::thread icueThread(RunPlayerProcessor);
-    icueThread.detach();
+    playerProcessor = std::make_unique<PlayerProcessor>();
 
-    // Message loop
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-
 
     return (int)msg.wParam;
 }
