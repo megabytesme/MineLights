@@ -55,7 +55,7 @@ void paintWorldEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
     static auto flashStartTime = std::chrono::steady_clock::now();
 
     if (!player.inGame) {
-        for (int i = 0; i < CLI_Last; i++) colors[(CorsairLedId)i] = { (CorsairLedId)i, 221, 26, 33 };
+        for (int i = 0; i < CLI_Last; i++) colors[(CorsairLedId)i] = { (CorsairLedId)i, 255, 0, 0 };
         return;
     }
 
