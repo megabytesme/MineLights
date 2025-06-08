@@ -90,6 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>;F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>;F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\ben\source\repos\megabytesme\MineLights\Server\MineLights\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\ben\source\repos\megabytesme\MineLights\Server\MineLights\libs;%(AdditionalIncludeDirectories);F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\ben\source\repos\megabytesme\MineLights\Server\MineLights\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\ben\source\repos\megabytesme\MineLights\Server\MineLights\libs;%(AdditionalIncludeDirectories);F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -143,6 +145,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>;F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>;F:\dev\personal\MineLights\Server\MineLights\libs\nlohmann</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Biome.h" />
     <ClInclude Include="CorsairKeyIdEnum.h" />
@@ -151,7 +163,8 @@
     <ClInclude Include="CUESDKGlobal.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="iCueLightController.h" />
-    <ClInclude Include="libs\jsoncpp-master\include\json.h" />
+    <ClInclude Include="libs\nlohmann\json.hpp" />
+    <ClInclude Include="libs\nlohmann\json_fwd.hpp" />
     <ClInclude Include="MineLights.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerProcessor.h" />
