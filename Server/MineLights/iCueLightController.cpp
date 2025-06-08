@@ -152,19 +152,44 @@ void paintExperienceBar(std::map<CorsairLedId, CorsairLedColor>& colors) {
 
 void paintPlayerBars(std::map<CorsairLedId, CorsairLedColor>& colors) {
     if (!player.inGame) return;
+    static bool wasTakingDamageLastFrame = false;
+    static bool isDamageFlashActive = false;
+    static auto damageFlashStartTime = std::chrono::steady_clock::now();
     const std::vector<CorsairLedId> healthLeds = { CLK_F1, CLK_F2, CLK_F3, CLK_F4 };
     const std::vector<CorsairLedId> hungerLeds = { CLK_F5, CLK_F6, CLK_F7, CLK_F8 };
 
-    for (size_t i = 0; i < healthLeds.size(); i++) {
-        CorsairLedColor color = { healthLeds[i], 30, 0, 0 };
-        if (player.isWithering) color = { healthLeds[i], 43, 43, 43 };
-        else if (player.isPoisoned) color = { healthLeds[i], 148, 120, 24 };
-        else if (player.health > i * 5) color = { healthLeds[i], 255, 0, 0 };
-        colors[healthLeds[i]] = color;
+    if (player.isTakingDamage && !wasTakingDamageLastFrame) {
+        isDamageFlashActive = true;
+        damageFlashStartTime = std::chrono::steady_clock::now();
     }
+    wasTakingDamageLastFrame = player.isTakingDamage;
+
+    if (isDamageFlashActive) {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - damageFlashStartTime).count() < 120) {
+            for (const auto& led : healthLeds) {
+                colors[led] = { led, 255, 255, 255 };
+            }
+        }
+        else {
+            isDamageFlashActive = false;
+        }
+    }
+
+    if (!isDamageFlashActive) {
+        for (size_t i = 0; i < healthLeds.size(); i++) {
+            CorsairLedColor color = { healthLeds[i], 30, 0, 0 };
+            if (player.isWithering) color = { healthLeds[i], 43, 43, 43 };
+            else if (player.isPoisoned) color = { healthLeds[i], 148, 120, 24 };
+            else if (player.health > i * 5) color = { healthLeds[i], 255, 0, 0 };
+            colors[healthLeds[i]] = color;
+        }
+    }
+
     for (size_t i = 0; i < hungerLeds.size(); i++) {
         CorsairLedColor color = { hungerLeds[i], 30, 15, 0 };
-        if (player.hunger > i * 5) color = { hungerLeds[i], 255, 165, 0 };
+        if (player.hunger > i * 5) {
+            color = { hungerLeds[i], 255, 165, 0 };
+        }
         colors[hungerLeds[i]] = color;
     }
 }
