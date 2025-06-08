@@ -1,0 +1,14 @@
+{
+  "title.mine-lights.config": "MineLights Configuration",
+  "category.mine-lights.general": "General Settings",
+
+  "option.mine-lights.enableMod": "Enable MineLights",
+  "option.mine-lights.enableMod.tooltip": "Master switch to enable or disable all lighting effects.",
+
+  "option.mine-lights.enableHealthBar": "Enable Health Bar Effect",
+  "option.mine-lights.enableHungerBar": "Enable Hunger Bar Effect",
+  "option.mine-lights.enableExperienceBar": "Enable Experience Bar Effect",
+  "option.mine-lights.enableLowHealthWarning": "Enable Low Health Warning",
+  "option.mine-lights.enableEnvironmentalEffects": "Enable Environmental Effects",
+  "option.mine-lights.enableEnvironmentalEffects.tooltip": "Includes effects for biomes, weather, portals, fire, and water."
+}
