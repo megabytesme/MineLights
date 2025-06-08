@@ -1,82 +1,133 @@
+#include "PlayerProcessor.h"
+#include "Logger.h"
+#include "json.hpp"
 #include <iostream>
-#include <fstream>
+#include <vector>
+#include <string>
 #include <WS2tcpip.h>
 #pragma comment (lib, "ws2_32.lib")
-#include <bitset>
 #pragma warning(disable: 4996)
-
-#include "json.hpp"
-#include "PlayerProcessor.h"
-#include <thread>
-#include "Player.h"
-#include "LightingManager.h"
 
 using json = nlohmann::json;
 
-static void UDPServer() {
-    WSADATA data;
-    WORD version = MAKEWORD(2, 2);
-    int wsOk = WSAStartup(version, &data);
-    if (wsOk != 0)
-    {
-        throw wsOk;
+void PlayerProcessor::UDPServerLoop() {
+    SOCKET inSocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (inSocket == INVALID_SOCKET) {
+        LOG("UDP socket creation failed.");
         return;
     }
 
-    SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
+    int bufferSize = 65536;
+    if (setsockopt(inSocket, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(bufferSize)) == SOCKET_ERROR) {
+        LOG("setsockopt for SO_RCVBUF failed with error: " + std::to_string(WSAGetLastError()));
+        closesocket(inSocket);
+        return;
+    }
+
     sockaddr_in serverHint;
     serverHint.sin_addr.S_un.S_addr = ADDR_ANY;
     serverHint.sin_family = AF_INET;
     serverHint.sin_port = htons(63212);
-
-    if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
-    {
-        throw WSAGetLastError();
+    if (bind(inSocket, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR) {
+        LOG("UDP bind failed with error: " + std::to_string(WSAGetLastError()));
+        closesocket(inSocket);
         return;
     }
 
-    sockaddr_in client{};
-    int clientLength = sizeof(client);
+    LOG("UDP Server loop started on port 63212.");
 
-    while (true) {
-        char buf[1025];
-        ZeroMemory(buf, sizeof(buf));
-        int n = recvfrom(in, buf, sizeof(buf) - 1, 0, (sockaddr*)&client, &clientLength);
-        if (n == SOCKET_ERROR) {
-            throw WSAGetLastError();
+    std::vector<char> buf(65536);
+
+    while (m_isRunning) {
+        sockaddr_in clientHint;
+        int clientLength = sizeof(clientHint);
+        int bytesIn = recvfrom(inSocket, buf.data(), buf.size(), 0, (sockaddr*)&clientHint, &clientLength);
+
+        if (bytesIn == SOCKET_ERROR) {
+            int errorCode = WSAGetLastError();
+            LOG("recvfrom failed with error: " + std::to_string(errorCode));
             continue;
         }
 
-        buf[n] = '\0';
         try {
-            json receivedJson = json::parse(buf);
-
-            player.inGame = receivedJson.value("inGame", false);
-            player.health = receivedJson.value("health", 0.0f);
-            player.hunger = receivedJson.value("hunger", 0.0f);
-            player.experience = receivedJson.value("experience", 0.0f);
-            player.weather = receivedJson.value("weather", "");
-            player.currentBlock = receivedJson.value("currentBlock", "");
-            player.currentBiome = receivedJson.value("currentBiome", "");
-            player.isOnFire = receivedJson.value("isOnFire", false);
-            player.isPoisoned = receivedJson.value("isPoisoned", false);
-            player.isWithering = receivedJson.value("isWithering", false);
-            player.isTakingDamage = receivedJson.value("isTakingDamage", false);
+            buf[bytesIn] = '\0';
+            json frameJson = json::parse(buf.data());
+            std::vector<CorsairLedColor> colors;
+            if (frameJson.contains("led_colors")) {
+                for (const auto& key : frameJson["led_colors"]) {
+                    colors.push_back({
+                        static_cast<CorsairLedId>(key.value("id", 0)),
+                        key.value("r", 0), key.value("g", 0), key.value("b", 0)
+                        });
+                }
+            }
+            if (m_controller) {
+                m_controller->Render(colors);
+            }
         }
         catch (const json::parse_error& e) {
-            // ignore bad json
+            LOG("JSON parse error: " + std::string(e.what()));
         }
     }
-
-    closesocket(in);
-    WSACleanup();
+    LOG("UDP Server loop stopped.");
+    closesocket(inSocket);
 }
 
-PlayerProcessor::PlayerProcessor() {
-    udpServerThread = std::thread(UDPServer);
-    lightingManager = std::make_unique<LightingManager>();
-    udpServerThread.detach();
+void PlayerProcessor::SendHandshake() {
+    SOCKET connectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (connectSocket == INVALID_SOCKET) {
+        LOG("!!! Handshake socket creation FAILED with error: " + std::to_string(WSAGetLastError()));
+        return;
+    }
+
+    sockaddr_in clientService;
+    clientService.sin_family = AF_INET;
+    clientService.sin_port = htons(63211);
+    inet_pton(AF_INET, "127.0.0.1", &clientService.sin_addr);
+
+    if (connect(connectSocket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
+        LOG("!!! Handshake connect FAILED with error: " + std::to_string(WSAGetLastError()));
+        closesocket(connectSocket);
+        return;
+    }
+
+    json handshake;
+    handshake["source"] = "iCUE_Proxy";
+    handshake["all_led_ids"] = m_controller->GetAllLedIds();
+    handshake["key_map"] = m_controller->GetNamedKeyMap();
+    std::string handshakeStr = handshake.dump();
+
+    LOG("Attempting to send handshake. Size: " + std::to_string(handshakeStr.length()) + " bytes.");
+
+    int bytesSent = send(connectSocket, handshakeStr.c_str(), (int)handshakeStr.length(), 0);
+
+    if (bytesSent == SOCKET_ERROR) {
+        LOG("!!! Handshake send FAILED with error: " + std::to_string(WSAGetLastError()));
+    }
+    else {
+        LOG(">>> Handshake successfully sent (" + std::to_string(bytesSent) + " bytes).");
+    }
+
+    shutdown(connectSocket, SD_SEND);
+    closesocket(connectSocket);
+}
+
+PlayerProcessor::PlayerProcessor() : m_isRunning(true) {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+    m_controller = std::make_unique<iCueLightController>();
+    if (m_controller->Initialize()) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        SendHandshake();
+        m_udpServerThread = std::thread(&PlayerProcessor::UDPServerLoop, this);
+    }
 }
 
 PlayerProcessor::~PlayerProcessor() {
+    m_isRunning = false;
+    if (m_udpServerThread.joinable()) {
+        m_udpServerThread.detach();
+    }
+    WSACleanup();
 }

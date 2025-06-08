@@ -1,8 +1,8 @@
 #pragma once
+
 #include <thread>
 #include <memory>
-
-class LightingManager;
+#include "iCueLightController.h"
 
 class PlayerProcessor {
 public:
@@ -10,6 +10,9 @@ public:
     ~PlayerProcessor();
 
 private:
-    std::thread udpServerThread;
-    std::unique_ptr<LightingManager> lightingManager;
+    void UDPServerLoop();
+    void SendHandshake();
+    std::unique_ptr<iCueLightController> m_controller;
+    std::thread m_udpServerThread;
+    bool m_isRunning;
 };

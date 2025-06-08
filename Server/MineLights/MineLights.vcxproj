@@ -156,32 +156,25 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Biome.h" />
     <ClInclude Include="CorsairKeyIdEnum.h" />
     <ClInclude Include="CorsairLedIdEnum.h" />
     <ClInclude Include="CUESDK.h" />
     <ClInclude Include="CUESDKGlobal.h" />
-    <ClInclude Include="EffectPainter.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="iCueLightController.h" />
     <ClInclude Include="ILightingController.h" />
     <ClInclude Include="libs\nlohmann\json.hpp" />
     <ClInclude Include="libs\nlohmann\json_fwd.hpp" />
-    <ClInclude Include="LightingCommon.h" />
-    <ClInclude Include="LightingManager.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="MineLights.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerProcessor.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Biome.cpp" />
-    <ClCompile Include="EffectPainter.cpp" />
     <ClCompile Include="iCueLightController.cpp" />
-    <ClCompile Include="LightingManager.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MineLights.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
