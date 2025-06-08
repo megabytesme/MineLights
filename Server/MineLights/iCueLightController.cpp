@@ -1,7 +1,7 @@
-// cuesdk includes
 #define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
 #include "CUESDK.h"
 #include "CorsairLedIdEnum.h"
+
 #include <atomic>
 #include <thread>
 #include <string>
@@ -9,8 +9,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <vector>
+#include <map>
 
-#include <json.hpp>
 #include "iCueLightController.h"
 #include "Player.h"
 #include "Biome.h"
@@ -21,7 +22,6 @@ CorsairLedColor determineBiomeColor(const std::string& biome) {
             return { CLI_Invalid, b.red, b.green, b.blue };
         }
     }
-
     return { CLI_Invalid, 0, 0, 0 };
 }
 
@@ -29,271 +29,252 @@ CorsairLedColor getBiomeRainColor(const std::string& biome) {
     for (const auto& b : biomes) {
         if (b.name == biome) {
             if (b.isSnowy) {
-                return { CLI_Invalid, 100, 100, 100 }; // White
+                return { CLI_Invalid, 200, 200, 255 };
             }
-            else if (b.hasRain) {
-                return { CLI_Invalid, 0, 0, 255 }; // Blue
-            }
-            else {
-                return determineBiomeColor(b.name);
-            }
+            return { CLI_Invalid, 0, 50, 200 };
         }
     }
+    return { CLI_Invalid, 0, 50, 200 };
 }
 
 bool isPlayerInRainyBiome(const std::string& biome) {
-	for (const auto& b : biomes) {
-		if (b.name == biome) {
-			return b.hasRain;
-		}
-	}
-
-	return false;
-}
-
-bool isPlayerInSpecialBlock(const std::string& blockName) {
-    if (blockName == "block.minecraft.nether_portal" || blockName == "block.minecraft.end_portal" || blockName == "block.minecraft.lava" || blockName == "block.minecraft.fire") {
-        return true;
-    } else {
-        return false;
+    for (const auto& b : biomes) {
+        if (b.name == biome) {
+            return b.hasRain && !b.isSnowy;
+        }
     }
+    return false;
 }
 
-void worldEffects() {
-    while (true) {
-        if (!player.inGame) {
-			CorsairLedColor mojangRed = { CLI_Invalid, 255, 0, 0 };
+void paintWorldEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
+    static bool rainPhase = false;
+    static auto lastRainStep = std::chrono::steady_clock::now();
+    static std::vector<CorsairLedId> cracklingFireKeys;
+    static auto lastFireCrackleUpdate = std::chrono::steady_clock::now();
+    static bool isFlashing = false;
+    static auto flashStartTime = std::chrono::steady_clock::now();
 
-			for (int i = 0; i < CLI_Last; i++)
-			{
-				mojangRed.ledId = (CorsairLedId)i;
-				CorsairSetLedsColors(1, &mojangRed);
-			}
-			continue;
-        } else {
-            if (player.currentBlock == "block.minecraft.nether_portal") {
-                for (int i = 0; i < CLI_Last; i++) {
-                    CorsairLedColor color;
-                    if (rand() % 10 < 2) { // 20% chance to twinkle
-                        color = { CLI_Invalid, 50, 0, 100 }; // Deeper purple color
-                    } else {
-                        color = { CLI_Invalid, 128, 0, 128 }; // Nether portal color
-                    }
-                    color.ledId = static_cast<CorsairLedId>(i);
-                    CorsairSetLedsColors(1, &color);
-                }
-            } else if (player.currentBlock == "block.minecraft.end_portal") {
-                for (int i = 0; i < CLI_Last; i++) {
-                    CorsairLedColor color;
-                    if (rand() % 10 < 2) { // 20% chance to twinkle
-                        color = { CLI_Invalid, 50, 50, 50 }; // Low-intensity white color
-                    } else {
-                        color = { CLI_Invalid, 0, 0, 50 }; // Very dark blue color
-                    }
-                    color.ledId = static_cast<CorsairLedId>(i);
-                    CorsairSetLedsColors(1, &color);
-                }
-            } else if (player.isOnFire) {
-                for (int i = 0; i < CLI_Last; i++) {
-                    CorsairLedColor color;
-                    if (rand() % 10 < 2) { // 20% chance to twinkle
-                        color = { CLI_Invalid, 200, 0, 0 }; // Deeper red color
-                    }
-                    else {
-                        color = { CLI_Invalid, 255, 69, 0 }; // Lava/fire color
-                    }
-                    color.ledId = static_cast<CorsairLedId>(i);
-                    CorsairSetLedsColors(1, &color);
-                }
+    if (!player.inGame) {
+        for (int i = 0; i < CLI_Last; i++) colors[(CorsairLedId)i] = { (CorsairLedId)i, 221, 26, 33 };
+        return;
+    }
+
+    auto now = std::chrono::steady_clock::now();
+
+    if (player.weather == "Thunderstorm" && !isFlashing && (rand() % 200 < 1)) {
+        isFlashing = true;
+        flashStartTime = now;
+    }
+
+    if (isFlashing) {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - flashStartTime).count() < 150) {
+            for (int i = 0; i < CLI_Last; i++) {
+                colors[(CorsairLedId)i] = { (CorsairLedId)i, 255, 255, 255 };
             }
-            while (!isPlayerInSpecialBlock(player.currentBlock) && player.inGame) {
-                CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
+            return;
+        }
+        else {
+            isFlashing = false;
+        }
+    }
 
-                // Set the LED colors to the biome color
-                for (int i = 0; i < CLI_Last; i++) {
-                    biomeColor.ledId = (CorsairLedId)i;
-                    CorsairSetLedsColors(1, &biomeColor);
-                }
-
-                // Handle weather effects
-                while ((player.weather == "Rain" || player.weather == "Thunderstorm") && !isPlayerInSpecialBlock(player.currentBlock) && isPlayerInRainyBiome(player.currentBiome)) {
-                    // Update the biome color again in case the biome has changed
-                    biomeColor = determineBiomeColor(player.currentBiome);
-
-                    // Create an alternating pattern
-                    for (int i = 0; i < CLI_Last; i++) {
-                        CorsairLedColor patternColor;
-                        if (i % 2 == 0) {
-                            // Even LEDs: Set to rain color
-                            patternColor = getBiomeRainColor(player.currentBiome);
-                        }
-                        else {
-                            // Odd LEDs: Set to biome color
-                            patternColor = biomeColor;
-                        }
-                        patternColor.ledId = static_cast<CorsairLedId>(i);
-                        CorsairSetLedsColors(1, &patternColor);
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-                    // Random flash if thunderstorm
-                    if (player.weather == "Thunderstorm") {
-                        if (rand() % 2 == 0) {
-                            for (int i = 0; i < CLI_Last; i++) {
-                                CorsairLedColor flashColor = { CLI_Invalid, 255, 255, 255 };
-                                flashColor.ledId = static_cast<CorsairLedId>(i);
-                                CorsairSetLedsColors(1, &flashColor);
-                            }
-                            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                        }
-                    }
-
-                    // Continue the alternating pattern
-                    for (int i = 0; i < CLI_Last; i++) {
-                        CorsairLedColor patternColor;
-                        if (i % 2 == 0) {
-                            // Even LEDs: Set to biome color
-                            patternColor = biomeColor;
-                        }
-                        else {
-                            // Odd LEDs: Set to rain color
-                            patternColor = getBiomeRainColor(player.currentBiome);
-                        }
-                        patternColor.ledId = static_cast<CorsairLedId>(i);
-                        CorsairSetLedsColors(1, &patternColor);
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                }
+    if (player.isOnFire) {
+        CorsairLedColor baseColor = { CLI_Invalid, 255, 69, 0 };
+        CorsairLedColor crackleColor = { CLI_Invalid, 200, 0, 0 };
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastFireCrackleUpdate).count() > 100) {
+            cracklingFireKeys.clear();
+            for (int i = 0; i < CLI_Last; ++i) {
+                if (rand() % 5 == 0) cracklingFireKeys.push_back(static_cast<CorsairLedId>(i));
             }
+            lastFireCrackleUpdate = now;
+        }
+        for (int i = 0; i < CLI_Last; ++i) colors[static_cast<CorsairLedId>(i)] = baseColor;
+        for (const auto& ledId : cracklingFireKeys) colors[ledId] = crackleColor;
+    }
+    else if (player.currentBlock == "block.minecraft.nether_portal") {
+        static std::vector<CorsairLedId> twinklingKeys;
+        static auto lastTwinkleUpdate = std::chrono::steady_clock::now();
+        CorsairLedColor baseColor = { CLI_Invalid, 128, 0, 128 };
+        CorsairLedColor twinkleColor = { CLI_Invalid, 50, 0, 100 };
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTwinkleUpdate).count() > 500) {
+            twinklingKeys.clear();
+            for (int i = 0; i < CLI_Last; ++i) {
+                if (rand() % 10 < 2) twinklingKeys.push_back(static_cast<CorsairLedId>(i));
+            }
+            lastTwinkleUpdate = now;
+        }
+        for (int i = 0; i < CLI_Last; ++i) colors[static_cast<CorsairLedId>(i)] = baseColor;
+        for (const auto& ledId : twinklingKeys) colors[ledId] = twinkleColor;
+    }
+    else if (player.currentBlock == "block.minecraft.end_portal") {
+        static std::vector<CorsairLedId> twinklingKeys;
+        static auto lastTwinkleUpdate = std::chrono::steady_clock::now();
+        CorsairLedColor baseColor = { CLI_Invalid, 0, 0, 50 };
+        CorsairLedColor twinkleColor = { CLI_Invalid, 50, 50, 50 };
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTwinkleUpdate).count() > 500) {
+            twinklingKeys.clear();
+            for (int i = 0; i < CLI_Last; ++i) {
+                if (rand() % 10 < 2) twinklingKeys.push_back(static_cast<CorsairLedId>(i));
+            }
+            lastTwinkleUpdate = now;
+        }
+        for (int i = 0; i < CLI_Last; ++i) colors[static_cast<CorsairLedId>(i)] = baseColor;
+        for (const auto& ledId : twinklingKeys) colors[ledId] = twinkleColor;
+    }
+    else if ((player.weather == "Rain" || player.weather == "Thunderstorm") && isPlayerInRainyBiome(player.currentBiome)) {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastRainStep).count() > 500) {
+            rainPhase = !rainPhase;
+            lastRainStep = now;
+        }
+        CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
+        CorsairLedColor rainColor = getBiomeRainColor(player.currentBiome);
+        for (int i = 0; i < CLI_Last; i++) {
+            colors[(CorsairLedId)i] = (i % 2 == (rainPhase ? 0 : 1)) ? rainColor : biomeColor;
+        }
+    }
+    else {
+        CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
+        for (int i = 0; i < CLI_Last; i++) {
+            colors[(CorsairLedId)i] = biomeColor;
         }
     }
 }
 
-void setLedColorWithBrightness(CorsairLedId ledId, int r, int g, int b, float brightness) {
-    CorsairLedColor color = { ledId, static_cast<int>(r * brightness), static_cast<int>(g * brightness), static_cast<int>(b * brightness) };
-    CorsairSetLedsColors(1, &color);
-}
-
-void playerEffects() {
-    const std::vector<CorsairLedId> movementLeds = { CorsairLedId::CLK_W, CorsairLedId::CLK_A, CorsairLedId::CLK_S, CorsairLedId::CLK_D, CorsairLedId::CLK_LeftCtrl, CorsairLedId::CLK_LeftShift, CorsairLedId::CLK_Space };
-
-    while (true) {
-        if (player.inGame) {
-            if (player.currentBlock == "block.minecraft.water") {
-                for (auto led : movementLeds) {
-                    setLedColorWithBrightness(led, 0, 0, 255, 1.0f);
-                }
-            } else if (player.currentBlock == "block.minecraft.lava" || player.currentBlock == "block.minecraft.fire") {
-                for (auto led : movementLeds) {
-					setLedColorWithBrightness(led, 255, 0, 0, 1.0f);
-				}
-			} else {
-				for (auto led : movementLeds) {
-					setLedColorWithBrightness(led, 255, 255, 255, 1.0f);
-				}
-			}
-        }
+void paintExperienceBar(std::map<CorsairLedId, CorsairLedColor>& colors) {
+    if (!player.inGame) return;
+    const std::vector<CorsairLedId> leds = { CLK_1, CLK_2, CLK_3, CLK_4, CLK_5, CLK_6, CLK_7, CLK_8, CLK_9, CLK_0 };
+    int ledsToLight = static_cast<int>(player.experience * leds.size());
+    for (size_t i = 0; i < leds.size(); i++) {
+        if (i < ledsToLight) colors[leds[i]] = { leds[i], 0, 255, 0 };
+        else colors[leds[i]] = { leds[i], 10, 30, 10 };
     }
 }
 
-void healthEffects() {
-    const std::vector<CorsairLedId> heartRedLeds = { CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_E, CorsairLedId::CLK_T, CorsairLedId::CLK_U, CorsairLedId::CLK_D, CorsairLedId::CLK_H, CorsairLedId::CLK_V, CorsairLedId::CLK_B, CorsairLedId::CLK_Space };
-    const std::vector<CorsairLedId> heartWhiteLeds = { CorsairLedId::CLK_R, CorsairLedId::CLK_F, CorsairLedId::CLK_Y, CorsairLedId::CLK_G };
+void paintPlayerBars(std::map<CorsairLedId, CorsairLedColor>& colors) {
+    if (!player.inGame) return;
+    const std::vector<CorsairLedId> healthLeds = { CLK_F1, CLK_F2, CLK_F3, CLK_F4 };
+    const std::vector<CorsairLedId> hungerLeds = { CLK_F5, CLK_F6, CLK_F7, CLK_F8 };
 
-	while (true) {
-		if (player.inGame) {
-            if (player.health < 10) {
-                // Heartbeat pattern: increase and decrease brightness
-                for (float brightness = 0.0f; brightness <= 1.0f; brightness += 0.1f) {
-                    for (auto led : heartRedLeds) {
-                        setLedColorWithBrightness(led, 255, 0, 0, brightness);
-                    }
-                    for (auto led : heartWhiteLeds) {
-                        setLedColorWithBrightness(led, 255, 255, 255, brightness);
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                }
-                for (float brightness = 1.0f; brightness >= 0.0f; brightness -= 0.1f) {
-                    for (auto led : heartRedLeds) {
-                        setLedColorWithBrightness(led, 255, 0, 0, brightness);
-                    }
-                    for (auto led : heartWhiteLeds) {
-                        setLedColorWithBrightness(led, 255, 255, 255, brightness);
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                }
+    for (size_t i = 0; i < healthLeds.size(); i++) {
+        CorsairLedColor color = { healthLeds[i], 30, 0, 0 };
+        if (player.isWithering) color = { healthLeds[i], 43, 43, 43 };
+        else if (player.isPoisoned) color = { healthLeds[i], 148, 120, 24 };
+        else if (player.health > i * 5) color = { healthLeds[i], 255, 0, 0 };
+        colors[healthLeds[i]] = color;
+    }
+    for (size_t i = 0; i < hungerLeds.size(); i++) {
+        CorsairLedColor color = { hungerLeds[i], 30, 15, 0 };
+        if (player.hunger > i * 5) color = { hungerLeds[i], 255, 165, 0 };
+        colors[hungerLeds[i]] = color;
+    }
+}
+
+void paintHealthEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
+    static float brightness = 0.1f;
+    static bool isBeatingUp = true;
+    static auto lastBeatStep = std::chrono::steady_clock::now();
+    static bool wasLowHealthLastFrame = false;
+
+    bool isLowHealthNow = player.inGame && player.health < 10;
+
+    if (isLowHealthNow && !wasLowHealthLastFrame) {
+        brightness = 0.1f;
+        isBeatingUp = true;
+        lastBeatStep = std::chrono::steady_clock::now();
+    }
+
+    wasLowHealthLastFrame = isLowHealthNow;
+
+    if (!isLowHealthNow) {
+        return;
+    }
+
+    const std::vector<CorsairLedId> heartRedLeds = { CLK_4, CLK_5, CLK_6, CLK_7, CLK_E, CLK_T, CLK_U, CLK_D, CLK_H, CLK_V, CLK_B, CLK_Space };
+    const std::vector<CorsairLedId> heartWhiteLeds = { CLK_R, CLK_F, CLK_Y, CLK_G };
+
+    auto now = std::chrono::steady_clock::now();
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeatStep).count() > 40) {
+        if (isBeatingUp) {
+            brightness += 0.1f;
+            if (brightness >= 1.0f) {
+                brightness = 1.0f;
+                isBeatingUp = false;
             }
-		}
-	}
-}
-
-void playerBarEffects() {
-	const std::vector<CorsairLedId> healthLeds = { CorsairLedId::CLK_F1, CorsairLedId::CLK_F2, CorsairLedId::CLK_F3, CorsairLedId::CLK_F4 };
-    const std::vector<CorsairLedId> hungerLeds = { CorsairLedId::CLK_F5, CorsairLedId::CLK_F6, CorsairLedId::CLK_F7, CorsairLedId::CLK_F8 };
-
-	while (true) {
-        if (player.inGame) {
-            for (int i = 0; i < 4; i++) {
-				CorsairLedColor healthColor = { healthLeds[i], 30, 0, 0 };
-				CorsairLedColor hungerColor = { hungerLeds[i], 30, 15, 0 };
-
-				if (player.health > i * 5) {
-                    if (player.isPoisoned) {
-                        healthColor = { healthLeds[i], 148, 120, 24 };
-                    } else {
-                        healthColor = { healthLeds[i], 255, 0, 0 };
-                    }
-				}
-
-				if (player.hunger > i * 5) {
-					hungerColor = { hungerLeds[i], 255, 165, 0 };
-				}
-
-                if (player.isWithering) {
-                    healthColor = { healthLeds[i], 43, 43, 43 };
-                }
-
-				CorsairSetLedsColors(1, &healthColor);
-				CorsairSetLedsColors(1, &hungerColor);
-			}
         }
-	}
+        else {
+            brightness -= 0.1f;
+            if (brightness <= 0.1f) {
+                brightness = 0.1f;
+                isBeatingUp = true;
+            }
+        }
+        lastBeatStep = now;
+    }
+
+    for (auto led : heartRedLeds) {
+        colors[led] = { led, static_cast<int>(255 * brightness), 0, 0 };
+    }
+    for (auto led : heartWhiteLeds) {
+        colors[led] = { led, static_cast<int>(255 * brightness), static_cast<int>(255 * brightness), static_cast<int>(255 * brightness) };
+    }
 }
 
-void experienceBar() {
-    const std::vector<CorsairLedId> experienceLeds = { CorsairLedId::CLK_1, CorsairLedId::CLK_2, CorsairLedId::CLK_3, CorsairLedId::CLK_4, CorsairLedId::CLK_5, CorsairLedId::CLK_6, CorsairLedId::CLK_7, CorsairLedId::CLK_8, CorsairLedId::CLK_9, CorsairLedId::CLK_0 };
+void paintPlayerEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
+    if (!player.inGame) return;
+    const std::vector<CorsairLedId> leds = { CLK_W, CLK_A, CLK_S, CLK_D, CLK_LeftCtrl, CLK_LeftShift, CLK_Space };
+    CorsairLedColor keyColor = { CLI_Invalid, 255, 255, 255 };
+
+    if (player.currentBlock == "block.minecraft.water") keyColor = { CLI_Invalid, 0, 100, 255 };
+    else if (player.currentBlock == "block.minecraft.lava" || player.currentBlock == "block.minecraft.fire") keyColor = { CLI_Invalid, 255, 0, 0 };
+
+    for (const auto& led : leds) colors[led] = { led, keyColor.r, keyColor.g, keyColor.b };
+}
+
+void runLightingLoop() {
+    const int frame_duration_ms = 33;
 
     while (true) {
-        if (player.inGame) {
-            int ledsToLight = static_cast<int>(player.experience * experienceLeds.size());
+        auto frame_start = std::chrono::steady_clock::now();
 
-            for (int i = 0; i < experienceLeds.size(); i++) {
-                CorsairLedColor experienceColor = { experienceLeds[i], 0, 0, 0 };
+        std::map<CorsairLedId, CorsairLedColor> finalColors;
 
-                if (i < ledsToLight) {
-                    experienceColor = { experienceLeds[i], 0, 255, 0 };
-                }
+        paintWorldEffects(finalColors);
+        paintExperienceBar(finalColors);
+        paintPlayerBars(finalColors);
+        paintHealthEffects(finalColors);
+        paintPlayerEffects(finalColors);
 
-                CorsairSetLedsColors(1, &experienceColor);
-            }
+        std::vector<CorsairLedColor> colorsToSend;
+        colorsToSend.reserve(finalColors.size());
+
+        for (const auto& pair : finalColors) {
+            CorsairLedId ledId = pair.first;
+            const CorsairLedColor& color = pair.second;
+            colorsToSend.push_back({ ledId, color.r, color.g, color.b });
+        }
+
+        if (!colorsToSend.empty()) {
+            CorsairSetLedsColors(static_cast<int>(colorsToSend.size()), colorsToSend.data());
+        }
+
+        auto frame_end = std::chrono::steady_clock::now();
+        auto frame_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(frame_end - frame_start);
+        if (frame_elapsed.count() < frame_duration_ms) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(frame_duration_ms - frame_elapsed.count()));
         }
     }
 }
 
 iCueLightController::iCueLightController()
-{       
-    // initialize SDK
+{
+    srand(static_cast<unsigned int>(time(nullptr)));
+
     CorsairPerformProtocolHandshake();
+    if (CorsairGetLastError()) {
+        return;
+    }
     CorsairRequestControl(CAM_ExclusiveLightingControl);
 
-    std::thread t1(worldEffects);
-    std::thread t2(playerEffects);
-    std::thread t3(healthEffects);
-    std::thread t4(playerBarEffects);
-    std::thread t5(experienceBar);
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
+    std::thread lightingThread(runLightingLoop);
+    lightingThread.detach();
 }
