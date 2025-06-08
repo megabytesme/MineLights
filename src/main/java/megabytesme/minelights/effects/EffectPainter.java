@@ -1,5 +1,6 @@
 package megabytesme.minelights.effects;
 
+import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,11 @@ public class EffectPainter {
 
     public FrameStateDto paint(PlayerDto player) {
         FrameStateDto state = new FrameStateDto();
+
+        if (!MineLightsClient.CONFIG.enableMod || allLedIds.isEmpty()) {
+            return state;
+        }
+
         if (!player.getInGame()) {
             for (Integer ledId : allLedIds) {
                 state.keys.put(ledId, new RGBColorDto(255, 0, 0));
@@ -54,40 +60,51 @@ public class EffectPainter {
             return state;
         }
 
+        for (Integer ledId : allLedIds) {
+            state.keys.put(ledId, new RGBColorDto(0, 0, 0));
+        }
+
+        paintEnvironmentalBase(state, player);
+
+        if (MineLightsClient.CONFIG.enableExperienceBar) {
+            paintExperienceBar(state, player);
+        }
+
+        paintPlayerBars(state, player);
+
+        if (MineLightsClient.CONFIG.enableLowHealthWarning) {
+            paintHealthEffects(state, player);
+        }
+
+        paintPlayerEffects(state, player);
+
+        return state;
+    }
+
+    private void paintEnvironmentalBase(FrameStateDto state, PlayerDto player) {
         long now = System.currentTimeMillis();
+        RGBColorDto baseColor = new RGBColorDto(0, 0, 0); // Default to black
 
-        if (player.getWeather().equals("Thunderstorm") && !isFlashing && random.nextInt(200) < 1) {
-            isFlashing = true;
-            flashStartTime = now;
-        }
-        if (isFlashing) {
-            if (now - flashStartTime < 150) {
-                for (Integer ledId : allLedIds) {
-                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
-                }
-                return state;
-            } else {
-                isFlashing = false;
+        if (MineLightsClient.CONFIG.enableBiomeEffects) {
+            if (!player.getCurrentBiome().equals(lastKnownBiome) && !player.getCurrentBiome().isEmpty()) {
+                transitionStartColor = currentSmoothBiomeColor;
+                targetBiomeColor = BiomeData.getBiomeColor(player.getCurrentBiome());
+                lastKnownBiome = player.getCurrentBiome();
+                transitionStartTime = now;
             }
+            long elapsedMs = now - transitionStartTime;
+            float t = Math.min(1.0f, (float) elapsedMs / TRANSITION_DURATION_MS);
+            currentSmoothBiomeColor = lerpColor(transitionStartColor, targetBiomeColor, t);
+            baseColor = currentSmoothBiomeColor;
         }
 
-        if (!player.getCurrentBiome().equals(lastKnownBiome) && !player.getCurrentBiome().isEmpty()) {
-            transitionStartColor = currentSmoothBiomeColor;
-            targetBiomeColor = BiomeData.getBiomeColor(player.getCurrentBiome());
-            lastKnownBiome = player.getCurrentBiome();
-            transitionStartTime = now;
-        }
-
-        long elapsedMs = now - transitionStartTime;
-        float t = Math.min(1.0f, (float) elapsedMs / TRANSITION_DURATION_MS);
-        currentSmoothBiomeColor = lerpColor(transitionStartColor, targetBiomeColor, t);
-
-        RGBColorDto baseColor = currentSmoothBiomeColor;
-        if (player.getIsOnFire()) {
+        if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
             baseColor = new RGBColorDto(255, 69, 0);
-        } else if (player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
+        } else if (MineLightsClient.CONFIG.enablePortalEffects
+                && player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
             baseColor = new RGBColorDto(128, 0, 128);
-        } else if (player.getCurrentBlock().equals("block.minecraft.end_portal")) {
+        } else if (MineLightsClient.CONFIG.enablePortalEffects
+                && player.getCurrentBlock().equals("block.minecraft.end_portal")) {
             baseColor = new RGBColorDto(0, 0, 50);
         }
 
@@ -96,16 +113,26 @@ public class EffectPainter {
         }
 
         paintSpecialWorldEffects(state, player, now);
-        paintExperienceBar(state, player);
-        paintPlayerBars(state, player);
-        paintHealthEffects(state, player);
-        paintPlayerEffects(state, player);
-
-        return state;
     }
 
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
-        if (player.getIsOnFire()) {
+        if (MineLightsClient.CONFIG.enableWeatherEffects && player.getWeather().equals("Thunderstorm") && !isFlashing
+                && random.nextInt(200) < 1) {
+            isFlashing = true;
+            flashStartTime = now;
+        }
+        if (isFlashing) {
+            if (now - flashStartTime < 150) {
+                for (Integer ledId : allLedIds) {
+                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
+                }
+                return; // Flash overrides other effects
+            } else {
+                isFlashing = false;
+            }
+        }
+
+        if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
             if (now - lastFireCrackleUpdate > 100) {
                 updateRandomKeys(cracklingKeys, 0.2f);
                 lastFireCrackleUpdate = now;
@@ -113,7 +140,8 @@ public class EffectPainter {
             for (Integer keyId : cracklingKeys) {
                 state.keys.put(keyId, new RGBColorDto(200, 0, 0));
             }
-        } else if (player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
+        } else if (MineLightsClient.CONFIG.enablePortalEffects
+                && player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
             if (now - lastPortalTwinkleUpdate > 500) {
                 updateRandomKeys(twinklingKeys, 0.2f);
                 lastPortalTwinkleUpdate = now;
@@ -121,7 +149,8 @@ public class EffectPainter {
             for (Integer keyId : twinklingKeys) {
                 state.keys.put(keyId, new RGBColorDto(50, 0, 100));
             }
-        } else if (player.getCurrentBlock().equals("block.minecraft.end_portal")) {
+        } else if (MineLightsClient.CONFIG.enablePortalEffects
+                && player.getCurrentBlock().equals("block.minecraft.end_portal")) {
             if (now - lastPortalTwinkleUpdate > 500) {
                 updateRandomKeys(twinklingKeys, 0.2f);
                 lastPortalTwinkleUpdate = now;
@@ -129,7 +158,8 @@ public class EffectPainter {
             for (Integer keyId : twinklingKeys) {
                 state.keys.put(keyId, new RGBColorDto(50, 50, 50));
             }
-        } else if ((player.getWeather().equals("Rain") || player.getWeather().equals("Thunderstorm"))
+        } else if (MineLightsClient.CONFIG.enableWeatherEffects
+                && (player.getWeather().equals("Rain") || player.getWeather().equals("Thunderstorm"))
                 && BiomeData.isBiomeRainy(player.getCurrentBiome())) {
             if (now - lastRainStep > 500) {
                 rainPhase = !rainPhase;
@@ -140,6 +170,25 @@ public class EffectPainter {
                 if (i % 2 == (rainPhase ? 0 : 1)) {
                     state.keys.put(allLedIds.get(i), rainColor);
                 }
+            }
+        }
+    }
+
+    private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
+        RGBColorDto keyColor = null;
+        if (MineLightsClient.CONFIG.enableInWaterEffect && player.getCurrentBlock().equals("block.minecraft.water")) {
+            keyColor = new RGBColorDto(0, 100, 255);
+        } else if (MineLightsClient.CONFIG.enableOnFireEffect
+                && (player.getCurrentBlock().equals("block.minecraft.lava")
+                        || player.getCurrentBlock().equals("block.minecraft.fire"))) {
+            keyColor = new RGBColorDto(255, 0, 0);
+        }
+
+        if (keyColor != null) {
+            for (String keyName : KeyMap.getMovementKeys()) {
+                Integer ledId = getMappedId(keyName);
+                if (ledId != null)
+                    state.keys.put(ledId, keyColor);
             }
         }
     }
@@ -169,38 +218,42 @@ public class EffectPainter {
             isDamageFlashActive = false;
         }
 
-        RGBColorDto healthDim = new RGBColorDto(30, 0, 0);
-        RGBColorDto healthFull = new RGBColorDto(255, 0, 0);
-        List<String> healthKeys = KeyMap.getHealthBar();
-        for (int i = 0; i < healthKeys.size(); i++) {
-            Integer ledId = getMappedId(healthKeys.get(i));
-            if (ledId == null)
-                continue;
+        if (MineLightsClient.CONFIG.enableHealthBar) {
+            RGBColorDto healthDim = new RGBColorDto(30, 0, 0);
+            RGBColorDto healthFull = new RGBColorDto(255, 0, 0);
+            List<String> healthKeys = KeyMap.getHealthBar();
+            for (int i = 0; i < healthKeys.size(); i++) {
+                Integer ledId = getMappedId(healthKeys.get(i));
+                if (ledId == null)
+                    continue;
 
-            RGBColorDto finalColor;
-            if (isDamageFlashActive) {
-                finalColor = new RGBColorDto(255, 255, 255);
-            } else if (player.getIsWithering()) {
-                finalColor = new RGBColorDto(43, 43, 43);
-            } else if (player.getIsPoisoned()) {
-                finalColor = new RGBColorDto(148, 120, 24);
-            } else {
-                float t = (player.getHealth() - (i * 5.0f)) / 5.0f;
-                finalColor = lerpColor(healthDim, healthFull, t);
+                RGBColorDto finalColor;
+                if (isDamageFlashActive) {
+                    finalColor = new RGBColorDto(255, 255, 255);
+                } else if (player.getIsWithering()) {
+                    finalColor = new RGBColorDto(43, 43, 43);
+                } else if (player.getIsPoisoned()) {
+                    finalColor = new RGBColorDto(148, 120, 24);
+                } else {
+                    float t = (player.getHealth() - (i * 5.0f)) / 5.0f;
+                    finalColor = lerpColor(healthDim, healthFull, t);
+                }
+                state.keys.put(ledId, finalColor);
             }
-            state.keys.put(ledId, finalColor);
         }
 
-        RGBColorDto hungerDim = new RGBColorDto(30, 15, 0);
-        RGBColorDto hungerFull = new RGBColorDto(255, 165, 0);
-        List<String> hungerKeys = KeyMap.getHungerBar();
-        for (int i = 0; i < hungerKeys.size(); i++) {
-            Integer ledId = getMappedId(hungerKeys.get(i));
-            if (ledId == null)
-                continue;
+        if (MineLightsClient.CONFIG.enableHungerBar) {
+            RGBColorDto hungerDim = new RGBColorDto(30, 15, 0);
+            RGBColorDto hungerFull = new RGBColorDto(255, 165, 0);
+            List<String> hungerKeys = KeyMap.getHungerBar();
+            for (int i = 0; i < hungerKeys.size(); i++) {
+                Integer ledId = getMappedId(hungerKeys.get(i));
+                if (ledId == null)
+                    continue;
 
-            float t = (player.getHunger() - (i * 5.0f)) / 5.0f;
-            state.keys.put(ledId, lerpColor(hungerDim, hungerFull, t));
+                float t = (player.getHunger() - (i * 5.0f)) / 5.0f;
+                state.keys.put(ledId, lerpColor(hungerDim, hungerFull, t));
+            }
         }
     }
 
@@ -243,24 +296,6 @@ public class EffectPainter {
             Integer ledId = getMappedId(keyName);
             if (ledId != null)
                 state.keys.put(ledId, new RGBColorDto(r, r, r));
-        }
-    }
-
-    private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
-        RGBColorDto keyColor;
-        if (player.getCurrentBlock().equals("block.minecraft.water")) {
-            keyColor = new RGBColorDto(0, 100, 255);
-        } else if (player.getCurrentBlock().equals("block.minecraft.lava")
-                || player.getCurrentBlock().equals("block.minecraft.fire")) {
-            keyColor = new RGBColorDto(255, 0, 0);
-        } else {
-            return;
-        }
-
-        for (String keyName : KeyMap.getMovementKeys()) {
-            Integer ledId = getMappedId(keyName);
-            if (ledId != null)
-                state.keys.put(ledId, keyColor);
         }
     }
 

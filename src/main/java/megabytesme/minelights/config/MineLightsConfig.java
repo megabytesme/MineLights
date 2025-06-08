@@ -6,5 +6,9 @@ public class MineLightsConfig {
     public boolean enableHungerBar = true;
     public boolean enableExperienceBar = true;
     public boolean enableLowHealthWarning = true;
-    public boolean enableEnvironmentalEffects = true;
+    public boolean enableBiomeEffects = true;
+    public boolean enableWeatherEffects = true;
+    public boolean enableOnFireEffect = true;
+    public boolean enableInWaterEffect = true;
+    public boolean enablePortalEffects = true;
 }
