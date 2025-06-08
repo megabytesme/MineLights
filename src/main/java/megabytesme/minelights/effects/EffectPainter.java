@@ -2,6 +2,9 @@ package megabytesme.minelights.effects;
 
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.GameOptions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +64,7 @@ public class EffectPainter {
         }
 
         for (Integer ledId : allLedIds) {
-            state.keys.put(ledId, new RGBColorDto(0, 0, 0));
+            state.keys.put(ledId, new RGBColorDto(255, 0, 0));
         }
 
         paintEnvironmentalBase(state, player);
@@ -83,7 +86,7 @@ public class EffectPainter {
 
     private void paintEnvironmentalBase(FrameStateDto state, PlayerDto player) {
         long now = System.currentTimeMillis();
-        RGBColorDto baseColor = new RGBColorDto(0, 0, 0); // Default to black
+        RGBColorDto baseColor = new RGBColorDto(0, 0, 0);
 
         if (MineLightsClient.CONFIG.enableBiomeEffects) {
             if (!player.getCurrentBiome().equals(lastKnownBiome) && !player.getCurrentBiome().isEmpty()) {
@@ -126,7 +129,7 @@ public class EffectPainter {
                 for (Integer ledId : allLedIds) {
                     state.keys.put(ledId, new RGBColorDto(255, 255, 255));
                 }
-                return; // Flash overrides other effects
+                return;
             } else {
                 isFlashing = false;
             }
@@ -170,25 +173,6 @@ public class EffectPainter {
                 if (i % 2 == (rainPhase ? 0 : 1)) {
                     state.keys.put(allLedIds.get(i), rainColor);
                 }
-            }
-        }
-    }
-
-    private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
-        RGBColorDto keyColor = null;
-        if (MineLightsClient.CONFIG.enableInWaterEffect && player.getCurrentBlock().equals("block.minecraft.water")) {
-            keyColor = new RGBColorDto(0, 100, 255);
-        } else if (MineLightsClient.CONFIG.enableOnFireEffect
-                && (player.getCurrentBlock().equals("block.minecraft.lava")
-                        || player.getCurrentBlock().equals("block.minecraft.fire"))) {
-            keyColor = new RGBColorDto(255, 0, 0);
-        }
-
-        if (keyColor != null) {
-            for (String keyName : KeyMap.getMovementKeys()) {
-                Integer ledId = getMappedId(keyName);
-                if (ledId != null)
-                    state.keys.put(ledId, keyColor);
             }
         }
     }
@@ -297,6 +281,62 @@ public class EffectPainter {
             if (ledId != null)
                 state.keys.put(ledId, new RGBColorDto(r, r, r));
         }
+    }
+
+    private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
+        RGBColorDto keyColor = null;
+
+        if (MineLightsClient.CONFIG.enableInWaterEffect && player.getCurrentBlock().equals("block.minecraft.water")) {
+            keyColor = new RGBColorDto(0, 100, 255);
+        } else if (MineLightsClient.CONFIG.enableOnFireEffect
+                && (player.getCurrentBlock().equals("block.minecraft.lava")
+                        || player.getCurrentBlock().equals("block.minecraft.fire"))) {
+            keyColor = new RGBColorDto(255, 0, 0);
+        } else if (MineLightsClient.CONFIG.highlightMovementKeys) {
+            keyColor = new RGBColorDto(255, 255, 255);
+        }
+
+        if (keyColor != null) {
+            for (String keyName : getMovementKeyNames()) {
+                Integer ledId = getMappedId(keyName);
+                if (ledId != null)
+                    state.keys.put(ledId, keyColor);
+            }
+        }
+    }
+
+    private List<String> getMovementKeyNames() {
+        List<String> friendlyNames = new ArrayList<>();
+        GameOptions options = MinecraftClient.getInstance().options;
+
+        List<String> keybindsToFetch = List.of(
+                options.forwardKey.getBoundKeyTranslationKey(),
+                options.backKey.getBoundKeyTranslationKey(),
+                options.leftKey.getBoundKeyTranslationKey(),
+                options.rightKey.getBoundKeyTranslationKey(),
+                options.jumpKey.getBoundKeyTranslationKey(),
+                options.sneakKey.getBoundKeyTranslationKey(),
+                options.sprintKey.getBoundKeyTranslationKey());
+
+        for (String key : keybindsToFetch) {
+            if (key == null || !key.startsWith("key.keyboard.")) {
+                continue;
+            }
+
+            String[] parts = key.split("\\.");
+
+            String friendlyName = "";
+            if (parts.length == 4) {
+                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase(); // "L" + "SHIFT" -> "LSHIFT"
+            } else if (parts.length == 3) {
+                friendlyName = parts[2].toUpperCase();
+            }
+
+            if (!friendlyName.isEmpty()) {
+                friendlyNames.add(friendlyName);
+            }
+        }
+        return friendlyNames;
     }
 
     private void updateRandomKeys(List<Integer> keyList, float density) {
