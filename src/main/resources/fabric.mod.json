@@ -14,7 +14,8 @@
   "icon": "assets/mine-lights/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": ["megabytesme.minelights.MineLightsClient"]
+    "client": ["megabytesme.minelights.MineLightsClient"],
+    "modmenu": ["megabytesme.minelights.config.ModMenuIntegration"]
   },
   "mixins": [],
   "depends": {
