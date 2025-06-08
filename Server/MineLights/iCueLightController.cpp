@@ -59,13 +59,19 @@ void paintWorldEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
     static bool isFlashing = false;
     static auto flashStartTime = std::chrono::steady_clock::now();
 
+    static CorsairLedColor currentSmoothBiomeColor = { CLI_Invalid, 0, 0, 0 };
+    static CorsairLedColor transitionStartColor = { CLI_Invalid, 0, 0, 0 };
+    static CorsairLedColor targetBiomeColor = { CLI_Invalid, 0, 0, 0 };
+    static std::string lastKnownBiome = "";
+    static auto transitionStartTime = std::chrono::steady_clock::now();
+    const int transitionDurationMs = 750;
+
     if (!player.inGame) {
         for (int i = 0; i < CLI_Last; i++) colors[(CorsairLedId)i] = { (CorsairLedId)i, 255, 0, 0 };
         return;
     }
 
     auto now = std::chrono::steady_clock::now();
-
     if (player.weather == "Thunderstorm" && !isFlashing && (rand() % 200 < 1)) {
         isFlashing = true;
         flashStartTime = now;
@@ -73,15 +79,27 @@ void paintWorldEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
 
     if (isFlashing) {
         if (std::chrono::duration_cast<std::chrono::milliseconds>(now - flashStartTime).count() < 150) {
-            for (int i = 0; i < CLI_Last; i++) {
-                colors[(CorsairLedId)i] = { (CorsairLedId)i, 255, 255, 255 };
-            }
+            for (int i = 0; i < CLI_Last; i++) colors[(CorsairLedId)i] = { (CorsairLedId)i, 255, 255, 255 };
             return;
         }
         else {
             isFlashing = false;
         }
     }
+
+    if (player.currentBiome != lastKnownBiome && !player.currentBiome.empty()) {
+        transitionStartColor = currentSmoothBiomeColor;
+        targetBiomeColor = determineBiomeColor(player.currentBiome);
+        lastKnownBiome = player.currentBiome;
+        transitionStartTime = std::chrono::steady_clock::now();
+    }
+
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - transitionStartTime).count();
+    float t = static_cast<float>(elapsedMs) / transitionDurationMs;
+
+    currentSmoothBiomeColor.r = lerp(transitionStartColor.r, targetBiomeColor.r, t);
+    currentSmoothBiomeColor.g = lerp(transitionStartColor.g, targetBiomeColor.g, t);
+    currentSmoothBiomeColor.b = lerp(transitionStartColor.b, targetBiomeColor.b, t);
 
     if (player.isOnFire) {
         CorsairLedColor baseColor = { CLI_Invalid, 255, 69, 0 };
@@ -131,16 +149,14 @@ void paintWorldEffects(std::map<CorsairLedId, CorsairLedColor>& colors) {
             rainPhase = !rainPhase;
             lastRainStep = now;
         }
-        CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
         CorsairLedColor rainColor = getBiomeRainColor(player.currentBiome);
         for (int i = 0; i < CLI_Last; i++) {
-            colors[(CorsairLedId)i] = (i % 2 == (rainPhase ? 0 : 1)) ? rainColor : biomeColor;
+            colors[(CorsairLedId)i] = (i % 2 == (rainPhase ? 0 : 1)) ? rainColor : currentSmoothBiomeColor;
         }
     }
     else {
-        CorsairLedColor biomeColor = determineBiomeColor(player.currentBiome);
         for (int i = 0; i < CLI_Last; i++) {
-            colors[(CorsairLedId)i] = biomeColor;
+            colors[(CorsairLedId)i] = currentSmoothBiomeColor;
         }
     }
 }
