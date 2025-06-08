@@ -2,41 +2,34 @@ package megabytesme.minelights;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
 public class MineLightsClient implements ClientModInitializer {
+    private Thread lightingManagerThread;
+    private LightingManager lightingManager;
+
     @Override
     public void onInitializeClient() {
+        this.lightingManager = new LightingManager();
+        this.lightingManagerThread = new Thread(this.lightingManager, "MineLights-LightingManager");
+        this.lightingManagerThread.start();
+
         try {
             String modsFolder = System.getProperty("user.dir") + "/mods";
             ProcessBuilder processBuilder = new ProcessBuilder(modsFolder + "/MineLights/MineLights.exe");
             processBuilder.start();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed to start MineLights.exe: " + e.getMessage());
         }
 
-        PlayerDataProcessor playerDataProcessor = new PlayerDataProcessor();
-        PlayerConnectionHandler playerConnectionHandler = new PlayerConnectionHandler();
-
-        // This entrypoint is suitable for setting up client-specific logic, such as
-        // rendering.
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            playerDataProcessor.processPlayerData(client);
-        });
-
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            playerConnectionHandler.onDisconnect();
-        });
-
-        // stop the MineLights helper process when the client is stopping
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            if (this.lightingManagerThread != null) {
+                this.lightingManagerThread.interrupt();
+            }
+            UDPClient.close();
             try {
                 String processName = "MineLights.exe";
                 String[] command = { "taskkill", "/F", "/IM", processName };
-                ProcessBuilder processBuilder = new ProcessBuilder(command);
-                Process process = processBuilder.start();
-                process.waitFor();
+                new ProcessBuilder(command).start().waitFor();
             } catch (Exception e) {
                 e.printStackTrace();
             }
