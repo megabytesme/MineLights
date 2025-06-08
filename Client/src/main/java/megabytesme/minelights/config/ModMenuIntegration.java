@@ -64,6 +64,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableLowHealthWarning = newValue)
                                         .build());
+                        playerStatus.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                                        Text.translatable("option.mine-lights.highlightMovementKeys"),
+                                                        MineLightsClient.CONFIG.highlightMovementKeys)
+                                        .setDefaultValue(true)
+                                        .setTooltip(Text.translatable(
+                                                        "option.mine-lights.highlightMovementKeys.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.highlightMovementKeys = newValue)
+                                        .build());
 
                         ConfigCategory environment = builder
                                         .getOrCreateCategory(Text.translatable("category.mine-lights.environment"));

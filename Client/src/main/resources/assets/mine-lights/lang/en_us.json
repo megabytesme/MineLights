@@ -20,5 +20,8 @@
   "option.mine-lights.enableOnFireEffect": "Enable On-Fire Effect",
   "option.mine-lights.enableInWaterEffect": "Enable In-Water/Lava Effect",
   "option.mine-lights.enableInWaterEffect.tooltip": "Changes the color of movement keys when submerged.",
-  "option.mine-lights.enablePortalEffects": "Enable Portal Effects"
+  "option.mine-lights.enablePortalEffects": "Enable Portal Effects",
+
+  "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",
+  "option.mine-lights.highlightMovementKeys.tooltip": "Keeps the movement keys lit with a default color."
 }

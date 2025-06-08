@@ -11,4 +11,5 @@ public class MineLightsConfig {
     public boolean enableOnFireEffect = true;
     public boolean enableInWaterEffect = true;
     public boolean enablePortalEffects = true;
+    public boolean highlightMovementKeys = true;
 }
