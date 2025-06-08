@@ -16,6 +16,11 @@
 #include "Player.h"
 #include "Biome.h"
 
+static int lerp(int start, int end, float t) {
+    t = std::max(0.0f, std::min(1.0f, t));
+    return static_cast<int>(start + (end - start) * t);
+}
+
 CorsairLedColor determineBiomeColor(const std::string& biome) {
     for (const auto& b : biomes) {
         if (b.name == biome) {
@@ -152,6 +157,7 @@ void paintExperienceBar(std::map<CorsairLedId, CorsairLedColor>& colors) {
 
 void paintPlayerBars(std::map<CorsairLedId, CorsairLedColor>& colors) {
     if (!player.inGame) return;
+
     static bool wasTakingDamageLastFrame = false;
     static bool isDamageFlashActive = false;
     static auto damageFlashStartTime = std::chrono::steady_clock::now();
@@ -164,33 +170,46 @@ void paintPlayerBars(std::map<CorsairLedId, CorsairLedColor>& colors) {
     }
     wasTakingDamageLastFrame = player.isTakingDamage;
 
-    if (isDamageFlashActive) {
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - damageFlashStartTime).count() < 120) {
-            for (const auto& led : healthLeds) {
-                colors[led] = { led, 255, 255, 255 };
-            }
+    if (isDamageFlashActive && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - damageFlashStartTime).count() >= 120) {
+        isDamageFlashActive = false;
+    }
+
+    const CorsairLedColor healthDim = { CLI_Invalid, 30, 0, 0 };
+    const CorsairLedColor healthFull = { CLI_Invalid, 255, 0, 0 };
+
+    for (size_t i = 0; i < healthLeds.size(); i++) {
+        CorsairLedColor finalColor;
+
+        if (isDamageFlashActive) {
+            finalColor = { healthLeds[i], 255, 255, 255 };
+        }
+        else if (player.isWithering) {
+            finalColor = { healthLeds[i], 43, 43, 43 };
+        }
+        else if (player.isPoisoned) {
+            finalColor = { healthLeds[i], 148, 120, 24 };
         }
         else {
-            isDamageFlashActive = false;
+            float t = (player.health - (i * 5.0f)) / 5.0f;
+            int r = lerp(healthDim.r, healthFull.r, t);
+            int g = lerp(healthDim.g, healthFull.g, t);
+            int b = lerp(healthDim.b, healthFull.b, t);
+
+            finalColor = { healthLeds[i], r, g, b };
         }
+        colors[healthLeds[i]] = finalColor;
     }
 
-    if (!isDamageFlashActive) {
-        for (size_t i = 0; i < healthLeds.size(); i++) {
-            CorsairLedColor color = { healthLeds[i], 30, 0, 0 };
-            if (player.isWithering) color = { healthLeds[i], 43, 43, 43 };
-            else if (player.isPoisoned) color = { healthLeds[i], 148, 120, 24 };
-            else if (player.health > i * 5) color = { healthLeds[i], 255, 0, 0 };
-            colors[healthLeds[i]] = color;
-        }
-    }
+    const CorsairLedColor hungerDim = { CLI_Invalid, 30, 15, 0 };
+    const CorsairLedColor hungerFull = { CLI_Invalid, 255, 165, 0 };
 
     for (size_t i = 0; i < hungerLeds.size(); i++) {
-        CorsairLedColor color = { hungerLeds[i], 30, 15, 0 };
-        if (player.hunger > i * 5) {
-            color = { hungerLeds[i], 255, 165, 0 };
-        }
-        colors[hungerLeds[i]] = color;
+        float t = (player.hunger - (i * 5.0f)) / 5.0f;
+        int r = lerp(hungerDim.r, hungerFull.r, t);
+        int g = lerp(hungerDim.g, hungerFull.g, t);
+        int b = lerp(hungerDim.b, hungerFull.b, t);
+
+        colors[hungerLeds[i]] = { hungerLeds[i], r, g, b };
     }
 }
 
