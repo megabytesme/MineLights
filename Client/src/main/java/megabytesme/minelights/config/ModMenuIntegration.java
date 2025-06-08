@@ -18,10 +18,10 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setTitle(Text.translatable("title.mine-lights.config"));
 
                         builder.setSavingRunnable(MineLightsClient::saveConfig);
+                        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
                         ConfigCategory general = builder
                                         .getOrCreateCategory(Text.translatable("category.mine-lights.general"));
-                        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
                         general.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableMod"),
@@ -31,21 +31,24 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
                                         .build());
 
-                        general.addEntry(entryBuilder
+                        ConfigCategory playerStatus = builder
+                                        .getOrCreateCategory(Text.translatable("category.mine-lights.player_status"));
+
+                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableHealthBar"),
                                                         MineLightsClient.CONFIG.enableHealthBar)
                                         .setDefaultValue(true)
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHealthBar = newValue)
                                         .build());
 
-                        general.addEntry(entryBuilder
+                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableHungerBar"),
                                                         MineLightsClient.CONFIG.enableHungerBar)
                                         .setDefaultValue(true)
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHungerBar = newValue)
                                         .build());
 
-                        general.addEntry(entryBuilder
+                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableExperienceBar"),
                                                         MineLightsClient.CONFIG.enableExperienceBar)
                                         .setDefaultValue(true)
@@ -53,7 +56,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                                         .build());
 
-                        general.addEntry(entryBuilder
+                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         Text.translatable("option.mine-lights.enableLowHealthWarning"),
                                                         MineLightsClient.CONFIG.enableLowHealthWarning)
@@ -62,15 +65,52 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableLowHealthWarning = newValue)
                                         .build());
 
-                        general.addEntry(entryBuilder
-                                        .startBooleanToggle(Text
-                                                        .translatable("option.mine-lights.enableEnvironmentalEffects"),
-                                                        MineLightsClient.CONFIG.enableEnvironmentalEffects)
+                        ConfigCategory environment = builder
+                                        .getOrCreateCategory(Text.translatable("category.mine-lights.environment"));
+
+                        environment.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableBiomeEffects"),
+                                                        MineLightsClient.CONFIG.enableBiomeEffects)
+                                        .setDefaultValue(true)
+                                        .setTooltip(Text.translatable("option.mine-lights.enableBiomeEffects.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableBiomeEffects = newValue)
+                                        .build());
+
+                        environment.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                                        Text.translatable("option.mine-lights.enableWeatherEffects"),
+                                                        MineLightsClient.CONFIG.enableWeatherEffects)
                                         .setDefaultValue(true)
                                         .setTooltip(Text.translatable(
-                                                        "option.mine-lights.enableEnvironmentalEffects.tooltip"))
+                                                        "option.mine-lights.enableWeatherEffects.tooltip"))
                                         .setSaveConsumer(
-                                                        newValue -> MineLightsClient.CONFIG.enableEnvironmentalEffects = newValue)
+                                                        newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
+                                        .build());
+
+                        environment.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableOnFireEffect"),
+                                                        MineLightsClient.CONFIG.enableOnFireEffect)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableOnFireEffect = newValue)
+                                        .build());
+
+                        environment.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableInWaterEffect"),
+                                                        MineLightsClient.CONFIG.enableInWaterEffect)
+                                        .setDefaultValue(true)
+                                        .setTooltip(Text.translatable("option.mine-lights.enableInWaterEffect.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableInWaterEffect = newValue)
+                                        .build());
+
+                        environment.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enablePortalEffects"),
+                                                        MineLightsClient.CONFIG.enablePortalEffects)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
                                         .build());
 
                         return builder.build();

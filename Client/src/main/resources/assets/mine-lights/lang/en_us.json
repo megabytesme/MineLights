@@ -1,14 +1,24 @@
 {
   "title.mine-lights.config": "MineLights Configuration",
-  "category.mine-lights.general": "General Settings",
+
+  "category.mine-lights.general": "General",
+  "category.mine-lights.player_status": "Player Status",
+  "category.mine-lights.environment": "Environmental Effects",
 
   "option.mine-lights.enableMod": "Enable MineLights",
   "option.mine-lights.enableMod.tooltip": "Master switch to enable or disable all lighting effects.",
 
-  "option.mine-lights.enableHealthBar": "Enable Health Bar Effect",
-  "option.mine-lights.enableHungerBar": "Enable Hunger Bar Effect",
-  "option.mine-lights.enableExperienceBar": "Enable Experience Bar Effect",
+  "option.mine-lights.enableHealthBar": "Enable Health Bar",
+  "option.mine-lights.enableHungerBar": "Enable Hunger Bar",
+  "option.mine-lights.enableExperienceBar": "Enable Experience Bar",
   "option.mine-lights.enableLowHealthWarning": "Enable Low Health Warning",
-  "option.mine-lights.enableEnvironmentalEffects": "Enable Environmental Effects",
-  "option.mine-lights.enableEnvironmentalEffects.tooltip": "Includes effects for biomes, weather, portals, fire, and water."
+
+  "option.mine-lights.enableBiomeEffects": "Enable Biome Backgrounds",
+  "option.mine-lights.enableBiomeEffects.tooltip": "Changes the keyboard's background color based on the biome you're in.",
+  "option.mine-lights.enableWeatherEffects": "Enable Weather Effects",
+  "option.mine-lights.enableWeatherEffects.tooltip": "Adds rain and thunderstorm lightning flash effects.",
+  "option.mine-lights.enableOnFireEffect": "Enable On-Fire Effect",
+  "option.mine-lights.enableInWaterEffect": "Enable In-Water/Lava Effect",
+  "option.mine-lights.enableInWaterEffect.tooltip": "Changes the color of movement keys when submerged.",
+  "option.mine-lights.enablePortalEffects": "Enable Portal Effects"
 }
