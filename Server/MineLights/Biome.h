@@ -4,8 +4,8 @@
 
 struct Biome {
     std::string name;
-    bool isSnowy;
     bool hasRain;
+    bool isSnowy;
     int red;
     int green;
     int blue;
