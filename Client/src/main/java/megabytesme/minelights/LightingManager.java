@@ -15,8 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +49,10 @@ public class LightingManager implements Runnable {
 
     private void performHandshakes() {
         Thread openRgbThread = new Thread(() -> {
+            if (!MineLightsClient.CONFIG.enableOpenRgb) {
+                LOGGER.info("OpenRGB integration is disabled in the config.");
+                return;
+            }
             try {
                 if (openRgbController.connect()) {
                     LOGGER.info("Successfully connected to OpenRGB server.");
@@ -54,6 +60,14 @@ public class LightingManager implements Runnable {
                     int openRgbLedOffset = 2000;
                     for (int i = 0; i < devices.size(); i++) {
                         OpenRGBController.OpenRGBDevice device = devices.get(i);
+                        String uniqueId = "OpenRGB|" + device.name;
+
+                        if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId)) {
+                            LOGGER.info("Skipping disabled OpenRGB device: {}", device.name);
+                            continue;
+                        }
+
+                        MineLightsClient.discoveredDevices.add(uniqueId);
                         LOGGER.info("Found OpenRGB device: {} with {} LEDs", device.name, device.ledCount);
                         openRgbLedCount.addAndGet(device.ledCount);
 
@@ -74,11 +88,33 @@ public class LightingManager implements Runnable {
         openRgbThread.setName("MineLights-OpenRGB-Handshake");
 
         Thread mineLightsProxyThread = new Thread(() -> {
+            if (!MineLightsClient.IS_WINDOWS)
+                return;
+            if (!MineLightsClient.CONFIG.enableIcueProxy && !MineLightsClient.CONFIG.enableMysticLightProxy) {
+                LOGGER.info("All Windows-based proxy integrations are disabled in the config.");
+                return;
+            }
+
             try (Socket clientSocket = new Socket()) {
                 clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
                 LOGGER.info("Successfully connected to MineLights Proxy.");
 
-                InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream());
+                OutputStreamWriter writer = new OutputStreamWriter(clientSocket.getOutputStream(),
+                        StandardCharsets.UTF_8);
+                JsonObject configPayload = new JsonObject();
+                JsonArray enabledIntegrations = new JsonArray();
+                if (MineLightsClient.CONFIG.enableIcueProxy)
+                    enabledIntegrations.add("iCUE");
+                if (MineLightsClient.CONFIG.enableMysticLightProxy)
+                    enabledIntegrations.add("MysticLight");
+
+                configPayload.add("enabled_integrations", enabledIntegrations);
+                configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
+                writer.write(configPayload.toString());
+                writer.flush();
+                clientSocket.shutdownOutput();
+
+                InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8);
                 JsonObject handshakeData = JsonParser.parseReader(reader).getAsJsonObject();
 
                 if (handshakeData.has("devices")) {
@@ -88,6 +124,8 @@ public class LightingManager implements Runnable {
                         String sdk = deviceObject.get("sdk").getAsString();
                         String name = deviceObject.get("name").getAsString();
                         int ledCount = deviceObject.get("ledCount").getAsInt();
+                        String uniqueId = sdk + "|" + name;
+                        MineLightsClient.discoveredDevices.add(uniqueId);
 
                         LOGGER.info("Found {} device: {} with {} LEDs", sdk, name, ledCount);
 
@@ -121,6 +159,8 @@ public class LightingManager implements Runnable {
 
         Thread initializerThread = new Thread(() -> {
             try {
+                openRgbThread.start();
+                mineLightsProxyThread.start();
                 openRgbThread.join(5000);
                 mineLightsProxyThread.join(5000);
 
@@ -139,9 +179,6 @@ public class LightingManager implements Runnable {
             }
         });
         initializerThread.setName("MineLights-Initializer");
-
-        openRgbThread.start();
-        mineLightsProxyThread.start();
         initializerThread.start();
     }
 

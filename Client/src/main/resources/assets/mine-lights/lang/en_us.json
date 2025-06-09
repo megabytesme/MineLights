@@ -6,14 +6,25 @@
 
   "title.mine-lights.config": "MineLights Configuration",
   "category.mine-lights.general": "General",
+  "category.mine-lights.integrations": "Integrations",
+  "category.mine-lights.devices": "Discovered Devices",
   "category.mine-lights.player_status": "Player Status",
   "category.mine-lights.environment": "Environmental Effects",
 
   "option.mine-lights.enableMod": "Enable MineLights",
   "option.mine-lights.enableMod.tooltip": "Master switch to enable or disable all lighting effects.",
 
-  "option.mine-lights.refresh.label": "Force Refresh Connection",
-  "option.mine-lights.refresh.tooltip": "Check this and click 'Save & Close' to force a reconnection to the MineLights Proxy. Useful if the proxy was started after the game.",
+  "option.mine-lights.restart.label": "Restart Proxy on Save",
+  "option.mine-lights.restart.tooltip": "Check this and save to restart the external lighting proxy.",
+  "option.mine-lights.restart_admin.label": "Restart Proxy as Admin on Save",
+  "option.mine-lights.restart_admin.tooltip": "Check this and save to restart the external lighting proxy with administrator rights (required for some hardware).",
+  "option.mine-lights.clear_disabled.label": "Re-enable all devices on Save",
+  "option.mine-lights.clear_disabled.tooltip": "Check this and save to clear the list of disabled devices.",
+
+  "option.mine-lights.enableOpenRgb": "Enable OpenRGB",
+  "option.mine-lights.enableIcueProxy": "Enable iCUE Proxy (Windows Only)",
+  "option.mine-lights.enableMysticLightProxy": "Enable Mystic Light Proxy (Windows Only)",
+  "option.mine-lights.device.header": "Enable or disable individual devices. Changes are applied on save.",
 
   "option.mine-lights.enableHealthBar": "Enable Health Bar",
   "option.mine-lights.enableHungerBar": "Enable Hunger Bar",

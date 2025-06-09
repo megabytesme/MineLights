@@ -27,18 +27,12 @@ struct MysticLightSimpleDeviceInfo {
     DWORD deviceIndex;
 };
 
-struct CachedColor {
-    int r, g, b;
-    bool operator==(const CachedColor& other) const {
-        return r == other.r && g == other.g && b == other.b;
-    }
-};
-
 class MysticLightController : public ILightingController {
 public:
     MysticLightController();
     ~MysticLightController() override;
 
+    std::string GetSdkName() const override { return "MysticLight"; }
     bool Initialize() override;
     void Start() override;
     void Stop() override;
