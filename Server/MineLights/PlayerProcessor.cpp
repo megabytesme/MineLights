@@ -124,9 +124,26 @@ void PlayerProcessor::HandshakeServerLoop() {
     closesocket(listenSocket);
 }
 
+bool PlayerProcessor::IsRunningAsAdmin() const {
+    BOOL fIsAdmin = FALSE;
+    HANDLE hToken = NULL;
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+        TOKEN_ELEVATION Elevation;
+        DWORD cbSize = sizeof(TOKEN_ELEVATION);
+        if (GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation), &cbSize)) {
+            fIsAdmin = Elevation.TokenIsElevated;
+        }
+    }
+    if (hToken) {
+        CloseHandle(hToken);
+    }
+    return fIsAdmin;
+}
+
 PlayerProcessor::PlayerProcessor() : m_isRunning(true) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
+
     auto icue_controller = std::make_unique<iCueLightController>();
     if (icue_controller->Initialize()) {
         LOG("iCUE Controller Initialized.");
@@ -135,14 +152,22 @@ PlayerProcessor::PlayerProcessor() : m_isRunning(true) {
     else {
         LOG("iCUE Controller failed to initialize (Is iCUE running with SDK enabled?).");
     }
-    auto mystic_controller = std::make_unique<MysticLightController>();
-    if (mystic_controller->Initialize()) {
-        LOG("Mystic Light Controller Initialized.");
-        m_controllers.push_back(std::move(mystic_controller));
+
+    if (IsRunningAsAdmin()) {
+        LOG("Running with Administrator privileges. Initializing Mystic Light SDK...");
+        auto mystic_controller = std::make_unique<MysticLightController>();
+        if (mystic_controller->Initialize()) {
+            LOG("Mystic Light Controller Initialized.");
+            m_controllers.push_back(std::move(mystic_controller));
+        }
+        else {
+            LOG("Mystic Light Controller failed to initialize (Is MSI Center/Mystic Light installed?).");
+        }
     }
     else {
-        LOG("Mystic Light Controller failed to initialize (Is MSI Center/Mystic Light installed?).");
+        LOG("Not running as Administrator. Mystic Light SDK will not be initialized.");
     }
+
     if (!m_controllers.empty()) {
         for (const auto& controller : m_controllers) {
             controller->Start();

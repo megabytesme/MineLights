@@ -13,6 +13,7 @@ public:
 private:
     void UDPServerLoop();
     void HandshakeServerLoop();
+    bool IsRunningAsAdmin() const;
 
     std::vector<std::unique_ptr<ILightingController>> m_controllers;
     std::thread m_udpServerThread;
