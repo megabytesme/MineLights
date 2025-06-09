@@ -45,7 +45,9 @@ void PlayerProcessor::UDPServerLoop() {
 
         if (bytesIn == SOCKET_ERROR) {
             int errorCode = WSAGetLastError();
-            LOG("recvfrom failed with error: " + std::to_string(errorCode));
+            if (errorCode != WSAEINTR && errorCode != WSAECONNRESET) {
+                LOG("recvfrom failed with error: " + std::to_string(errorCode));
+            }
             continue;
         }
 
@@ -92,8 +94,23 @@ void PlayerProcessor::SendHandshake() {
     }
 
     json handshake;
-    handshake["source"] = "iCUE_Proxy";
-    handshake["all_led_ids"] = m_controller->GetAllLedIds();
+    auto connectedDevices = m_controller->GetConnectedDevices();
+    json devicesArray = json::array();
+
+    for (const auto& device : connectedDevices) {
+        json deviceObj;
+        deviceObj["sdk"] = device.sdk;
+        deviceObj["name"] = device.name;
+        deviceObj["ledCount"] = device.ledCount;
+
+        json ledsArray = json::array();
+        for (const auto& ledId : device.leds) {
+            ledsArray.push_back(ledId);
+        }
+        deviceObj["leds"] = ledsArray;
+        devicesArray.push_back(deviceObj);
+    }
+    handshake["devices"] = devicesArray;
     handshake["key_map"] = m_controller->GetNamedKeyMap();
     std::string handshakeStr = handshake.dump();
 
@@ -118,16 +135,20 @@ PlayerProcessor::PlayerProcessor() : m_isRunning(true) {
 
     m_controller = std::make_unique<iCueLightController>();
     if (m_controller->Initialize()) {
+        LOG("iCUE Controller Initialized.");
         std::this_thread::sleep_for(std::chrono::seconds(1));
         SendHandshake();
         m_udpServerThread = std::thread(&PlayerProcessor::UDPServerLoop, this);
+    }
+    else {
+        LOG("Failed to initialize iCUE Controller. Is iCUE running with the SDK enabled?");
     }
 }
 
 PlayerProcessor::~PlayerProcessor() {
     m_isRunning = false;
     if (m_udpServerThread.joinable()) {
-        m_udpServerThread.detach();
+        m_udpServerThread.join();
     }
     WSACleanup();
 }
