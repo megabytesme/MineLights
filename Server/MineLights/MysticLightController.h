@@ -12,10 +12,9 @@ typedef int(__cdecl* MLAPI_GetDeviceNameExFunc)(BSTR, DWORD, BSTR*);
 typedef int(__cdecl* MLAPI_GetLedInfoFunc)(BSTR, DWORD, BSTR*, SAFEARRAY**);
 typedef int(__cdecl* MLAPI_GetLedNameFunc)(BSTR, SAFEARRAY**);
 typedef int(__cdecl* MLAPI_SetLedStyleFunc)(BSTR, DWORD, BSTR);
+typedef int(__cdecl* MLAPI_SetLedColorFunc)(BSTR, DWORD, DWORD, DWORD, DWORD);
 typedef int(__cdecl* MLAPI_SetLedColorExFunc)(BSTR, DWORD, BSTR, DWORD, DWORD, DWORD, DWORD);
 typedef int(__cdecl* MLAPI_ReleaseFunc)();
-typedef int(__cdecl* MLAPI_SetLedColorFunc)(BSTR, DWORD, DWORD, DWORD, DWORD);
-
 
 struct MysticLightLedInfo {
     _bstr_t deviceType;
@@ -31,31 +30,33 @@ struct MysticLightSimpleDeviceInfo {
 class MysticLightController : public ILightingController {
 public:
     MysticLightController();
-    ~MysticLightController();
+    ~MysticLightController() override;
 
     bool Initialize() override;
-    void Render(const std::vector<CorsairLedColor>& colors) override;
+    void Start() override;
+    void Stop() override;
+    void UpdateData(const std::vector<CorsairLedColor>& colors) override;
     std::map<std::string, CorsairLedId> GetNamedKeyMap() const override;
     std::vector<DeviceInfo> GetConnectedDevices() const override;
 
 private:
+    void RenderLoop();
     bool LoadMSISDK();
     void UnloadMSISDK();
 
     HMODULE m_hMsiSdk;
     MLAPI_InitializeFunc m_pfnInitialize;
     MLAPI_GetDeviceInfoFunc m_pfnGetDeviceInfo;
-
     MLAPI_GetDeviceNameExFunc m_pfnGetDeviceNameEx;
     MLAPI_GetLedInfoFunc m_pfnGetLedInfo;
     MLAPI_GetLedNameFunc m_pfnGetLedName;
     MLAPI_SetLedStyleFunc m_pfnSetLedStyle;
+    MLAPI_SetLedColorFunc m_pfnSetLedColor;
     MLAPI_SetLedColorExFunc m_pfnSetLedColorEx;
     MLAPI_ReleaseFunc m_pfnRelease;
-    MLAPI_SetLedColorFunc m_pfnSetLedColor;
 
-    mutable std::map<int, MysticLightSimpleDeviceInfo> m_simpleDeviceMap;
     mutable std::map<int, MysticLightLedInfo> m_ledIdMap;
+    mutable std::map<int, MysticLightSimpleDeviceInfo> m_simpleDeviceMap;
     mutable std::vector<DeviceInfo> m_connectedDevices;
 
     bool m_isInitialized;

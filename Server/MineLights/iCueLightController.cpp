@@ -5,6 +5,12 @@
 #include <string>
 #include <map>
 
+iCueLightController::iCueLightController() = default;
+
+iCueLightController::~iCueLightController() {
+    Stop();
+}
+
 bool iCueLightController::Initialize() {
     CorsairPerformProtocolHandshake();
     if (CorsairGetLastError() != CE_Success) {
@@ -13,9 +19,58 @@ bool iCueLightController::Initialize() {
     return CorsairRequestControl(CAM_ExclusiveLightingControl);
 }
 
-void iCueLightController::Render(const std::vector<CorsairLedColor>& colors) {
-    if (!colors.empty()) {
-        CorsairSetLedsColors(static_cast<int>(colors.size()), const_cast<CorsairLedColor*>(colors.data()));
+void iCueLightController::Start() {
+    if (m_isRunning) return;
+    m_isRunning = true;
+    m_renderThread = std::thread(&iCueLightController::RenderLoop, this);
+}
+
+void iCueLightController::Stop() {
+    if (!m_isRunning) return;
+    m_isRunning = false;
+    m_cv.notify_one();
+    if (m_renderThread.joinable()) {
+        m_renderThread.join();
+    }
+}
+
+void iCueLightController::UpdateData(const std::vector<CorsairLedColor>& colors) {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_colorBuffer = colors;
+        m_newData = true;
+    }
+    m_cv.notify_one();
+}
+
+void iCueLightController::RenderLoop() {
+    while (m_isRunning) {
+        std::vector<CorsairLedColor> colorsToRender;
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_cv.wait(lock, [this] { return !m_isRunning || m_newData; });
+            if (!m_isRunning) break;
+
+            colorsToRender.swap(m_colorBuffer);
+            m_newData = false;
+        }
+
+        if (colorsToRender.empty() || m_ownedLedIds.empty()) continue;
+
+        std::vector<CorsairLedColor> iCueColors;
+        for (const auto& color : colorsToRender) {
+            if (m_ownedLedIds.count(color.ledId)) {
+                iCueColors.push_back(color);
+            }
+        }
+
+        if (iCueColors.empty()) continue;
+
+        CorsairSetLedsColors(static_cast<int>(iCueColors.size()), iCueColors.data());
+        CorsairError error = CorsairGetLastError();
+        if (error != CE_Success) {
+            LOG("[iCUE] -> ERROR: CorsairSetLedsColors failed with error code: " + std::to_string(error));
+        }
     }
 }
 
@@ -85,6 +140,7 @@ std::map<std::string, CorsairLedId> iCueLightController::GetNamedKeyMap() const 
 
 std::vector<DeviceInfo> iCueLightController::GetConnectedDevices() const {
     LOG("[iCUE] Starting device discovery...");
+    m_ownedLedIds.clear();
     std::vector<DeviceInfo> connectedDevices;
     const int deviceCount = CorsairGetDeviceCount();
 
@@ -108,7 +164,9 @@ std::vector<DeviceInfo> iCueLightController::GetConnectedDevices() const {
                 newDevice.ledCount = ledPositions->numberOfLed;
 
                 for (int j = 0; j < ledPositions->numberOfLed; ++j) {
-                    newDevice.leds.push_back(ledPositions->pLedPosition[j].ledId);
+                    CorsairLedId ledId = ledPositions->pLedPosition[j].ledId;
+                    newDevice.leds.push_back(ledId);
+                    m_ownedLedIds.insert(ledId);
                 }
 
                 connectedDevices.push_back(newDevice);

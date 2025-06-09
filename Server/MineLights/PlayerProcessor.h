@@ -12,9 +12,10 @@ public:
 
 private:
     void UDPServerLoop();
-    void SendHandshake();
+    void HandshakeServerLoop();
 
     std::vector<std::unique_ptr<ILightingController>> m_controllers;
     std::thread m_udpServerThread;
+    std::thread m_handshakeServerThread;
     bool m_isRunning;
 };
