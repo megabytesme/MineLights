@@ -21,9 +21,7 @@ public class ModMenuIntegration implements ModMenuApi {
 
                         builder.setSavingRunnable(() -> {
                                 MineLightsClient.saveConfig();
-
                                 boolean needsRefresh = false;
-
                                 if (MineLightsClient.CONFIG.restartProxy) {
                                         CommandClient.sendCommand("restart");
                                         MineLightsClient.CONFIG.restartProxy = false;
@@ -40,14 +38,12 @@ public class ModMenuIntegration implements ModMenuApi {
                                         MineLightsClient.CONFIG.clearDisabledDevices = false;
                                         needsRefresh = true;
                                 }
-
                                 if (needsRefresh) {
                                         try {
                                                 Thread.sleep(500);
                                         } catch (InterruptedException e) {
                                         }
                                 }
-
                                 MineLightsClient.refreshLightingManager();
                         });
 
@@ -112,6 +108,15 @@ public class ModMenuIntegration implements ModMenuApi {
                                                 .setDefaultValue(true)
                                                 .setSaveConsumer(
                                                                 newValue -> MineLightsClient.CONFIG.enableMysticLightProxy = newValue)
+                                                .build());
+
+                                integrations.addEntry(entryBuilder
+                                                .startBooleanToggle(Text.translatable(
+                                                                "option.mine-lights.enableAuraSdk"),
+                                                                MineLightsClient.CONFIG.enableAuraSdk)
+                                                .setDefaultValue(true)
+                                                .setSaveConsumer(
+                                                                newValue -> MineLightsClient.CONFIG.enableAuraSdk = newValue)
                                                 .build());
                         }
 

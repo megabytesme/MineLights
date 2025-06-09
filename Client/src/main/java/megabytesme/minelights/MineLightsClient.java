@@ -32,6 +32,7 @@ public class MineLightsClient implements ClientModInitializer {
         discoveryThread.setDaemon(true);
         discoveryThread.start();
 
+        refreshLightingManager();
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             if (lightingManagerThread != null)
                 lightingManagerThread.interrupt();

@@ -12,6 +12,7 @@ public class MineLightsConfig {
     public boolean enableOpenRgb = true;
     public boolean enableIcueProxy = true;
     public boolean enableMysticLightProxy = true;
+    public boolean enableAuraSdk = true;
     public List<String> disabledDevices = new ArrayList<>();
 
     public boolean enableHealthBar = true;
