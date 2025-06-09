@@ -6,6 +6,7 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import megabytesme.minelights.MineLightsClient;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 
 public class ModMenuIntegration implements ModMenuApi {
@@ -17,7 +18,10 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setParentScreen(parent)
                                         .setTitle(Text.translatable("title.mine-lights.config"));
 
-                        builder.setSavingRunnable(MineLightsClient::saveConfig);
+                        builder.setSavingRunnable(() -> {
+                                MineLightsClient.saveConfig();
+                        });
+
                         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
                         ConfigCategory general = builder
@@ -29,6 +33,27 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setDefaultValue(true)
                                         .setTooltip(Text.translatable("option.mine-lights.enableMod.tooltip"))
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
+                                        .build());
+
+                        general.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
+
+                        general.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.refresh.label"),
+                                                        MineLightsClient.CONFIG.forceRefresh)
+                                        .setDefaultValue(false)
+                                        .setTooltip(Text.translatable("option.mine-lights.refresh.tooltip"))
+                                        .setSaveConsumer(newValue -> {
+                                                if (newValue) {
+                                                        MineLightsClient.refreshLightingManager();
+                                                        if (MinecraftClient.getInstance().player != null) {
+                                                                MinecraftClient.getInstance().player.sendMessage(
+                                                                                Text.translatable(
+                                                                                                "message.mine-lights.refresh.feedback"),
+                                                                                false);
+                                                        }
+                                                        MineLightsClient.CONFIG.forceRefresh = false;
+                                                }
+                                        })
                                         .build());
 
                         ConfigCategory playerStatus = builder
@@ -56,18 +81,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                                         .build());
 
-                        playerStatus.addEntry(entryBuilder
-                                        .startBooleanToggle(
-                                                        Text.translatable("option.mine-lights.enableLowHealthWarning"),
-                                                        MineLightsClient.CONFIG.enableLowHealthWarning)
+                        playerStatus.addEntry(entryBuilder.startBooleanToggle(
+                                        Text.translatable("option.mine-lights.enableLowHealthWarning"),
+                                        MineLightsClient.CONFIG.enableLowHealthWarning)
                                         .setDefaultValue(true)
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableLowHealthWarning = newValue)
                                         .build());
-                        playerStatus.addEntry(entryBuilder
-                                        .startBooleanToggle(
-                                                        Text.translatable("option.mine-lights.highlightMovementKeys"),
-                                                        MineLightsClient.CONFIG.highlightMovementKeys)
+                        playerStatus.addEntry(entryBuilder.startBooleanToggle(
+                                        Text.translatable("option.mine-lights.highlightMovementKeys"),
+                                        MineLightsClient.CONFIG.highlightMovementKeys)
                                         .setDefaultValue(true)
                                         .setTooltip(Text.translatable(
                                                         "option.mine-lights.highlightMovementKeys.tooltip"))
@@ -87,10 +110,9 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableBiomeEffects = newValue)
                                         .build());
 
-                        environment.addEntry(entryBuilder
-                                        .startBooleanToggle(
-                                                        Text.translatable("option.mine-lights.enableWeatherEffects"),
-                                                        MineLightsClient.CONFIG.enableWeatherEffects)
+                        environment.addEntry(entryBuilder.startBooleanToggle(
+                                        Text.translatable("option.mine-lights.enableWeatherEffects"),
+                                        MineLightsClient.CONFIG.enableWeatherEffects)
                                         .setDefaultValue(true)
                                         .setTooltip(Text.translatable(
                                                         "option.mine-lights.enableWeatherEffects.tooltip"))
