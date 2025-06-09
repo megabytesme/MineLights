@@ -15,10 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
-import java.net.ServerSocket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +30,6 @@ public class LightingManager implements Runnable {
     private EffectPainter effectPainter;
     private final Gson gson = new Gson();
     private static final int FRAME_DURATION_MS = 33;
-    private static final int HANDSHAKE_PORT = 63211;
     private volatile boolean isInitialized = false;
 
     private final OpenRGBController openRgbController = new OpenRGBController();
@@ -77,10 +74,9 @@ public class LightingManager implements Runnable {
         openRgbThread.setName("MineLights-OpenRGB-Handshake");
 
         Thread mineLightsProxyThread = new Thread(() -> {
-            try (ServerSocket serverSocket = new ServerSocket(HANDSHAKE_PORT)) {
-                serverSocket.setSoTimeout(5000);
-                Socket clientSocket = serverSocket.accept();
-                LOGGER.info("Handshake connection received from MineLights proxy.");
+            try (Socket clientSocket = new Socket()) {
+                clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
+                LOGGER.info("Successfully connected to MineLights Proxy.");
 
                 InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream());
                 JsonObject handshakeData = JsonParser.parseReader(reader).getAsJsonObject();
@@ -111,43 +107,22 @@ public class LightingManager implements Runnable {
                         masterKeyMap.put(key, mapObject.get(key).getAsInt());
                     }
                 }
-                clientSocket.close();
+
                 if (proxyLedCount.get() > 0) {
                     LOGGER.info("MineLights Proxy devices successfully added to the lighting system.");
                 }
 
-            } catch (SocketTimeoutException e) {
-                LOGGER.warn("Did not receive handshake from MineLights Proxy (is it running?). Continuing without it.");
             } catch (Exception e) {
-                if (!(e instanceof InterruptedIOException)) {
-                    LOGGER.error("Error during MineLights Proxy handshake", e);
-                }
+                LOGGER.warn(
+                        "Could not connect to MineLights Proxy (is it running and has it been run as an administrator?).");
             }
         });
         mineLightsProxyThread.setName("MineLights-Proxy-Handshake");
 
         Thread initializerThread = new Thread(() -> {
             try {
-                long startTime = System.currentTimeMillis();
-                long timeoutMillis = 5000;
-
-                openRgbThread.join(timeoutMillis);
-
-                long elapsedTime = System.currentTimeMillis() - startTime;
-                long remainingTime = timeoutMillis - elapsedTime;
-
-                if (remainingTime > 0) {
-                    mineLightsProxyThread.join(remainingTime);
-                }
-
-                if (openRgbThread.isAlive()) {
-                    LOGGER.warn("OpenRGB handshake timed out after 5 seconds. Interrupting.");
-                    openRgbThread.interrupt();
-                }
-                if (mineLightsProxyThread.isAlive()) {
-                    LOGGER.warn("MineLights Proxy handshake timed out after 5 seconds. Interrupting.");
-                    mineLightsProxyThread.interrupt();
-                }
+                openRgbThread.join(5000);
+                mineLightsProxyThread.join(5000);
 
                 this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
                 this.isInitialized = true;
