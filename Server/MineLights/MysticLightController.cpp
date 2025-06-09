@@ -53,7 +53,7 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
     if (!m_isInitialized) return {};
     if (!m_connectedDevices.empty()) return m_connectedDevices;
 
-    LOG("[Mystic Light] Getting device info...");
+    LOG("[Mystic Light] Starting device discovery...");
     SAFEARRAY* pDevTypes = SafeArrayCreateVector(VT_BSTR, 0, 0);
     SAFEARRAY* pLedCounts = SafeArrayCreateVector(VT_BSTR, 0, 0);
 
@@ -69,6 +69,12 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
     SafeArrayGetLBound(pDevTypes, 1, &lbound);
     SafeArrayGetUBound(pDevTypes, 1, &ubound);
     long deviceTypeCount = ubound - lbound + 1;
+
+    if (deviceTypeCount == 0) {
+        LOG("[Mystic Light] No devices found.");
+        return {};
+    }
+    LOG("[Mystic Light] Found " + std::to_string(deviceTypeCount) + " potential device types. Checking for compatibility...");
 
     int currentLedId = LED_ID_OFFSET;
 
@@ -86,7 +92,7 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
             BSTR bstrDevName = nullptr;
             if (m_pfnGetDeviceNameEx(devType, j, &bstrDevName) != 0) continue;
             _bstr_t deviceName(bstrDevName, false);
-            LOG("[Mystic Light] Found device: " + std::string((char*)deviceName));
+            std::string sDeviceName = (char*)deviceName;
 
             BSTR pLedAreaName = nullptr;
             SAFEARRAY* pLedStyles = SafeArrayCreateVector(VT_BSTR, 0, 0);
@@ -123,7 +129,7 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
                     if (ledCount > 0) {
                         DeviceInfo newDevice;
                         newDevice.sdk = "MysticLight";
-                        newDevice.name = (char*)deviceName;
+                        newDevice.name = sDeviceName;
                         newDevice.ledCount = ledCount;
                         for (long k = 0; k < ledCount; ++k) {
                             BSTR bstrLedName;
@@ -133,55 +139,41 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
                             newDevice.leds.push_back(currentLedId++);
                         }
                         m_connectedDevices.push_back(newDevice);
-                        LOG("[Mystic Light] SUCCESS: Added Direct control device '" + newDevice.name + "' with " + std::to_string(newDevice.ledCount) + " LEDs.");
+                        LOG("[Mystic Light] -> SUCCESS: Added '" + newDevice.name + "' with per-LED control (" + std::to_string(newDevice.ledCount) + " LEDs).");
                     }
                 }
                 SafeArrayDestroy(pLedNames);
-
             }
             else if (supportsNoAnimation) {
                 if (m_pfnSetLedStyle(devType, j, _bstr_t(L"NoAnimation")) == 0) {
                     DeviceInfo newDevice;
                     newDevice.sdk = "MysticLight";
-                    newDevice.name = (char*)deviceName;
+                    newDevice.name = sDeviceName;
                     newDevice.ledCount = 1;
-
                     int generatedId = currentLedId++;
                     newDevice.leds.push_back(generatedId);
-
                     MysticLightSimpleDeviceInfo simpleInfo = { devType, j };
                     m_simpleDeviceMap[generatedId] = simpleInfo;
-
                     m_connectedDevices.push_back(newDevice);
-                    LOG("[Mystic Light] SUCCESS: Added Fallback 'Static (NoAnimation)' device '" + newDevice.name + "' as a single light.");
+                    LOG("[Mystic Light] -> SUCCESS: Added '" + newDevice.name + "' with Static color mode (1 LED).");
                 }
-                else {
-                    LOG("[Mystic Light] INFO: Device '" + std::string((char*)deviceName) + "' supports NoAnimation but failed to set style.");
-                }
-
             }
             else if (supportsBreathing) {
                 if (m_pfnSetLedStyle(devType, j, _bstr_t(L"Breathing")) == 0) {
                     DeviceInfo newDevice;
                     newDevice.sdk = "MysticLight";
-                    newDevice.name = (char*)deviceName;
+                    newDevice.name = sDeviceName;
                     newDevice.ledCount = 1;
-
                     int generatedId = currentLedId++;
                     newDevice.leds.push_back(generatedId);
-
                     MysticLightSimpleDeviceInfo simpleInfo = { devType, j };
                     m_simpleDeviceMap[generatedId] = simpleInfo;
-
                     m_connectedDevices.push_back(newDevice);
-                    LOG("[Mystic Light] SUCCESS: Added Fallback 'Breathing' device '" + newDevice.name + "' as a single light.");
-                }
-                else {
-                    LOG("[Mystic Light] INFO: Device '" + std::string((char*)deviceName) + "' supports Breathing but failed to set style.");
+                    LOG("[Mystic Light] -> SUCCESS: Added '" + newDevice.name + "' with Breathing color mode (1 LED).");
                 }
             }
             else {
-                LOG("[Mystic Light] INFO: Device '" + std::string((char*)deviceName) + "' does not support any controllable modes and will be skipped.");
+                LOG("[Mystic Light] -> INFO: Skipping '" + sDeviceName + "' (no compatible control modes found).");
             }
         }
     }
@@ -192,7 +184,6 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
 
 void MysticLightController::Render(const std::vector<CorsairLedColor>& colors) {
     if (!m_isInitialized) return;
-
     for (const auto& color : colors) {
         auto simple_it = m_simpleDeviceMap.find(color.ledId);
         if (simple_it != m_simpleDeviceMap.end()) {
@@ -200,7 +191,6 @@ void MysticLightController::Render(const std::vector<CorsairLedColor>& colors) {
             m_pfnSetLedColor(deviceInfo.deviceType, deviceInfo.deviceIndex, color.r, color.g, color.b);
             continue;
         }
-
         auto it = m_ledIdMap.find(color.ledId);
         if (it != m_ledIdMap.end()) {
             const auto& ledInfo = it->second;

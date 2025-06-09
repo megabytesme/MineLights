@@ -1,9 +1,9 @@
 #define CORSAIR_LIGHTING_SDK_DISABLE_DEPRECATION_WARNINGS
-#include <vector>
-#include <map>
-#include <string>
-#include "CUESDK.h"
 #include "iCueLightController.h"
+#include "Logger.h"
+#include <vector>
+#include <string>
+#include <map>
 
 bool iCueLightController::Initialize() {
     CorsairPerformProtocolHandshake();
@@ -80,32 +80,42 @@ std::map<std::string, CorsairLedId> iCueLightController::GetNamedKeyMap() const 
     keyMap["NUMPAD_7"] = CLK_Keypad7; keyMap["NUMPAD_8"] = CLK_Keypad8; keyMap["NUMPAD_9"] = CLK_Keypad9;
     keyMap["NUMPAD_0"] = CLK_Keypad0;
     keyMap["NUMPAD_DECIMAL"] = CLK_KeypadPeriodAndDelete;
-
     return keyMap;
 }
 
 std::vector<DeviceInfo> iCueLightController::GetConnectedDevices() const {
+    LOG("[iCUE] Starting device discovery...");
     std::vector<DeviceInfo> connectedDevices;
     const int deviceCount = CorsairGetDeviceCount();
+
+    if (deviceCount == 0) {
+        LOG("[iCUE] No devices found.");
+        return {};
+    }
+
+    LOG("[iCUE] Found " + std::to_string(deviceCount) + " potential devices. Checking for compatibility...");
+
     for (int i = 0; i < deviceCount; ++i) {
         CorsairDeviceInfo* deviceInfo = CorsairGetDeviceInfo(i);
-        if (deviceInfo && deviceInfo->ledsCount > 0) {
-            DeviceInfo newDevice;
-            newDevice.sdk = "iCUE";
-            newDevice.name = deviceInfo->model;
+        if (deviceInfo && deviceInfo->model) {
+            std::string deviceName = deviceInfo->model;
 
             CorsairLedPositions* ledPositions = CorsairGetLedPositionsByDeviceIndex(i);
-            if (ledPositions) {
+            if (ledPositions && ledPositions->numberOfLed > 0) {
+                DeviceInfo newDevice;
+                newDevice.sdk = "iCUE";
+                newDevice.name = deviceName;
                 newDevice.ledCount = ledPositions->numberOfLed;
+
                 for (int j = 0; j < ledPositions->numberOfLed; ++j) {
                     newDevice.leds.push_back(ledPositions->pLedPosition[j].ledId);
                 }
+
+                connectedDevices.push_back(newDevice);
+                LOG("[iCUE] -> SUCCESS: Added '" + newDevice.name + "' with " + std::to_string(newDevice.ledCount) + " LEDs.");
             }
             else {
-                newDevice.ledCount = 0;
-            }
-            if (newDevice.ledCount > 0) {
-                connectedDevices.push_back(newDevice);
+                LOG("[iCUE] -> INFO: Skipping '" + deviceName + "' (0 controllable LEDs).");
             }
         }
     }
