@@ -15,9 +15,17 @@ struct DeviceInfo {
     std::vector<int> leds;
 };
 
+struct CachedColor {
+    int r, g, b;
+    bool operator==(const CachedColor& other) const {
+        return r == other.r && g == other.g && b == other.b;
+    }
+};
+
 class ILightingController {
 public:
     virtual ~ILightingController() = default;
+    virtual std::string GetSdkName() const = 0;
     virtual bool Initialize() = 0;
     virtual void Start() = 0;
     virtual void Stop() = 0;

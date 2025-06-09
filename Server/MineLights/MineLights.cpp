@@ -1,6 +1,6 @@
-#include <Windows.h>
+#include "framework.h"
+#include "MineLights.h"
 #include "Resource.h"
-#include <thread>
 #include <memory>
 #include "PlayerProcessor.h" 
 
@@ -22,6 +22,9 @@ void InitTrayIcon(HWND hWnd) {
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+    case WM_CREATE:
+        InitTrayIcon(hWnd);
+        break;
     case TRAY_ICON_MESSAGE:
         if (lParam == WM_RBUTTONDOWN) {
             HMENU hmenu = CreatePopupMenu();
@@ -33,11 +36,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             DestroyMenu(hmenu);
         }
         break;
-
+    case WM_DESTROY:
+        Shell_NotifyIcon(NIM_DELETE, &nid);
+        PostQuitMessage(0);
+        break;
     case WM_COMMAND:
         if (LOWORD(wParam) == IDM_EXIT) {
-            Shell_NotifyIcon(NIM_DELETE, &nid);
-            PostQuitMessage(0);
+            DestroyWindow(hWnd);
         }
         break;
     }
@@ -45,7 +50,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    std::unique_ptr<PlayerProcessor> playerProcessor;
+    HANDLE hMutex = CreateMutexA(NULL, TRUE, "Global\\MineLightsProxySingletonMutex");
+    if (hMutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS) {
+        MessageBoxA(NULL, "MineLights Helper is already running.", "MineLights", MB_OK | MB_ICONINFORMATION);
+        if (hMutex) CloseHandle(hMutex);
+        return 1;
+    }
 
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = WndProc;
@@ -54,13 +64,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     RegisterClass(&wc);
 
     HWND hWnd = CreateWindow(L"MineLightsClass", L"MineLights Helper", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
-    if (!hWnd) {
-        return 0;
-    }
+    if (!hWnd) return 0;
 
-    InitTrayIcon(hWnd);
-
-    playerProcessor = std::make_unique<PlayerProcessor>();
+    auto playerProcessor = std::make_unique<PlayerProcessor>(hWnd);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -68,5 +74,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         DispatchMessage(&msg);
     }
 
+    CloseHandle(hMutex);
     return (int)msg.wParam;
 }

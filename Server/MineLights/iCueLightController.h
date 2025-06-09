@@ -2,12 +2,14 @@
 
 #include "ILightingController.h"
 #include <unordered_set>
+#include <map>
 
 class iCueLightController : public ILightingController {
 public:
     iCueLightController();
     ~iCueLightController() override;
 
+    std::string GetSdkName() const override { return "iCUE"; }
     bool Initialize() override;
     void Start() override;
     void Stop() override;
@@ -18,4 +20,5 @@ public:
 private:
     void RenderLoop();
     mutable std::unordered_set<int> m_ownedLedIds;
+    mutable std::map<int, CachedColor> m_lastSentColors;
 };
