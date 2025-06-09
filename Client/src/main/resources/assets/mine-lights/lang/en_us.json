@@ -1,47 +1,35 @@
 {
-  "modmenu.nameTranslation.mine-lights": "MineLights",
-  "modmenu.descriptionTranslation.mine-lights": "Brings your Minecraft world to life with dynamic, real-time RGB lighting effects for your iCUE, Mystic Light, and OpenRGB-compatible peripherals.",
-
-  "minelights.discord": "Discord",
-
   "title.mine-lights.config": "MineLights Configuration",
   "category.mine-lights.general": "General",
   "category.mine-lights.integrations": "Integrations",
-  "category.mine-lights.devices": "Discovered Devices",
+  "category.mine-lights.devices": "Devices",
   "category.mine-lights.player_status": "Player Status",
-  "category.mine-lights.environment": "Environmental Effects",
-
-  "option.mine-lights.enableMod": "Enable MineLights",
-  "option.mine-lights.enableMod.tooltip": "Master switch to enable or disable all lighting effects.",
-
-  "option.mine-lights.restart.label": "Restart Proxy on Save",
-  "option.mine-lights.restart.tooltip": "Check this and save to restart the external lighting proxy.",
-  "option.mine-lights.restart_admin.label": "Restart Proxy as Admin on Save",
-  "option.mine-lights.restart_admin.tooltip": "Check this and save to restart the external lighting proxy with administrator rights (required for some hardware).",
-  "option.mine-lights.clear_disabled.label": "Re-enable all devices on Save",
-  "option.mine-lights.clear_disabled.tooltip": "Check this and save to clear the list of disabled devices.",
-
+  "category.mine-lights.environment": "Environment",
+  "option.mine-lights.enableMod": "Enable Mod",
+  "option.mine-lights.enableMod.tooltip": "Toggles all lighting effects from the mod.",
+  "option.mine-lights.restart.label": "Restart Helper (Requires Close & Save)",
+  "option.mine-lights.restart.tooltip": "If the helper process crashes or stops responding,\ncheck this box and save to restart it.",
+  "option.mine-lights.restart_admin.label": "Restart Helper as Administrator (Requires Close & Save)",
+  "option.mine-lights.restart_admin.tooltip": "Use this if integrations like Mystic Light aren't working.\nRequires administrator privileges.",
   "option.mine-lights.enableOpenRgb": "Enable OpenRGB",
-  "option.mine-lights.enableIcueProxy": "Enable iCUE Proxy (Windows Only)",
+  "option.mine-lights.enableIcueProxy": "Enable iCUE (via Helper)",
   "option.mine-lights.enableMysticLightProxy": "Enable Mystic Light Proxy (Windows Only)",
-  "option.mine-lights.device.header": "Enable or disable individual devices. Changes are applied on save.",
-
-  "option.mine-lights.enableHealthBar": "Enable Health Bar",
-  "option.mine-lights.enableHungerBar": "Enable Hunger Bar",
-  "option.mine-lights.enableExperienceBar": "Enable Experience Bar",
+  "option.mine-lights.enableAuraSdk": "Enable ASUS Aura SDK",
+  "option.mine-lights.device.header": "Enable or disable specific lighting devices below:",
+  "option.mine-lights.clear_disabled.label": "Re-enable All Devices (Requires Close & Save)",
+  "option.mine-lights.clear_disabled.tooltip": "Check this box to clear the list of all disabled devices.",
+  "option.mine-lights.enableHealthBar": "Enable Health Bar (F1-F4)",
+  "option.mine-lights.enableHungerBar": "Enable Hunger Bar (F5-F8)",
+  "option.mine-lights.enableExperienceBar": "Enable Experience Bar (1-0)",
   "option.mine-lights.enableLowHealthWarning": "Enable Low Health Warning",
-
-  "option.mine-lights.enableBiomeEffects": "Enable Biome Backgrounds",
-  "option.mine-lights.enableBiomeEffects.tooltip": "Changes the keyboard's background color based on the biome you're in.",
-  "option.mine-lights.enableWeatherEffects": "Enable Weather Effects",
-  "option.mine-lights.enableWeatherEffects.tooltip": "Adds rain and thunderstorm lightning flash effects.",
-  "option.mine-lights.enableOnFireEffect": "Enable On-Fire Effect",
-  "option.mine-lights.enableInWaterEffect": "Enable In-Water/Lava Effect",
-  "option.mine-lights.enableInWaterEffect.tooltip": "Changes the color of movement keys when submerged.",
-  "option.mine-lights.enablePortalEffects": "Enable Portal Effects",
-
   "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",
-  "option.mine-lights.highlightMovementKeys.tooltip": "Keeps the movement keys lit with a default color.",
-
-  "message.mine-lights.refresh.feedback": "Connection to MineLights Proxy has been refreshed."
+  "option.mine-lights.highlightMovementKeys.tooltip": "Highlights WASD, Sprint, Sneak, and Jump keys.",
+  "option.mine-lights.enableBiomeEffects": "Enable Biome Background Colors",
+  "option.mine-lights.enableBiomeEffects.tooltip": "Sets a base keyboard color based on the biome you are in.",
+  "option.mine-lights.enableWeatherEffects": "Enable Weather Effects",
+  "option.mine-lights.enableWeatherEffects.tooltip": "Adds rain and thunderstorm lighting effects.",
+  "option.mine-lights.enableOnFireEffect": "Enable On-Fire Effect",
+  "option.mine-lights.enableInWaterEffect": "Enable In-Water Effect",
+  "option.mine-lights.enableInWaterEffect.tooltip": "Highlights movement keys with a blue color when submerged.",
+  "option.mine-lights.enablePortalEffects": "Enable Portal Effects"
 }
