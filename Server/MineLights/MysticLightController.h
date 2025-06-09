@@ -27,6 +27,13 @@ struct MysticLightSimpleDeviceInfo {
     DWORD deviceIndex;
 };
 
+struct CachedColor {
+    int r, g, b;
+    bool operator==(const CachedColor& other) const {
+        return r == other.r && g == other.g && b == other.b;
+    }
+};
+
 class MysticLightController : public ILightingController {
 public:
     MysticLightController();
@@ -58,6 +65,7 @@ private:
     mutable std::map<int, MysticLightLedInfo> m_ledIdMap;
     mutable std::map<int, MysticLightSimpleDeviceInfo> m_simpleDeviceMap;
     mutable std::vector<DeviceInfo> m_connectedDevices;
+    std::map<int, CachedColor> m_lastSentColors;
 
     bool m_isInitialized;
 
