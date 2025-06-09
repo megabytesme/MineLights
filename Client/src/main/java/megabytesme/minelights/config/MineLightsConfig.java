@@ -1,6 +1,8 @@
 package megabytesme.minelights.config;
 
 public class MineLightsConfig {
+    public transient boolean forceRefresh = false;
+
     public boolean enableMod = true;
     public boolean enableHealthBar = true;
     public boolean enableHungerBar = true;
