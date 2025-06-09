@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <atlbase.h>
+#include <unordered_map>
 
 MysticLightController::MysticLightController() : m_hMsiSdk(nullptr), m_isInitialized(false) {}
 
@@ -88,26 +89,39 @@ void MysticLightController::RenderLoop() {
 
         if (!m_isInitialized || colorsToRender.empty()) continue;
 
+        std::unordered_map<DWORD, std::vector<CorsairLedColor>> simpleDeviceBatches;
+        std::unordered_map<DWORD, std::vector<CorsairLedColor>> perLedDeviceBatches;
+
         for (const auto& color : colorsToRender) {
-            CachedColor newColor = { color.r, color.g, color.b };
-
-            if (m_lastSentColors.count(color.ledId) && m_lastSentColors[color.ledId] == newColor) {
-                continue;
-            }
-
             auto simple_it = m_simpleDeviceMap.find(color.ledId);
             if (simple_it != m_simpleDeviceMap.end()) {
-                const auto& deviceInfo = simple_it->second;
-                m_pfnSetLedColor(deviceInfo.deviceType, deviceInfo.deviceIndex, color.r, color.g, color.b);
-                m_lastSentColors[color.ledId] = newColor;
+                simpleDeviceBatches[simple_it->second.deviceIndex].push_back(color);
                 continue;
             }
-
             auto it = m_ledIdMap.find(color.ledId);
             if (it != m_ledIdMap.end()) {
-                const auto& ledInfo = it->second;
-                m_pfnSetLedColorEx(ledInfo.deviceType, ledInfo.deviceIndex, ledInfo.ledName, color.r, color.g, color.b, 1);
+                perLedDeviceBatches[it->second.deviceIndex].push_back(color);
+            }
+        }
+
+        for (const auto& batch : simpleDeviceBatches) {
+            const auto& color = batch.second[0];
+            CachedColor newColor = { color.r, color.g, color.b };
+            if (!m_lastSentColors.count(color.ledId) || !(m_lastSentColors[color.ledId] == newColor)) {
+                const auto& deviceInfo = m_simpleDeviceMap[color.ledId];
+                m_pfnSetLedColor(deviceInfo.deviceType, deviceInfo.deviceIndex, color.r, color.g, color.b);
                 m_lastSentColors[color.ledId] = newColor;
+            }
+        }
+
+        for (const auto& batch : perLedDeviceBatches) {
+            for (const auto& color : batch.second) {
+                CachedColor newColor = { color.r, color.g, color.b };
+                if (!m_lastSentColors.count(color.ledId) || !(m_lastSentColors[color.ledId] == newColor)) {
+                    const auto& ledInfo = m_ledIdMap[color.ledId];
+                    m_pfnSetLedColorEx(ledInfo.deviceType, ledInfo.deviceIndex, ledInfo.ledName, color.r, color.g, color.b, 1);
+                    m_lastSentColors[color.ledId] = newColor;
+                }
             }
         }
     }
@@ -119,6 +133,7 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
     LOG("[Mystic Light] Starting device discovery...");
     m_ledIdMap.clear();
     m_simpleDeviceMap.clear();
+    m_lastSentColors.clear();
     SAFEARRAY* pDevTypes = SafeArrayCreateVector(VT_BSTR, 0, 0);
     SAFEARRAY* pLedCounts = SafeArrayCreateVector(VT_BSTR, 0, 0);
     int result = m_pfnGetDeviceInfo(&pDevTypes, &pLedCounts);

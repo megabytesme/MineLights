@@ -65,7 +65,7 @@ private:
     mutable std::map<int, MysticLightLedInfo> m_ledIdMap;
     mutable std::map<int, MysticLightSimpleDeviceInfo> m_simpleDeviceMap;
     mutable std::vector<DeviceInfo> m_connectedDevices;
-    std::map<int, CachedColor> m_lastSentColors;
+    mutable std::map<int, CachedColor> m_lastSentColors;
 
     bool m_isInitialized;
 
