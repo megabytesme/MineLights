@@ -9,7 +9,7 @@ struct DeviceInfo {
     std::string sdk;
     std::string name;
     int ledCount;
-    std::vector<CorsairLedId> leds;
+    std::vector<int> leds;
 };
 
 class ILightingController {

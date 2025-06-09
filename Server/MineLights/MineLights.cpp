@@ -1,4 +1,3 @@
-#include <winsock2.h>
 #include <Windows.h>
 #include "Resource.h"
 #include <thread>
@@ -45,7 +44,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     std::unique_ptr<PlayerProcessor> playerProcessor;
 
     WNDCLASS wc = { 0 };

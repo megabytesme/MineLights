@@ -2,7 +2,8 @@
 
 #include <thread>
 #include <memory>
-#include "iCueLightController.h"
+#include <vector>
+#include "ILightingController.h"
 
 class PlayerProcessor {
 public:
@@ -12,7 +13,8 @@ public:
 private:
     void UDPServerLoop();
     void SendHandshake();
-    std::unique_ptr<iCueLightController> m_controller;
+
+    std::vector<std::unique_ptr<ILightingController>> m_controllers;
     std::thread m_udpServerThread;
     bool m_isRunning;
 };
