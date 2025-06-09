@@ -5,7 +5,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 ## Features
 
-- **Multi-SDK Support**: Integrates with OpenRGB (Windows, Linux and MacOS), Corsair iCUE (Windows), and MSI Mystic Light (Windows) simultaneously.
+- **Multi-SDK Support**: Integrates with OpenRGB (Windows, Linux and MacOS), Corsair iCUE (Windows), MSI Mystic Light (Windows) and ASUS Aura Sync (Windows) simultaneously.
 - **Dynamic Environmental Effects**: Your lighting changes in real-time based on your in-game surroundings.
   - **Biome Colors**: Your keyboard's background color smoothly transitions to match the biome you're in.
   - **Weather Effects**: Experience rain and dramatic lightning flashes during in-game thunderstorms.
@@ -18,6 +18,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **OpenRGB**: Control any hardware supported by the OpenRGB server (requires OpenRGB - Cross-platform support on 64-bit devices! Windows, Linux and MacOS).
 - **Corsair iCUE**: Full device support via the iCUE SDK (requires Corsair iCue - Windows).
 - **MSI Mystic Light**: Control for motherboards, GPUs, and other devices via the Mystic Light SDK (requires MSI Center - Windows).
+- **ASUS Aura Sync**: Control for motherboards, GPUs, and other devices via the ASUS Aura Sync API (requires ASUS Aura Sync - Windows).
 
 ## 🛠️ Installation
 
@@ -82,6 +83,7 @@ The `mine-lights-x.x.x.jar` file does not contain the proprietary SDK files from
 
 - **Windows Dynamic Lighting**: Integration with Windows Dynamic Lighting is planned for the future.
 - **Improve Device Compatibility**: Continuously working to improve support for more devices across all SDKs.
+- **Community Testing**: Ideally have testers, well test!
 
 ## Contributing
 
