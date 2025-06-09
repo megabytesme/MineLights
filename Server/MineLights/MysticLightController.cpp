@@ -7,6 +7,7 @@
 MysticLightController::MysticLightController() : m_hMsiSdk(nullptr), m_isInitialized(false) {}
 
 MysticLightController::~MysticLightController() {
+    Stop();
     if (m_isInitialized && m_pfnRelease) {
         m_pfnRelease();
     }
@@ -49,14 +50,68 @@ bool MysticLightController::Initialize() {
     return true;
 }
 
+void MysticLightController::Start() {
+    if (m_isRunning) return;
+    m_isRunning = true;
+    m_renderThread = std::thread(&MysticLightController::RenderLoop, this);
+}
+
+void MysticLightController::Stop() {
+    if (!m_isRunning) return;
+    m_isRunning = false;
+    m_cv.notify_one();
+    if (m_renderThread.joinable()) {
+        m_renderThread.join();
+    }
+}
+
+void MysticLightController::UpdateData(const std::vector<CorsairLedColor>& colors) {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_colorBuffer = colors;
+        m_newData = true;
+    }
+    m_cv.notify_one();
+}
+
+void MysticLightController::RenderLoop() {
+    while (m_isRunning) {
+        std::vector<CorsairLedColor> colorsToRender;
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_cv.wait(lock, [this] { return !m_isRunning || m_newData; });
+            if (!m_isRunning) break;
+
+            colorsToRender.swap(m_colorBuffer);
+            m_newData = false;
+        }
+
+        if (!m_isInitialized || colorsToRender.empty()) continue;
+
+        for (const auto& color : colorsToRender) {
+            auto simple_it = m_simpleDeviceMap.find(color.ledId);
+            if (simple_it != m_simpleDeviceMap.end()) {
+                const auto& deviceInfo = simple_it->second;
+                m_pfnSetLedColor(deviceInfo.deviceType, deviceInfo.deviceIndex, color.r, color.g, color.b);
+                continue;
+            }
+            auto it = m_ledIdMap.find(color.ledId);
+            if (it != m_ledIdMap.end()) {
+                const auto& ledInfo = it->second;
+                m_pfnSetLedColorEx(ledInfo.deviceType, ledInfo.deviceIndex, ledInfo.ledName, color.r, color.g, color.b, 1);
+            }
+        }
+    }
+}
+
 std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
     if (!m_isInitialized) return {};
     if (!m_connectedDevices.empty()) return m_connectedDevices;
-
     LOG("[Mystic Light] Starting device discovery...");
+    m_ledIdMap.clear();
+    m_simpleDeviceMap.clear();
     SAFEARRAY* pDevTypes = SafeArrayCreateVector(VT_BSTR, 0, 0);
     SAFEARRAY* pLedCounts = SafeArrayCreateVector(VT_BSTR, 0, 0);
-
     int result = m_pfnGetDeviceInfo(&pDevTypes, &pLedCounts);
     if (result != 0) {
         LOG("[Mystic Light] MLAPI_GetDeviceInfo failed with error: " + std::to_string(result));
@@ -64,48 +119,38 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
         SafeArrayDestroy(pLedCounts);
         return {};
     }
-
     long lbound, ubound;
     SafeArrayGetLBound(pDevTypes, 1, &lbound);
     SafeArrayGetUBound(pDevTypes, 1, &ubound);
     long deviceTypeCount = ubound - lbound + 1;
-
     if (deviceTypeCount == 0) {
         LOG("[Mystic Light] No devices found.");
         return {};
     }
     LOG("[Mystic Light] Found " + std::to_string(deviceTypeCount) + " potential device types. Checking for compatibility...");
-
     int currentLedId = LED_ID_OFFSET;
-
     for (long i = 0; i < deviceTypeCount; ++i) {
         BSTR bstrDevType;
         SafeArrayGetElement(pDevTypes, &i, &bstrDevType);
         _bstr_t devType(bstrDevType, false);
-
         BSTR bstrDevCount;
         SafeArrayGetElement(pLedCounts, &i, &bstrDevCount);
         int devInstanceCount = _wtoi(bstrDevCount);
         SysFreeString(bstrDevCount);
-
         for (DWORD j = 0; j < (DWORD)devInstanceCount; ++j) {
             BSTR bstrDevName = nullptr;
             if (m_pfnGetDeviceNameEx(devType, j, &bstrDevName) != 0) continue;
             _bstr_t deviceName(bstrDevName, false);
             std::string sDeviceName = (char*)deviceName;
-
             BSTR pLedAreaName = nullptr;
             SAFEARRAY* pLedStyles = SafeArrayCreateVector(VT_BSTR, 0, 0);
-
             bool supportsDirect = false;
             bool supportsNoAnimation = false;
             bool supportsBreathing = false;
-
             if (m_pfnGetLedInfo(devType, 0, &pLedAreaName, &pLedStyles) == 0) {
                 long style_lbound, style_ubound;
                 SafeArrayGetLBound(pLedStyles, 1, &style_lbound);
                 SafeArrayGetUBound(pLedStyles, 1, &style_ubound);
-
                 for (long s_idx = style_lbound; s_idx <= style_ubound; ++s_idx) {
                     BSTR bstrStyle;
                     SafeArrayGetElement(pLedStyles, &s_idx, &bstrStyle);
@@ -117,7 +162,6 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
             }
             SafeArrayDestroy(pLedStyles);
             SysFreeString(pLedAreaName);
-
             if (supportsDirect) {
                 m_pfnSetLedStyle(devType, j, _bstr_t(L"Direct"));
                 SAFEARRAY* pLedNames = SafeArrayCreateVector(VT_BSTR, 0, 0);
@@ -180,23 +224,6 @@ std::vector<DeviceInfo> MysticLightController::GetConnectedDevices() const {
     SafeArrayDestroy(pDevTypes);
     SafeArrayDestroy(pLedCounts);
     return m_connectedDevices;
-}
-
-void MysticLightController::Render(const std::vector<CorsairLedColor>& colors) {
-    if (!m_isInitialized) return;
-    for (const auto& color : colors) {
-        auto simple_it = m_simpleDeviceMap.find(color.ledId);
-        if (simple_it != m_simpleDeviceMap.end()) {
-            const auto& deviceInfo = simple_it->second;
-            m_pfnSetLedColor(deviceInfo.deviceType, deviceInfo.deviceIndex, color.r, color.g, color.b);
-            continue;
-        }
-        auto it = m_ledIdMap.find(color.ledId);
-        if (it != m_ledIdMap.end()) {
-            const auto& ledInfo = it->second;
-            m_pfnSetLedColorEx(ledInfo.deviceType, ledInfo.deviceIndex, ledInfo.ledName, color.r, color.g, color.b, 1);
-        }
-    }
 }
 
 std::map<std::string, CorsairLedId> MysticLightController::GetNamedKeyMap() const {
