@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.gitlab.mguimard.openrgb.entity.OpenRGBDevice;
 import megabytesme.minelights.effects.EffectPainter;
 import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
@@ -18,10 +17,11 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 public class LightingManager implements Runnable {
     public static final Logger LOGGER = LoggerFactory.getLogger("MineLights");
@@ -34,59 +34,83 @@ public class LightingManager implements Runnable {
 
     private final OpenRGBController openRgbController = new OpenRGBController();
     private final Map<Integer, Integer> openRgbLedToDeviceMap = new HashMap<>();
-    private final List<KeyColorDto> iCueUpdateList = new ArrayList<>();
+
+    private final List<Integer> masterLedList = Collections.synchronizedList(new ArrayList<>());
+    private final Map<String, Integer> masterKeyMap = Collections.synchronizedMap(new HashMap<>());
 
     public LightingManager() {
-        CompletableFuture.runAsync(this::performHandshakes);
+        performHandshakes();
     }
 
     private void performHandshakes() {
-        LOGGER.info("Starting all controller handshakes...");
-        List<Integer> masterLedList = new ArrayList<>();
-        Map<String, Integer> masterKeyMap = new HashMap<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
-        if (openRgbController.connect()) {
-            LOGGER.info("Successfully connected to OpenRGB server.");
-            List<OpenRGBDevice> devices = openRgbController.getDevices();
-            int openRgbLedOffset = 2000;
-            for (int i = 0; i < devices.size(); i++) {
-                OpenRGBDevice device = devices.get(i);
-                LOGGER.info("Found OpenRGB device: {}", device.getName());
-                for (int j = 0; j < device.getLeds().size(); j++) {
-                    int globalLedId = openRgbLedOffset + j;
-                    masterLedList.add(globalLedId);
-                    openRgbLedToDeviceMap.put(globalLedId, i);
+        Thread openRgbThread = new Thread(() -> {
+            try {
+                if (openRgbController.connect()) {
+                    LOGGER.info("Successfully connected to OpenRGB server.");
+                    List<OpenRGBController.OpenRGBDevice> devices = openRgbController.getDevices();
+                    int openRgbLedOffset = 2000;
+                    for (int i = 0; i < devices.size(); i++) {
+                        OpenRGBController.OpenRGBDevice device = devices.get(i);
+                        LOGGER.info("Found OpenRGB device: {} with {} LEDs", device.name, device.ledCount);
+
+                        for (int j = 0; j < device.ledCount; j++) {
+                            int globalLedId = openRgbLedOffset + j;
+                            masterLedList.add(globalLedId);
+                            openRgbLedToDeviceMap.put(globalLedId, i);
+                        }
+                        openRgbLedOffset += device.ledCount;
+                    }
                 }
-                openRgbLedOffset += device.getLeds().size();
+            } catch (Exception e) {
+                LOGGER.error("Error during OpenRGB handshake", e);
+            } finally {
+                latch.countDown();
             }
-        }
+        });
+        openRgbThread.setName("MineLights-OpenRGB-Handshake");
+        openRgbThread.start();
 
-        try (ServerSocket serverSocket = new ServerSocket(HANDSHAKE_PORT)) {
-            Socket clientSocket = serverSocket.accept();
-            LOGGER.info("Handshake connection received from C++ proxy.");
+        Thread MineLightsProxyThread = new Thread(() -> {
+            try (ServerSocket serverSocket = new ServerSocket(HANDSHAKE_PORT)) {
+                serverSocket.setSoTimeout(10000);
+                Socket clientSocket = serverSocket.accept();
+                LOGGER.info("Handshake connection received from MineLights proxy.");
 
-            InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream());
-            JsonObject handshakeData = JsonParser.parseReader(reader).getAsJsonObject();
+                InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream());
+                JsonObject handshakeData = JsonParser.parseReader(reader).getAsJsonObject();
 
-            if (handshakeData.has("all_led_ids")) {
-                for (JsonElement id : handshakeData.getAsJsonArray("all_led_ids")) {
-                    masterLedList.add(id.getAsInt());
+                if (handshakeData.has("all_led_ids")) {
+                    for (JsonElement id : handshakeData.getAsJsonArray("all_led_ids")) {
+                        masterLedList.add(id.getAsInt());
+                    }
                 }
-            }
-            if (handshakeData.has("key_map")) {
-                JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
-                for (String key : mapObject.keySet()) {
-                    masterKeyMap.put(key, mapObject.get(key).getAsInt());
+                if (handshakeData.has("key_map")) {
+                    JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
+                    for (String key : mapObject.keySet()) {
+                        masterKeyMap.put(key, mapObject.get(key).getAsInt());
+                    }
                 }
+                clientSocket.close();
+                LOGGER.info("MineLights Proxy devices have been added to the lighting system.");
+            } catch (Exception e) {
+                LOGGER.warn("Did not receive handshake from MineLights Proxy (is it running?). Continuing without it.");
             }
-            clientSocket.close();
-        } catch (Exception e) {
-            LOGGER.error("iCUE Proxy handshake failed!", e);
-        }
+        });
+        MineLightsProxyThread.setName("MineLights-Proxy-Handshake");
+        MineLightsProxyThread.start();
 
-        this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
-        this.isInitialized = true;
-        LOGGER.info("Initialization complete. Total controllable LEDs: {}", masterLedList.size());
+        new Thread(() -> {
+            try {
+                latch.await();
+                this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
+                this.isInitialized = true;
+                LOGGER.info("Initialization complete. Total controllable LEDs found: {}", masterLedList.size());
+            } catch (InterruptedException e) {
+                LOGGER.error("Initialization was interrupted.");
+            }
+        }).start();
     }
 
     @Override
@@ -115,19 +139,19 @@ public class LightingManager implements Runnable {
 
                 FrameStateDto frameState = effectPainter.paint(playerState);
 
-                iCueUpdateList.clear();
+                List<KeyColorDto> iCueUpdateList = new ArrayList<>();
                 Map<Integer, List<KeyColorDto>> openRgbUpdates = new HashMap<>();
 
                 for (Map.Entry<Integer, RGBColorDto> entry : frameState.keys.entrySet()) {
                     int globalLedId = entry.getKey();
                     RGBColorDto color = entry.getValue();
-                    KeyColorDto keyColor = new KeyColorDto(globalLedId, color);
 
                     if (openRgbLedToDeviceMap.containsKey(globalLedId)) {
                         int deviceIndex = openRgbLedToDeviceMap.get(globalLedId);
-                        openRgbUpdates.computeIfAbsent(deviceIndex, k -> new ArrayList<>()).add(keyColor);
+                        openRgbUpdates.computeIfAbsent(deviceIndex, k -> new ArrayList<>())
+                                .add(new KeyColorDto(globalLedId, color));
                     } else {
-                        iCueUpdateList.add(keyColor);
+                        iCueUpdateList.add(new KeyColorDto(globalLedId, color));
                     }
                 }
 
@@ -138,7 +162,9 @@ public class LightingManager implements Runnable {
                 }
 
                 if (!openRgbUpdates.isEmpty()) {
-                    openRgbController.updateLeds(openRgbUpdates);
+                    for (Map.Entry<Integer, List<KeyColorDto>> deviceUpdate : openRgbUpdates.entrySet()) {
+                        openRgbController.updateLeds(deviceUpdate.getKey(), deviceUpdate.getValue());
+                    }
                 }
 
                 long frameEnd = System.currentTimeMillis();
