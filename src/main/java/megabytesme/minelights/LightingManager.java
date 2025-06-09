@@ -33,6 +33,7 @@ public class LightingManager implements Runnable {
     private final Gson gson = new Gson();
     private static final int FRAME_DURATION_MS = 33;
     private volatile boolean isInitialized = false;
+    private FrameStateDto lastSentFrame = null;
 
     private final OpenRGBController openRgbController = new OpenRGBController();
     private final Map<Integer, Integer> openRgbLedToDeviceMap = new HashMap<>();
@@ -98,6 +99,7 @@ public class LightingManager implements Runnable {
             try (Socket clientSocket = new Socket()) {
                 clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
                 LOGGER.info("Successfully connected to MineLights Proxy.");
+                MineLightsClient.isProxyConnected = true;
 
                 OutputStreamWriter writer = new OutputStreamWriter(clientSocket.getOutputStream(),
                         StandardCharsets.UTF_8);
@@ -207,6 +209,17 @@ public class LightingManager implements Runnable {
                 }
 
                 FrameStateDto frameState = effectPainter.paint(playerState);
+
+                if (frameState.equals(lastSentFrame)) {
+                    long frameEnd = System.currentTimeMillis();
+                    long sleepTime = FRAME_DURATION_MS - (frameEnd - frameStart);
+                    if (sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
+                    continue;
+                }
+
+                lastSentFrame = frameState;
 
                 List<KeyColorDto> proxyUpdateList = new ArrayList<>();
                 Map<Integer, List<KeyColorDto>> openRgbUpdates = new HashMap<>();
