@@ -2,6 +2,14 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <Windows.h>
+
+std::string GetExeDirectory() {
+    char path[MAX_PATH];
+    GetModuleFileNameA(NULL, path, MAX_PATH);
+    std::string exePath(path);
+    return exePath.substr(0, exePath.find_last_of("\\/"));
+}
 
 Logger& Logger::GetInstance() {
     static Logger instance;
@@ -9,7 +17,8 @@ Logger& Logger::GetInstance() {
 }
 
 Logger::Logger() {
-    m_logFile.open("MineLights_Server.log", std::ios::out | std::ios::app);
+    std::string logFilePath = GetExeDirectory() + "\\MineLights_Server.log";
+    m_logFile.open(logFilePath, std::ios::out | std::ios::app);
 }
 
 Logger::~Logger() {

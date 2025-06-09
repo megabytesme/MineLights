@@ -1,10 +1,12 @@
+#include "framework.h"
 #include "PlayerProcessor.h"
 #include "Logger.h"
+#include "iCueLightController.h"
+#include "MysticLightController.h"
 #include "json.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
-#include <WS2tcpip.h>
 #pragma comment (lib, "ws2_32.lib")
 #pragma warning(disable: 4996)
 
@@ -35,7 +37,6 @@ void PlayerProcessor::UDPServerLoop() {
     }
 
     LOG("UDP Server loop started on port 63212.");
-
     std::vector<char> buf(65536);
 
     while (m_isRunning) {
@@ -63,8 +64,9 @@ void PlayerProcessor::UDPServerLoop() {
                         });
                 }
             }
-            if (m_controller) {
-                m_controller->Render(colors);
+
+            for (const auto& controller : m_controllers) {
+                controller->Render(colors);
             }
         }
         catch (const json::parse_error& e) {
@@ -94,30 +96,31 @@ void PlayerProcessor::SendHandshake() {
     }
 
     json handshake;
-    auto connectedDevices = m_controller->GetConnectedDevices();
     json devicesArray = json::array();
+    json keyMap = json::object();
 
-    for (const auto& device : connectedDevices) {
-        json deviceObj;
-        deviceObj["sdk"] = device.sdk;
-        deviceObj["name"] = device.name;
-        deviceObj["ledCount"] = device.ledCount;
-
-        json ledsArray = json::array();
-        for (const auto& ledId : device.leds) {
-            ledsArray.push_back(ledId);
+    for (auto& controller : m_controllers) {
+        auto connectedDevices = controller->GetConnectedDevices();
+        for (const auto& device : connectedDevices) {
+            json deviceObj;
+            deviceObj["sdk"] = device.sdk;
+            deviceObj["name"] = device.name;
+            deviceObj["ledCount"] = device.ledCount;
+            deviceObj["leds"] = device.leds;
+            devicesArray.push_back(deviceObj);
         }
-        deviceObj["leds"] = ledsArray;
-        devicesArray.push_back(deviceObj);
+        auto controllerKeyMap = controller->GetNamedKeyMap();
+        for (const auto& pair : controllerKeyMap) {
+            keyMap[pair.first] = pair.second;
+        }
     }
+
     handshake["devices"] = devicesArray;
-    handshake["key_map"] = m_controller->GetNamedKeyMap();
+    handshake["key_map"] = keyMap;
     std::string handshakeStr = handshake.dump();
 
     LOG("Attempting to send handshake. Size: " + std::to_string(handshakeStr.length()) + " bytes.");
-
-    int bytesSent = send(connectSocket, handshakeStr.c_str(), (int)handshakeStr.length(), 0);
-
+    int bytesSent = send(connectSocket, handshakeStr.c_str(), static_cast<int>(handshakeStr.length()), 0);
     if (bytesSent == SOCKET_ERROR) {
         LOG("!!! Handshake send FAILED with error: " + std::to_string(WSAGetLastError()));
     }
@@ -133,15 +136,31 @@ PlayerProcessor::PlayerProcessor() : m_isRunning(true) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    m_controller = std::make_unique<iCueLightController>();
-    if (m_controller->Initialize()) {
+    auto icue_controller = std::make_unique<iCueLightController>();
+    if (icue_controller->Initialize()) {
         LOG("iCUE Controller Initialized.");
+        m_controllers.push_back(std::move(icue_controller));
+    }
+    else {
+        LOG("iCUE Controller failed to initialize (Is iCUE running with SDK enabled?).");
+    }
+
+    auto mystic_controller = std::make_unique<MysticLightController>();
+    if (mystic_controller->Initialize()) {
+        LOG("Mystic Light Controller Initialized.");
+        m_controllers.push_back(std::move(mystic_controller));
+    }
+    else {
+        LOG("Mystic Light Controller failed to initialize (Is MSI Center/Mystic Light installed?).");
+    }
+
+    if (!m_controllers.empty()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         SendHandshake();
         m_udpServerThread = std::thread(&PlayerProcessor::UDPServerLoop, this);
     }
     else {
-        LOG("Failed to initialize iCUE Controller. Is iCUE running with the SDK enabled?");
+        LOG("No lighting controllers initialized. Proxy will not start UDP server.");
     }
 }
 
