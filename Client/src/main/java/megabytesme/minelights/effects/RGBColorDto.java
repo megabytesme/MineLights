@@ -1,5 +1,7 @@
 package megabytesme.minelights.effects;
 
+import java.util.Objects;
+
 public class RGBColorDto {
     public int r, g, b;
 
@@ -13,5 +15,20 @@ public class RGBColorDto {
         this.r = r;
         this.g = g;
         this.b = b;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        RGBColorDto that = (RGBColorDto) o;
+        return r == that.r && g == that.g && b == that.b;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(r, g, b);
     }
 }
