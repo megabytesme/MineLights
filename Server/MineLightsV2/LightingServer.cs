@@ -5,8 +5,15 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RGB.NET.Core;
+using RGB.NET.Devices.Asus;
 using RGB.NET.Devices.Corsair;
+using RGB.NET.Devices.Logitech;
 using RGB.NET.Devices.Msi;
+using RGB.NET.Devices.Novation;
+using RGB.NET.Devices.PicoPi;
+using RGB.NET.Devices.Razer;
+using RGB.NET.Devices.SteelSeries;
+using RGB.NET.Devices.Wooting;
 
 public class LightingServer
 {
@@ -27,38 +34,40 @@ public class LightingServer
     {
         _isRunning = true;
 
-        try
+        void InitializeProvider(IRGBDeviceProvider provider)
         {
-            if (IsRunningAsAdmin())
+            try
             {
-                Console.WriteLine("[Server] Initializing MSI Device Provider...");
-                MsiDeviceProvider.Instance.Initialize();
-                Console.WriteLine("[Server] MSI Provider Initialized.");
+                Console.WriteLine($"[Server] Initializing {provider.GetType().Name}...");
+                provider.Initialize(throwExceptions: true);
+                Console.WriteLine($"[Server] -> {provider.GetType().Name} initialized.");
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("[Server] Not running as admin, skipping MSI provider.");
+                Console.WriteLine($"[Server] -> WARNING: Failed to initialize {provider.GetType().Name}. This provider will be unavailable. Error: {ex.Message}");
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Server] FATAL ERROR during MSI initialization: {ex.Message}");
         }
 
-        try
-        {
-            Console.WriteLine("[Server] Initializing Corsair Device Provider...");
-            CorsairDeviceProvider.Instance.Initialize(throwExceptions: true);
-            Console.WriteLine("[Server] Corsair Provider Initialized.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Server] FATAL ERROR during Corsair initialization: {ex.Message}");
-        }
+        if (IsRunningAsAdmin()) InitializeProvider(MsiDeviceProvider.Instance);
+        InitializeProvider(CorsairDeviceProvider.Instance);
+        InitializeProvider(LogitechDeviceProvider.Instance);
+        InitializeProvider(AsusDeviceProvider.Instance);
+        InitializeProvider(RazerDeviceProvider.Instance);
+        InitializeProvider(WootingDeviceProvider.Instance);
+        InitializeProvider(SteelSeriesDeviceProvider.Instance);
+        InitializeProvider(NovationDeviceProvider.Instance);
+        InitializeProvider(PicoPiDeviceProvider.Instance);
 
         Console.WriteLine("[Server] Loading all initialized providers into the surface...");
         _surface.Load(MsiDeviceProvider.Instance);
         _surface.Load(CorsairDeviceProvider.Instance);
+        _surface.Load(LogitechDeviceProvider.Instance);
+        _surface.Load(AsusDeviceProvider.Instance);
+        _surface.Load(RazerDeviceProvider.Instance);
+        _surface.Load(WootingDeviceProvider.Instance);
+        _surface.Load(SteelSeriesDeviceProvider.Instance);
+        _surface.Load(NovationDeviceProvider.Instance);
+        _surface.Load(PicoPiDeviceProvider.Instance);
 
         Console.WriteLine($"[RGB.NET] Final device count after loading: {_surface.Devices.Count()}");
 
@@ -96,7 +105,7 @@ public class LightingServer
                 currentLedId++;
             }
         }
-        Console.WriteLine($"[MineLights] Mapped {_ledIdMap.Count} LEDs and {_keyMap.Count} named keys.");
+        Console.WriteLine($"[Server] Mapped {_ledIdMap.Count} LEDs and {_keyMap.Count} named keys.");
     }
 
     private void HandshakeServerLoop()
@@ -143,40 +152,45 @@ public class LightingServer
                 stream.Flush();
             }
         }
-        catch (SocketException) {}
+        catch (SocketException) 
+        {
+
+        }
         finally { listener.Stop(); }
     }
 
     private void UdpServerLoop()
     {
-        using (var udpClient = new UdpClient(63212))
+        using var udpClient = new UdpClient(63212);
+        Console.WriteLine("[Server] UDP lighting listener on port 63212.");
+        var from = new IPEndPoint(0, 0);
+        while (_isRunning)
         {
-            Console.WriteLine("[Server] UDP lighting listener on port 63212.");
-            var from = new IPEndPoint(0, 0);
-            while (_isRunning)
+            try
             {
-                try
+                byte[] recvBuffer = udpClient.Receive(ref from);
+                string jsonString = Encoding.UTF8.GetString(recvBuffer);
+                JObject? frameData = JObject.Parse(jsonString);
+
+                if (frameData?["led_colors"] is JArray colors)
                 {
-                    byte[] recvBuffer = udpClient.Receive(ref from);
-                    string jsonString = Encoding.UTF8.GetString(recvBuffer);
-                    JObject? frameData = JObject.Parse(jsonString);
-                    if (frameData?["led_colors"] is JArray colors)
+                    foreach (var item in colors)
                     {
-                        foreach (var item in colors)
+                        int id = item.Value<int>("id");
+                        int r = item.Value<int>("r");
+                        int g = item.Value<int>("g");
+                        int b = item.Value<int>("b");
+                        if (_ledIdMap.TryGetValue(id, out Led led))
                         {
-                            int id = item.Value<int>("id");
-                            int r = item.Value<int>("r");
-                            int g = item.Value<int>("g");
-                            int b = item.Value<int>("b");
-                            if (_ledIdMap.TryGetValue(id, out Led led))
-                            {
-                                led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
-                            }
+                            led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
                         }
-                        _surface.Update();
                     }
+                    _surface.Update();
                 }
-                catch { }
+            }
+            catch 
+            {
+
             }
         }
     }
@@ -184,44 +198,45 @@ public class LightingServer
     private void CommandServerLoop()
     {
         var listener = new TcpListener(IPAddress.Any, 63213);
-        listener.Start();
-        Console.WriteLine("[Server] Command server listening on port 63213.");
-        while (_isRunning)
+        try
         {
-            try
+            listener.Start();
+            Console.WriteLine("[Server] Command server listening on port 63213.");
+            while (_isRunning)
             {
-                using (var client = listener.AcceptTcpClient())
-                using (var stream = client.GetStream())
-                {
-                    var buffer = new byte[1024];
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    string command = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    if (command == "restart_admin") TriggerRestart(true);
-                    else if (command == "restart") TriggerRestart(false);
-                    else if (command == "shutdown") _shutdownAction?.Invoke();
-                }
+                using var client = listener.AcceptTcpClient();
+                using var stream = client.GetStream();
+
+                var buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string command = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                if (command == "restart_admin") TriggerRestart(true);
+                else if (command == "restart") TriggerRestart(false);
+                else if (command == "shutdown") _shutdownAction?.Invoke();
             }
-            catch (Exception ex) { if (_isRunning) Console.WriteLine($"[Command ERROR] {ex.Message}"); }
         }
-        listener.Stop();
+        catch (SocketException)
+        {
+
+        }
+        finally { listener.Stop(); }
     }
 
     private void DiscoveryBroadcastLoop()
     {
-        using (var client = new UdpClient { EnableBroadcast = true })
+        using var client = new UdpClient { EnableBroadcast = true };
+        var endpoint = new IPEndPoint(IPAddress.Broadcast, 63214);
+        byte[] message = Encoding.UTF8.GetBytes("MINELIGHTS_PROXY_HELLO");
+        Console.WriteLine("[Server] Discovery broadcast started on port 63214.");
+        while (_isRunning)
         {
-            var endpoint = new IPEndPoint(IPAddress.Broadcast, 63214);
-            byte[] message = Encoding.UTF8.GetBytes("MINELIGHTS_PROXY_HELLO");
-            Console.WriteLine("[Server] Discovery broadcast started on port 63214.");
-            while (_isRunning)
+            try
             {
-                try
-                {
-                    client.Send(message, message.Length, endpoint);
-                    Thread.Sleep(5000);
-                }
-                catch { }
+                client.Send(message, message.Length, endpoint);
+                Thread.Sleep(5000);
             }
+            catch (SocketException) { break; }
         }
     }
 
@@ -229,16 +244,11 @@ public class LightingServer
     {
         try
         {
-            var process = new Process
+            Process.Start(new ProcessStartInfo(Application.ExecutablePath)
             {
-                StartInfo =
-                {
-                    FileName = Application.ExecutablePath,
-                    UseShellExecute = true,
-                    Verb = asAdmin ? "runas" : "open"
-                }
-            };
-            process.Start();
+                UseShellExecute = true,
+                Verb = asAdmin ? "runas" : "open"
+            });
             _shutdownAction?.Invoke();
         }
         catch (Exception ex)
@@ -251,11 +261,9 @@ public class LightingServer
     {
         try
         {
-            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
-            {
-                var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-            }
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
         }
         catch { return false; }
     }
