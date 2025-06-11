@@ -27,7 +27,6 @@ public class LightingServer
 
     private ServerConfig _config;
     private readonly string _configPath;
-    private bool _isModControlActive = true;
 
     private readonly List<IRGBDeviceProvider> _allProviders;
 
@@ -63,10 +62,10 @@ public class LightingServer
                 {
                     Console.WriteLine("[Config] No integrations specified, enabling defaults.");
                     config.EnabledIntegrations = new List<string>
-                {
-                    "Corsair", "Logitech", "Asus", "Razer",
-                    "Wooting", "SteelSeries", "Msi"
-                };
+                    {
+                        "Corsair", "Logitech", "Asus", "Razer",
+                        "Wooting", "SteelSeries", "Msi"
+                    };
                 }
                 return config;
             }
@@ -80,10 +79,10 @@ public class LightingServer
         return new ServerConfig
         {
             EnabledIntegrations = new List<string>
-        {
-            "Corsair", "Logitech", "Asus", "Razer",
-            "Wooting", "SteelSeries", "Msi"
-        }
+            {
+                "Corsair", "Logitech", "Asus", "Razer",
+                "Wooting", "SteelSeries", "Msi"
+            }
         };
     }
 
@@ -263,6 +262,7 @@ public class LightingServer
     private void UdpServerLoop()
     {
         using var udpClient = new UdpClient(63212);
+        Console.WriteLine("[Server] UDP lighting listener on port 63212.");
         var from = new IPEndPoint(0, 0);
         while (_isRunning)
         {
@@ -272,35 +272,26 @@ public class LightingServer
                 string jsonString = Encoding.UTF8.GetString(recvBuffer);
                 JObject? frameData = JObject.Parse(jsonString);
 
-                bool isModEnabled = frameData?["inGame"]?.Value<bool>() ?? false;
-                if (!isModEnabled)
-                {
-                    if (_isModControlActive) _isModControlActive = false;
-                    continue;
-                }
-
-                _isModControlActive = true;
-
                 if (frameData?["led_colors"] is JArray colors)
                 {
-                    lock (_deviceLock)
+                    foreach (var item in colors)
                     {
-                        foreach (var item in colors)
+                        int id = item.Value<int>("id");
+                        int r = item.Value<int>("r");
+                        int g = item.Value<int>("g");
+                        int b = item.Value<int>("b");
+                        if (_ledIdMap.TryGetValue(id, out Led led))
                         {
-                            int id = item.Value<int>("id");
-                            int r = item.Value<int>("r");
-                            int g = item.Value<int>("g");
-                            int b = item.Value<int>("b");
-                            if (_ledIdMap.TryGetValue(id, out Led led))
-                            {
-                                led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
-                            }
+                            led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
                         }
-                        if (_isModControlActive) _surface.Update();
                     }
+                    _surface.Update();
                 }
             }
-            catch { }
+            catch
+            {
+
+            }
         }
     }
 
@@ -310,19 +301,25 @@ public class LightingServer
         try
         {
             listener.Start();
+            Console.WriteLine("[Server] Command server listening on port 63213.");
             while (_isRunning)
             {
                 using var client = listener.AcceptTcpClient();
                 using var stream = client.GetStream();
+
                 var buffer = new byte[1024];
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 string command = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
                 if (command == "restart_admin") TriggerRestart(true);
                 else if (command == "restart") TriggerRestart(false);
                 else if (command == "shutdown") _shutdownAction?.Invoke();
             }
         }
-        catch (SocketException) { }
+        catch (SocketException)
+        {
+
+        }
         finally { listener.Stop(); }
     }
 
@@ -331,6 +328,7 @@ public class LightingServer
         using var client = new UdpClient { EnableBroadcast = true };
         var endpoint = new IPEndPoint(IPAddress.Broadcast, 63214);
         byte[] message = Encoding.UTF8.GetBytes("MINELIGHTS_PROXY_HELLO");
+        Console.WriteLine("[Server] Discovery broadcast started on port 63214.");
         while (_isRunning)
         {
             try
