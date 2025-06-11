@@ -8,6 +8,7 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import megabytesme.minelights.CommandClient;
 import megabytesme.minelights.MineLightsClient;
 import net.minecraft.text.Text;
+
 import java.util.Comparator;
 
 public class ModMenuIntegration implements ModMenuApi {
@@ -22,6 +23,11 @@ public class ModMenuIntegration implements ModMenuApi {
                         builder.setSavingRunnable(() -> {
                                 MineLightsClient.saveConfig();
                                 boolean needsRefresh = false;
+
+                                if (MineLightsClient.CONFIG.refreshDevices) {
+                                        MineLightsClient.CONFIG.refreshDevices = false;
+                                        needsRefresh = true;
+                                }
                                 if (MineLightsClient.CONFIG.restartProxy) {
                                         CommandClient.sendCommand("restart");
                                         MineLightsClient.CONFIG.restartProxy = false;
@@ -38,13 +44,14 @@ public class ModMenuIntegration implements ModMenuApi {
                                         MineLightsClient.CONFIG.clearDisabledDevices = false;
                                         needsRefresh = true;
                                 }
+
                                 if (needsRefresh) {
                                         try {
                                                 Thread.sleep(500);
-                                        } catch (InterruptedException e) {
+                                        } catch (InterruptedException ignored) {
                                         }
+                                        MineLightsClient.refreshLightingManager();
                                 }
-                                MineLightsClient.refreshLightingManager();
                         });
 
                         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
@@ -59,82 +66,108 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
                                         .build());
 
-                        if (MineLightsClient.IS_WINDOWS) {
-                                general.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
-                                general.addEntry(entryBuilder
-                                                .startBooleanToggle(
-                                                                Text.translatable("option.mine-lights.restart.label"),
-                                                                MineLightsClient.CONFIG.restartProxy)
-                                                .setDefaultValue(false)
-                                                .setTooltip(Text.translatable("option.mine-lights.restart.tooltip"))
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
-                                                .build());
-                                general.addEntry(entryBuilder
-                                                .startBooleanToggle(Text
-                                                                .translatable("option.mine-lights.restart_admin.label"),
-                                                                MineLightsClient.CONFIG.restartProxyAsAdmin)
-                                                .setDefaultValue(false)
-                                                .setTooltip(Text.translatable(
-                                                                "option.mine-lights.restart_admin.tooltip"))
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
-                                                .build());
-                        }
+                        general.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
+
+                        general.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                                        Text.translatable("option.mine-lights.refresh_devices.label"),
+                                                        MineLightsClient.CONFIG.refreshDevices)
+                                        .setDefaultValue(false)
+                                        .setTooltip(Text.translatable("option.mine-lights.refresh_devices.tooltip"))
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.refreshDevices = newValue)
+                                        .build());
+                        general.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.restart.label"),
+                                                        MineLightsClient.CONFIG.restartProxy)
+                                        .setDefaultValue(false)
+                                        .setTooltip(Text.translatable("option.mine-lights.restart.tooltip"))
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
+                                        .build());
+                        general.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.restart_admin.label"),
+                                                        MineLightsClient.CONFIG.restartProxyAsAdmin)
+                                        .setDefaultValue(false)
+                                        .setTooltip(Text.translatable("option.mine-lights.restart_admin.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
+                                        .build());
 
                         ConfigCategory integrations = builder
                                         .getOrCreateCategory(Text.translatable("category.mine-lights.integrations"));
                         integrations.addEntry(entryBuilder
-                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableOpenRgb"),
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.corsair"),
+                                                        MineLightsClient.CONFIG.enableCorsair)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableCorsair = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.asus"),
+                                                        MineLightsClient.CONFIG.enableAsus)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableAsus = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.logitech"),
+                                                        MineLightsClient.CONFIG.enableLogitech)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableLogitech = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.razer"),
+                                                        MineLightsClient.CONFIG.enableRazer)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableRazer = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.wooting"),
+                                                        MineLightsClient.CONFIG.enableWooting)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableWooting = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.steelseries"),
+                                                        MineLightsClient.CONFIG.enableSteelSeries)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableSteelSeries = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.msi"),
+                                                        MineLightsClient.CONFIG.enableMsi)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMsi = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.novation"),
+                                                        MineLightsClient.CONFIG.enableNovation)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableNovation = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.picopi"),
+                                                        MineLightsClient.CONFIG.enablePicoPi)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enablePicoPi = newValue)
+                                        .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.openrgb"),
                                                         MineLightsClient.CONFIG.enableOpenRgb)
                                         .setDefaultValue(true)
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableOpenRgb = newValue)
                                         .build());
-
-                        if (MineLightsClient.IS_WINDOWS) {
-                                integrations.addEntry(entryBuilder
-                                                .startBooleanToggle(
-                                                                Text.translatable("option.mine-lights.enableIcueProxy"),
-                                                                MineLightsClient.CONFIG.enableIcueProxy)
-                                                .setDefaultValue(true)
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.enableIcueProxy = newValue)
-                                                .build());
-
-                                integrations.addEntry(entryBuilder
-                                                .startBooleanToggle(Text.translatable(
-                                                                "option.mine-lights.enableMysticLightProxy"),
-                                                                MineLightsClient.CONFIG.enableMysticLightProxy)
-                                                .setDefaultValue(true)
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.enableMysticLightProxy = newValue)
-                                                .build());
-
-                                integrations.addEntry(entryBuilder
-                                                .startBooleanToggle(Text.translatable(
-                                                                "option.mine-lights.enableAuraSdk"),
-                                                                MineLightsClient.CONFIG.enableAuraSdk)
-                                                .setDefaultValue(true)
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.enableAuraSdk = newValue)
-                                                .build());
-                        }
 
                         ConfigCategory devices = builder
                                         .getOrCreateCategory(Text.translatable("category.mine-lights.devices"));
                         devices.addEntry(entryBuilder
                                         .startTextDescription(Text.translatable("option.mine-lights.device.header"))
                                         .build());
-
-                        MineLightsClient.discoveredDevices.stream()
-                                        .sorted(Comparator.naturalOrder())
+                        MineLightsClient.discoveredDevices.stream().sorted(Comparator.naturalOrder())
                                         .forEach(uniqueId -> {
                                                 boolean isEnabled = !MineLightsClient.CONFIG.disabledDevices
                                                                 .contains(uniqueId);
                                                 String[] parts = uniqueId.split("\\|", 2);
+                                                String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
                                                 String deviceName = parts.length > 1 ? parts[1] : uniqueId;
-                                                String deviceSdk = parts[0];
-
                                                 devices.addEntry(entryBuilder.startBooleanToggle(Text
                                                                 .literal(deviceName)
                                                                 .append(Text.literal(" (" + deviceSdk + ")")
@@ -152,8 +185,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                                                                                         .add(uniqueId);
                                                                                 }
                                                                         }
-                                                                })
-                                                                .build());
+                                                                }).build());
                                         });
 
                         if (!MineLightsClient.CONFIG.disabledDevices.isEmpty()) {

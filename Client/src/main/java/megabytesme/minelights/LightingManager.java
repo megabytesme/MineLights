@@ -9,14 +9,13 @@ import megabytesme.minelights.effects.EffectPainter;
 import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
 import megabytesme.minelights.effects.RGBColorDto;
-import megabytesme.minelights.rgb.AuraSdkController;
 import megabytesme.minelights.rgb.OpenRGBController;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
-import java.io.OutputStreamWriter;
+import java.io.DataOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LightingManager implements Runnable {
-    public static final Logger LOGGER = LoggerFactory.getLogger("MineLights");
+    public static final Logger LOGGER = LoggerFactory.getLogger("MineLights-LM");
 
     private EffectPainter effectPainter;
     private final Gson gson = new Gson();
@@ -37,25 +36,79 @@ public class LightingManager implements Runnable {
     private FrameStateDto lastSentFrame = null;
 
     private final OpenRGBController openRgbController = new OpenRGBController();
-    private final AuraSdkController auraSdkController = new AuraSdkController();
     private final Map<Integer, Integer> openRgbLedToDeviceMap = new HashMap<>();
 
     private final List<Integer> masterLedList = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, Integer> masterKeyMap = Collections.synchronizedMap(new HashMap<>());
-
-    private final AtomicInteger openRgbLedCount = new AtomicInteger(0);
     private final AtomicInteger proxyLedCount = new AtomicInteger(0);
-    private final AtomicInteger auraLedCount = new AtomicInteger(0);
+    private final AtomicInteger openRgbLedCount = new AtomicInteger(0);
 
     public LightingManager() {
         performHandshakes();
     }
 
     private void performHandshakes() {
-        Thread openRgbThread = new Thread(() -> {
-            if (!MineLightsClient.CONFIG.enableOpenRgb) {
-                return;
+        Thread serverHandshakeThread = new Thread(() -> {
+            try (Socket clientSocket = new Socket()) {
+                clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
+                MineLightsClient.isProxyConnected = true;
+
+                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+
+                JsonObject configPayload = new JsonObject();
+                JsonArray enabledIntegrations = new JsonArray();
+                if (MineLightsClient.CONFIG.enableCorsair)
+                    enabledIntegrations.add("Corsair");
+                if (MineLightsClient.CONFIG.enableAsus)
+                    enabledIntegrations.add("Asus");
+                if (MineLightsClient.CONFIG.enableLogitech)
+                    enabledIntegrations.add("Logitech");
+                if (MineLightsClient.CONFIG.enableRazer)
+                    enabledIntegrations.add("Razer");
+                if (MineLightsClient.CONFIG.enableWooting)
+                    enabledIntegrations.add("Wooting");
+                if (MineLightsClient.CONFIG.enableSteelSeries)
+                    enabledIntegrations.add("SteelSeries");
+                if (MineLightsClient.CONFIG.enableMsi)
+                    enabledIntegrations.add("Msi");
+                if (MineLightsClient.CONFIG.enableNovation)
+                    enabledIntegrations.add("Novation");
+                if (MineLightsClient.CONFIG.enablePicoPi)
+                    enabledIntegrations.add("PicoPi");
+
+                configPayload.add("enabled_integrations", enabledIntegrations);
+                configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
+
+                byte[] configBytes = configPayload.toString().getBytes(StandardCharsets.UTF_8);
+                dos.writeInt(configBytes.length);
+                dos.write(configBytes);
+                dos.flush();
+
+                int length = dis.readInt();
+                if (length > 0) {
+                    byte[] jsonBytes = new byte[length];
+                    dis.readFully(jsonBytes);
+
+                    String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
+                    LOGGER.info("Successfully received handshake data of length: {}", jsonString.length());
+                    JsonObject handshakeData = JsonParser.parseString(jsonString).getAsJsonObject();
+
+                    parseHandshakeData(handshakeData);
+                } else {
+                    LOGGER.warn("Server sent a handshake with zero length. No devices loaded from proxy.");
+                }
+            } catch (Exception e) {
+                LOGGER.error("Failed during handshake with MineLights Server. Is it running? Details: {}",
+                        e.getMessage());
+                MineLightsClient.isProxyConnected = false;
             }
+        });
+        serverHandshakeThread.setName("MineLights-Server-Handshake");
+
+        Thread openRgbThread = new Thread(() -> {
+            if (!MineLightsClient.CONFIG.enableOpenRgb)
+                return;
             if (openRgbController.connect()) {
                 List<OpenRGBController.OpenRGBDevice> devices = openRgbController.getDevices();
                 int openRgbLedOffset = 2000;
@@ -77,116 +130,46 @@ public class LightingManager implements Runnable {
         });
         openRgbThread.setName("MineLights-OpenRGB-Handshake");
 
-        Thread auraSdkThread = new Thread(() -> {
-            if (!MineLightsClient.IS_WINDOWS || !MineLightsClient.CONFIG.enableAuraSdk) {
-                return;
-            }
-            if (auraSdkController.connect()) {
-                masterKeyMap.putAll(auraSdkController.getNamedKeyMap());
-                List<AuraSdkController.AuraDeviceInfo> devices = auraSdkController.discoverDevicesAndGetInfo();
-                for (AuraSdkController.AuraDeviceInfo device : devices) {
-                    String uniqueId = "AuraSDK|" + device.name;
-                    if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId))
-                        continue;
-                    MineLightsClient.discoveredDevices.add(uniqueId);
-                    auraLedCount.addAndGet(device.ledCount);
-                    masterLedList.addAll(device.ledIds);
-                }
-            }
-        });
-        auraSdkThread.setName("MineLights-AuraSDK-Handshake");
-
-        Thread mineLightsProxyThread = new Thread(() -> {
-            if (!MineLightsClient.IS_WINDOWS) {
-                return;
-            }
-            if (!MineLightsClient.CONFIG.enableIcueProxy && !MineLightsClient.CONFIG.enableMysticLightProxy) {
-                return;
-            }
-
-            try (Socket clientSocket = new Socket()) {
-                clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
-                MineLightsClient.isProxyConnected = true;
-
-                OutputStreamWriter writer = new OutputStreamWriter(clientSocket.getOutputStream(),
-                        StandardCharsets.UTF_8);
-                JsonObject configPayload = new JsonObject();
-                JsonArray enabledIntegrations = new JsonArray();
-                if (MineLightsClient.CONFIG.enableIcueProxy)
-                    enabledIntegrations.add("iCUE");
-                if (MineLightsClient.CONFIG.enableMysticLightProxy)
-                    enabledIntegrations.add("MysticLight");
-                configPayload.add("enabled_integrations", enabledIntegrations);
-                configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
-
-                writer.write(configPayload.toString());
-                writer.flush();
-                clientSocket.shutdownOutput();
-
-                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-                int length = dis.readInt();
-
-                if (length > 0) {
-                    byte[] jsonBytes = new byte[length];
-                    dis.readFully(jsonBytes);
-
-                    String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
-                    LOGGER.info("Successfully received handshake data of length: " + jsonString.length());
-                    JsonObject handshakeData = JsonParser.parseString(jsonString).getAsJsonObject();
-
-                    if (handshakeData.has("devices")) {
-                        for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
-                            JsonObject deviceObject = deviceElement.getAsJsonObject();
-                            String uniqueId = deviceObject.get("sdk").getAsString() + "|"
-                                    + deviceObject.get("name").getAsString();
-                            MineLightsClient.discoveredDevices.add(uniqueId);
-                            if (deviceObject.has("leds")) {
-                                for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
-                                    masterLedList.add(id.getAsInt());
-                                    proxyLedCount.incrementAndGet();
-                                }
-                            }
-                        }
-                    }
-
-                    if (handshakeData.has("key_map")) {
-                        JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
-                        for (String key : mapObject.keySet()) {
-                            masterKeyMap.put(key, mapObject.get(key).getAsInt());
-                        }
-                    }
-                } else {
-                    LOGGER.warn("Server sent a handshake with zero length. No devices loaded from proxy.");
-                }
-
-            } catch (Exception e) {
-                LOGGER.error("Failed during handshake with MineLights Proxy. Is the server running? Details: "
-                        + e.getMessage());
-                MineLightsClient.isProxyConnected = false;
-            }
-        });
-        mineLightsProxyThread.setName("MineLights-Proxy-Handshake");
-
         Thread initializerThread = new Thread(() -> {
             try {
+                serverHandshakeThread.start();
                 openRgbThread.start();
-                auraSdkThread.start();
-                mineLightsProxyThread.start();
+                serverHandshakeThread.join(5000);
                 openRgbThread.join(5000);
-                auraSdkThread.join(5000);
-                mineLightsProxyThread.join(5000);
 
                 this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
                 this.isInitialized = true;
                 LOGGER.info(
-                        "Initialization complete. Found {} LEDs from OpenRGB, {} from Aura SDK, and {} from Proxy. Total: {}",
-                        openRgbLedCount.get(), auraLedCount.get(), proxyLedCount.get(), masterLedList.size());
+                        "Initialization complete. Found {} LEDs from MineLights Server, and {} from OpenRGB. Total: {}",
+                        proxyLedCount.get(), openRgbLedCount.get(), masterLedList.size());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         });
         initializerThread.setName("MineLights-Initializer");
         initializerThread.start();
+    }
+
+    private void parseHandshakeData(JsonObject handshakeData) {
+        if (handshakeData.has("devices")) {
+            for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
+                JsonObject deviceObject = deviceElement.getAsJsonObject();
+                String uniqueId = deviceObject.get("sdk").getAsString() + "|" + deviceObject.get("name").getAsString();
+                MineLightsClient.discoveredDevices.add(uniqueId);
+                if (deviceObject.has("leds")) {
+                    for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
+                        masterLedList.add(id.getAsInt());
+                        proxyLedCount.incrementAndGet();
+                    }
+                }
+            }
+        }
+        if (handshakeData.has("key_map")) {
+            JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
+            for (String key : mapObject.keySet()) {
+                masterKeyMap.put(key, mapObject.get(key).getAsInt());
+            }
+        }
     }
 
     @Override
@@ -226,15 +209,12 @@ public class LightingManager implements Runnable {
 
                 List<KeyColorDto> proxyUpdateList = new ArrayList<>();
                 Map<Integer, List<KeyColorDto>> openRgbUpdates = new HashMap<>();
-                Map<Integer, KeyColorDto> auraUpdates = new HashMap<>();
 
                 for (Map.Entry<Integer, RGBColorDto> entry : frameState.keys.entrySet()) {
                     int globalLedId = entry.getKey();
                     RGBColorDto color = entry.getValue();
 
-                    if (globalLedId >= AuraSdkController.KEYCODE_OFFSET) {
-                        auraUpdates.put(globalLedId, new KeyColorDto(globalLedId, color));
-                    } else if (openRgbLedToDeviceMap.containsKey(globalLedId)) {
+                    if (openRgbLedToDeviceMap.containsKey(globalLedId)) {
                         int deviceIndex = openRgbLedToDeviceMap.get(globalLedId);
                         openRgbUpdates.computeIfAbsent(deviceIndex, k -> new ArrayList<>())
                                 .add(new KeyColorDto(globalLedId, color));
@@ -255,10 +235,6 @@ public class LightingManager implements Runnable {
                     }
                 }
 
-                if (!auraUpdates.isEmpty()) {
-                    auraSdkController.updateLeds(auraUpdates);
-                }
-
                 long frameEnd = System.currentTimeMillis();
                 long sleepTime = FRAME_DURATION_MS - (frameEnd - frameStart);
                 if (sleepTime > 0)
@@ -267,9 +243,9 @@ public class LightingManager implements Runnable {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error in lighting loop", e);
+        } finally {
+            openRgbController.disconnect();
         }
-        openRgbController.disconnect();
-        auraSdkController.disconnect();
     }
 }
