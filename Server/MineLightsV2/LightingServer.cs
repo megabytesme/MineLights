@@ -120,6 +120,11 @@ public class LightingServer
                 using var client = listener.AcceptTcpClient();
                 using var stream = client.GetStream();
 
+                var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+                int clientConfigLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                byte[] clientConfigBytes = reader.ReadBytes(clientConfigLength);
+                string clientConfigJson = Encoding.UTF8.GetString(clientConfigBytes);
+
                 var devicesArray = new JArray();
                 foreach (var device in _surface.Devices)
                 {
@@ -141,11 +146,8 @@ public class LightingServer
                 string responseString = response.ToString(Formatting.None);
                 byte[] dataBytes = Encoding.UTF8.GetBytes(responseString);
 
-                byte[] lengthBytes = BitConverter.GetBytes(dataBytes.Length);
-                if (BitConverter.IsLittleEndian)
-                {
-                    Array.Reverse(lengthBytes);
-                }
+                int networkOrderLength = IPAddress.HostToNetworkOrder(dataBytes.Length);
+                byte[] lengthBytes = BitConverter.GetBytes(networkOrderLength);
 
                 stream.Write(lengthBytes, 0, 4);
                 stream.Write(dataBytes, 0, dataBytes.Length);
