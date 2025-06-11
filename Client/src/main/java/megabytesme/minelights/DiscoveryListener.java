@@ -21,10 +21,10 @@ public class DiscoveryListener implements Runnable {
                     socket.receive(packet);
                     String message = new String(packet.getData(), 0, packet.getLength());
                     if ("MINELIGHTS_PROXY_HELLO".equals(message)) {
-                        if (!MineLightsClient.isProxyConnected) {
+                        if (MineLightsClient.proxyDiscoveredLatch.getCount() > 0) {
                             MineLightsClient.LOGGER
-                                    .info("Discovered MineLights Proxy via broadcast. Triggering handshake.");
-                            MineLightsClient.refreshLightingManager();
+                                    .info("Discovered MineLights Server via broadcast. Releasing startup latch.");
+                            MineLightsClient.proxyDiscoveredLatch.countDown();
                         }
                     }
                 } catch (Exception e) {
