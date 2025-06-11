@@ -8,6 +8,8 @@ class Program
         trayThread.SetApartmentState(ApartmentState.STA);
         trayThread.Start();
         trayThread.Join();
+
+        NativeDllLoader.LoadNativeSDKs();
     }
 
     private static void RunTrayApp()
