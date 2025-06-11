@@ -5,7 +5,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 ## Features
 
-- **Multi-SDK Support**: Integrates with OpenRGB (Windows, Linux and MacOS), Corsair iCUE (Windows), MSI Mystic Light (Windows) and ASUS Aura Sync (Windows) simultaneously.
+- **Extensive Multi-SDK Support**: Integrates with a wide array of RGB SDKs simultaneously, including OpenRGB, Corsair iCUE, Logitech G HUB, Razer Chroma, MSI Mystic Light, ASUS Aura, SteelSeries GameSense, and Wooting.
 - **Dynamic Environmental Effects**: Your lighting changes in real-time based on your in-game surroundings.
   - **Biome Colors**: Your keyboard's background color smoothly transitions to match the biome you're in.
   - **Weather Effects**: Experience rain and dramatic lightning flashes during in-game thunderstorms.
@@ -15,10 +15,18 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **Highly Configurable**: An in-game configuration screen (via Mod Menu) lets you enable/disable every feature, integration, and even individual devices.
 
 ## Supported RGB Software
-- **OpenRGB**: Control any hardware supported by the OpenRGB server (requires OpenRGB - Cross-platform support on 64-bit devices! Windows, Linux and MacOS).
-- **Corsair iCUE**: Full device support via the iCUE SDK (requires Corsair iCue - Windows).
+
+- **OpenRGB** Full device support (DIRECT mode!). Requires OpenRGB - Windows, Linux and MacOS.
+- **Corsair iCUE**: Full device support for keyboards, mice, headsets, and more via the iCUE SDK (requires Corsair iCUE - Windows).
+- **Logitech G HUB / Lightsync**: Controls Logitech G keyboards, mice, headsets, and other Lightsync-enabled gear (requires Logitech G HUB - Windows).
+- **Razer Chroma**: Extensive support for all Razer Chroma-enabled peripherals like keyboards, mice, and mousepads (requires Razer Synapse - Windows).
 - **MSI Mystic Light**: Control for motherboards, GPUs, and other devices via the Mystic Light SDK (requires MSI Center - Windows).
-- **ASUS Aura Sync**: Control for motherboards, GPUs, and other devices via the ASUS Aura Sync API (requires ASUS Aura Sync - Windows).
+- **ASUS Aura Sync**: Control for motherboards, GPUs, and other devices via the ASUS Aura SDK (requires Armoury Crate - Windows).
+- **SteelSeries GameSense**: Integration with SteelSeries peripherals like keyboards, mice, and headsets (requires SteelSeries GG - Windows).
+- **Wooting**: Direct, low-latency control for Wooting analog keyboards (requires Wootility software to be running - Windows).
+- **Novation**: Support for Novation MIDI controllers like the Launchpad, enabling unique grid-based effects (Windows).
+- **Raspberry Pi Pico**: Directly control custom DIY lighting projects powered by a Raspberry Pi Pico (Windows).
+### This project uses the RGB.Net Nuget package.
 
 ## 🛠️ Installation
 
@@ -26,7 +34,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **Minecraft Fabric**: You must have the Fabric Loader installed.
 - **Mod Menu**: Required to access the in-game configuration screen.
 - **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
-- **(Optional) iCUE / MSI Center**: If you have Corsair or MSI hardware, ensure their official software is installed and running.
+- **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
 ### Standard Installation
 1.  **Download the LATEST MineLights Release Package:**
@@ -70,12 +78,13 @@ The `mine-lights-x.x.x.jar` file does not contain the proprietary SDK files from
 
 ## Usage
 
-1. **Run the Helper (if needed):** If you are on Windows and want iCUE/MSI support, install and run `MineLights.exe` *before* you launch Minecraft. Remember to run it as an administrator for MSI hardware.
+1. **Run the MineLights Server (if needed):** If you are on Windows and want anything beyond OpenRGB support, install and run `MineLights.exe` *before* you launch Minecraft. Remember to run it as an administrator for MSI hardware, either in the mod menu settings or manually.
 2. **Launch Minecraft:** Start the game with your Fabric profile.
 3. **Configure:**
    - In the main menu, go to **Mods > MineLights > Config** (the gear icon).
    - Enable the integrations you want to use (OpenRGB, iCUE Proxy, etc.).
-   - Save the config. The mod will automatically detect your devices.
+   - Save the config.
+   - Refresh devices to show newly added devices.
    - You can re-enter the config to disable specific devices if you wish.
 4. **Enjoy!** Your lighting will now sync with your game.
 
