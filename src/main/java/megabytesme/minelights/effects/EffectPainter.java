@@ -31,6 +31,9 @@ public class EffectPainter {
     private long transitionStartTime = 0;
     private static final int TRANSITION_DURATION_MS = 750;
 
+    private long lastInWaterTime = 0;
+    private static final int AIR_BAR_VISIBLE_DURATION_MS = 2500;
+
     private boolean wasTakingDamageLastFrame = false;
     private boolean isDamageFlashActive = false;
     private long damageFlashStartTime = 0;
@@ -74,6 +77,10 @@ public class EffectPainter {
         }
 
         paintPlayerBars(state, player);
+
+        if (MineLightsClient.CONFIG.enableSaturationBar) {
+            paintSaturationAndAirBar(state, player);
+        }
 
         if (MineLightsClient.CONFIG.enableLowHealthWarning) {
             paintHealthEffects(state, player);
@@ -238,6 +245,48 @@ public class EffectPainter {
                 float t = (player.getHunger() - (i * 5.0f)) / 5.0f;
                 state.keys.put(ledId, lerpColor(hungerDim, hungerFull, t));
             }
+        }
+    }
+
+    private void paintSaturationAndAirBar(FrameStateDto state, PlayerDto player) {
+        List<String> barKeys = KeyMap.getSaturationBar();
+
+        boolean isInWaterNow = player.getCurrentBlock().equals("block.minecraft.water");
+
+        if (isInWaterNow) {
+            lastInWaterTime = System.currentTimeMillis();
+        }
+
+        boolean showAirBar = isInWaterNow
+                || (System.currentTimeMillis() - lastInWaterTime < AIR_BAR_VISIBLE_DURATION_MS);
+
+        float value;
+        float maxValue;
+        RGBColorDto fullColor;
+        RGBColorDto dimColor;
+
+        if (showAirBar) {
+            value = player.getAir();
+            maxValue = 300f;
+            fullColor = new RGBColorDto(173, 216, 230);
+            dimColor = new RGBColorDto(0, 0, 50);
+        } else {
+            value = player.getSaturation();
+            maxValue = 20f;
+
+            fullColor = new RGBColorDto(200, 255, 0);
+            dimColor = new RGBColorDto(40, 50, 0);
+        }
+
+        float valuePerKey = maxValue / barKeys.size();
+
+        for (int i = 0; i < barKeys.size(); i++) {
+            Integer ledId = getMappedId(barKeys.get(i));
+            if (ledId == null)
+                continue;
+
+            float t = (value - (i * valuePerKey)) / valuePerKey;
+            state.keys.put(ledId, lerpColor(dimColor, fullColor, t));
         }
     }
 

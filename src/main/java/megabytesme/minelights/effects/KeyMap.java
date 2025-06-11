@@ -16,6 +16,10 @@ public class KeyMap {
         return Arrays.asList("F5", "F6", "F7", "F8");
     }
 
+    public static List<String> getSaturationBar() {
+        return List.of("F9", "F10", "F11", "F12");
+    }
+
     public static List<String> getMovementKeys() {
         return Arrays.asList("W", "A", "S", "D", "LCTRL", "LSHIFT", "SPACE");
     }
