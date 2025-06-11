@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="lib\Interop.AuraServiceLib.dll" />
     <None Remove="resources\app_icon.ico" />
     <None Remove="resources\x64\Interop.AuraServiceLib.dll" />
     <None Remove="resources\x64\LogitechLedEnginesWrapper.dll" />
@@ -17,11 +18,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="lib\Interop.AuraServiceLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="resources\app_icon.ico" />
     <EmbeddedResource Include="resources\x64\iCUESDK.x64_2019.dll" />
-    <EmbeddedResource Include="resources\x64\Interop.AuraServiceLib.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
     <EmbeddedResource Include="resources\x64\LogitechLedEnginesWrapper.dll" />
     <EmbeddedResource Include="resources\x64\MysticLight_SDK_x64.dll" />
     <EmbeddedResource Include="resources\x64\wooting-rgb-sdk.dll" />
@@ -39,5 +43,11 @@
 	<PackageReference Include="RGB.NET.Devices.SteelSeries" Version="3.0.0" />
 	<PackageReference Include="RGB.NET.Devices.Novation" Version="3.0.0" />
 	<PackageReference Include="RGB.NET.Devices.PicoPi" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Interop.AuraServiceLib">
+      <HintPath>lib\Interop.AuraServiceLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
