@@ -44,10 +44,4 @@
 	<PackageReference Include="RGB.NET.Devices.Novation" Version="3.0.0" />
 	<PackageReference Include="RGB.NET.Devices.PicoPi" Version="3.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Interop.AuraServiceLib">
-      <HintPath>lib\Interop.AuraServiceLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>
