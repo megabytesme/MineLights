@@ -47,3 +47,6 @@ gradle-app.setting
 /Server/MineLightsV2/obj/Debug/net9.0-windows
 /Server/MineLightsV2/obj
 /Server/MineLights/.vs/ProjectEvaluation
+/Server/MineLights/bin/Release/net9.0-windows
+/Server/MineLights/obj/publish/win-x64
+/Server/MineLights/obj/Release/net9.0-windows
