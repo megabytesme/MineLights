@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "DDL80oncYpQ=",
+  "success": true,
+  "projectFilePath": "F:\\dev\\personal\\MineLights\\Server\\MineLights\\MineLights.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ben\\.nuget\\packages\\hidsharp\\2.1.0\\hidsharp.2.1.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\libusbdotnet\\3.0.87-alpha\\libusbdotnet.3.0.87-alpha.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.core\\3.0.0\\rgb.net.core.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.asus\\3.0.0\\rgb.net.devices.asus.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.corsair\\3.0.0\\rgb.net.devices.corsair.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.logitech\\3.0.0\\rgb.net.devices.logitech.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.msi\\3.0.0\\rgb.net.devices.msi.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.novation\\3.0.0\\rgb.net.devices.novation.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.picopi\\3.0.0\\rgb.net.devices.picopi.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.razer\\3.0.0\\rgb.net.devices.razer.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.steelseries\\3.0.0\\rgb.net.devices.steelseries.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.devices.wooting\\3.0.0\\rgb.net.devices.wooting.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\rgb.net.hid\\3.0.0\\rgb.net.hid.3.0.0.nupkg.sha512",
+    "C:\\Users\\ben\\.nuget\\packages\\sanford.multimedia.midi.standard\\6.6.0\\sanford.multimedia.midi.standard.6.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}
