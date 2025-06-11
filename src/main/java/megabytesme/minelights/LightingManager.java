@@ -15,7 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStreamReader;
+import java.io.DataInputStream;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -97,10 +97,12 @@ public class LightingManager implements Runnable {
         auraSdkThread.setName("MineLights-AuraSDK-Handshake");
 
         Thread mineLightsProxyThread = new Thread(() -> {
-            if (!MineLightsClient.IS_WINDOWS)
+            if (!MineLightsClient.IS_WINDOWS) {
                 return;
-            if (!MineLightsClient.CONFIG.enableIcueProxy && !MineLightsClient.CONFIG.enableMysticLightProxy)
+            }
+            if (!MineLightsClient.CONFIG.enableIcueProxy && !MineLightsClient.CONFIG.enableMysticLightProxy) {
                 return;
+            }
 
             try (Socket clientSocket = new Socket()) {
                 clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
@@ -116,35 +118,51 @@ public class LightingManager implements Runnable {
                     enabledIntegrations.add("MysticLight");
                 configPayload.add("enabled_integrations", enabledIntegrations);
                 configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
+
                 writer.write(configPayload.toString());
                 writer.flush();
                 clientSocket.shutdownOutput();
 
-                InputStreamReader reader = new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8);
-                JsonObject handshakeData = JsonParser.parseReader(reader).getAsJsonObject();
+                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                int length = dis.readInt();
 
-                if (handshakeData.has("devices")) {
-                    for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
-                        JsonObject deviceObject = deviceElement.getAsJsonObject();
-                        String uniqueId = deviceObject.get("sdk").getAsString() + "|"
-                                + deviceObject.get("name").getAsString();
-                        MineLightsClient.discoveredDevices.add(uniqueId);
-                        if (deviceObject.has("leds")) {
-                            for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
-                                masterLedList.add(id.getAsInt());
-                                proxyLedCount.incrementAndGet();
+                if (length > 0) {
+                    byte[] jsonBytes = new byte[length];
+                    dis.readFully(jsonBytes);
+
+                    String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
+                    LOGGER.info("Successfully received handshake data of length: " + jsonString.length());
+                    JsonObject handshakeData = JsonParser.parseString(jsonString).getAsJsonObject();
+
+                    if (handshakeData.has("devices")) {
+                        for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
+                            JsonObject deviceObject = deviceElement.getAsJsonObject();
+                            String uniqueId = deviceObject.get("sdk").getAsString() + "|"
+                                    + deviceObject.get("name").getAsString();
+                            MineLightsClient.discoveredDevices.add(uniqueId);
+                            if (deviceObject.has("leds")) {
+                                for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
+                                    masterLedList.add(id.getAsInt());
+                                    proxyLedCount.incrementAndGet();
+                                }
                             }
                         }
                     }
+
+                    if (handshakeData.has("key_map")) {
+                        JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
+                        for (String key : mapObject.keySet()) {
+                            masterKeyMap.put(key, mapObject.get(key).getAsInt());
+                        }
+                    }
+                } else {
+                    LOGGER.warn("Server sent a handshake with zero length. No devices loaded from proxy.");
                 }
 
-                if (handshakeData.has("key_map")) {
-                    JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
-                    for (String key : mapObject.keySet()) {
-                        masterKeyMap.put(key, mapObject.get(key).getAsInt());
-                    }
-                }
             } catch (Exception e) {
+                LOGGER.error("Failed during handshake with MineLights Proxy. Is the server running? Details: "
+                        + e.getMessage());
+                MineLightsClient.isProxyConnected = false;
             }
         });
         mineLightsProxyThread.setName("MineLights-Proxy-Handshake");
