@@ -32,7 +32,7 @@ public class MyAppContext : ApplicationContext
             Visible = true
         };
 
-        trayIcon.ContextMenuStrip.Items.Add("Show Message", null, OnShowVersion);
+        trayIcon.ContextMenuStrip.Items.Add("Show Version", null, OnShowVersion);
         trayIcon.ContextMenuStrip.Items.Add("Exit", null, OnExit);
     }
 
