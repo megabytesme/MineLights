@@ -20,6 +20,8 @@
   "option.mine-lights.clear_disabled.tooltip": "Check this box to clear the list of all disabled devices.",
   "option.mine-lights.enableHealthBar": "Enable Health Bar (F1-F4)",
   "option.mine-lights.enableHungerBar": "Enable Hunger Bar (F5-F8)",
+  "option.mine-lights.enableSaturationBar": "Enable Saturation/Air Bar (F9-F12)",
+  "option.mine-lights.enableSaturationBar.tooltip": "Shows your food saturation on F9-F12.\nSwitches to your air level when underwater.",
   "option.mine-lights.enableExperienceBar": "Enable Experience Bar (1-0)",
   "option.mine-lights.enableLowHealthWarning": "Enable Low Health Warning",
   "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",

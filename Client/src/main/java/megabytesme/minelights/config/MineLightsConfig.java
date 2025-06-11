@@ -26,6 +26,7 @@ public class MineLightsConfig {
 
     public boolean enableHealthBar = true;
     public boolean enableHungerBar = true;
+    public boolean enableSaturationBar = true;
     public boolean enableExperienceBar = true;
     public boolean enableLowHealthWarning = true;
     public boolean enableBiomeEffects = true;

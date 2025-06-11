@@ -4,6 +4,8 @@ public class PlayerDto {
     private boolean inGame;
     private float health;
     private int hunger;
+    private float saturation;
+    private int air;
     private float experience;
     private String currentBlock;
     private String currentBiome;
@@ -23,6 +25,14 @@ public class PlayerDto {
 
     public int getHunger() {
         return hunger;
+    }
+
+    public float getSaturation() {
+        return saturation;
+    }
+
+    public int getAir() {
+        return air;
     }
 
     public float getExperience() {
@@ -67,6 +77,14 @@ public class PlayerDto {
 
     public void setHunger(int hunger) {
         this.hunger = hunger;
+    }
+
+    public void setSaturation(float saturation) {
+        this.saturation = saturation;
+    }
+
+    public void setAir(int air) {
+        this.air = air;
     }
 
     public void setExperience(float experience) {

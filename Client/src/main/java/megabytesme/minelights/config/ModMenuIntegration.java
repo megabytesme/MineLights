@@ -229,6 +229,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setDefaultValue(true)
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHungerBar = newValue)
                                         .build());
+
+                        playerStatus.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableSaturationBar"),
+                                                        MineLightsClient.CONFIG.enableSaturationBar)
+                                        .setDefaultValue(true)
+                                        .setTooltip(Text.translatable("option.mine-lights.enableSaturationBar.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableSaturationBar = newValue)
+                                        .build());
+
                         playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableExperienceBar"),
                                                         MineLightsClient.CONFIG.enableExperienceBar)

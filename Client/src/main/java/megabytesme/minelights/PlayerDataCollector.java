@@ -24,6 +24,8 @@ public class PlayerDataCollector {
         playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
         playerDto.setHunger(player.getHungerManager().getFoodLevel());
+        playerDto.setSaturation(player.getHungerManager().getSaturationLevel());
+        playerDto.setAir(player.getAir());
         playerDto.setExperience(player.experienceProgress);
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
