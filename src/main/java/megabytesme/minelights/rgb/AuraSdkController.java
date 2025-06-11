@@ -234,8 +234,14 @@ public class AuraSdkController {
                     info.ledCount = dev.count;
 
                     if (dev.name.contains("Keyboard")) {
-                        if (this.keyboardDeviceName == null)
+                        if (this.keyboardDeviceName == null) {
                             this.keyboardDeviceName = dev.name;
+                        }
+                        for (int i = 0; i < dev.count; i++) {
+                            int placeholderId = currentGridLedId++;
+                            info.ledIds.add(placeholderId);
+                        }
+
                     } else if (dev.width > 0 && dev.height > 0) {
                         for (int y = 0; y < dev.height; y++) {
                             for (int x = 0; x < dev.width; x++) {
