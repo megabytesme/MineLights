@@ -10,6 +10,7 @@ public class MineLightsConfig {
     public transient boolean clearDisabledDevices = false;
 
     public boolean enableMod = true;
+    public boolean autoStartServer = true;
 
     public boolean enableCorsair = true;
     public boolean enableAsus = true;

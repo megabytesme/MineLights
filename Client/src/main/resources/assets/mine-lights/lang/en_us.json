@@ -7,6 +7,8 @@
   "category.mine-lights.environment": "Environment",
   "option.mine-lights.enableMod": "Enable Mod",
   "option.mine-lights.enableMod.tooltip": "Toggles all lighting effects from the mod.",
+  "option.mine-lights.autoStartServer": "Automatically Start Server",
+  "option.mine-lights.autoStartServer.tooltip": "If enabled, the mod will automatically launch the server\nif it's not running. The server EXE must be in the\n'MineLights' folder inside your .minecraft directory.",
   "option.mine-lights.refresh_devices.label": "Refresh Device List",
   "option.mine-lights.refresh_devices.tooltip": "If you plug in a new device while the game is running,\ncheck this and save to make it appear in the list.",
   "option.mine-lights.restart.label": "Restart Server",
