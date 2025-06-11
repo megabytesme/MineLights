@@ -102,46 +102,49 @@ public class LightingServer
     private void HandshakeServerLoop()
     {
         var listener = new TcpListener(IPAddress.Any, 63211);
-        listener.Start();
-        Console.WriteLine("[Server] Handshake server listening on port 63211.");
-        while (_isRunning)
+        try
         {
-            try
+            listener.Start();
+            Console.WriteLine("[Server] Handshake server listening on port 63211.");
+            while (_isRunning)
             {
-                using (var client = listener.AcceptTcpClient())
-                using (var stream = client.GetStream())
+                using var client = listener.AcceptTcpClient();
+                using var stream = client.GetStream();
+
+                var devicesArray = new JArray();
+                foreach (var device in _surface.Devices)
                 {
-                    var devicesArray = new JArray();
-                    foreach (var device in _surface.Devices)
+                    var deviceLeds = device.Select(led => _ledIdMap.FirstOrDefault(x => x.Value == led).Key).Where(k => k != 0 || _ledIdMap.Count == 1).ToArray();
+                    if (!deviceLeds.Any()) continue;
+                    var deviceObj = new JObject
                     {
-                        var deviceLeds = device.Select(led => _ledIdMap.FirstOrDefault(x => x.Value == led).Key).Where(k => k != 0 || _ledIdMap.Count == 1).ToArray();
-                        if (!deviceLeds.Any()) continue;
-                        var deviceObj = new JObject
-                        {
-                            ["sdk"] = device.DeviceInfo.Manufacturer,
-                            ["name"] = device.DeviceInfo.Model,
-                            ["ledCount"] = deviceLeds.Length,
-                            ["leds"] = new JArray(deviceLeds)
-                        };
-                        devicesArray.Add(deviceObj);
-                    }
-                    var keyMapJson = new JObject();
-                    foreach (var pair in _keyMap)
-                    {
-                        keyMapJson.Add(pair.Key, pair.Value);
-                    }
-                    var response = new JObject
-                    {
-                        ["devices"] = devicesArray,
-                        ["key_map"] = keyMapJson
+                        ["sdk"] = device.DeviceInfo.Manufacturer,
+                        ["name"] = device.DeviceInfo.Model,
+                        ["ledCount"] = deviceLeds.Length,
+                        ["leds"] = new JArray(deviceLeds)
                     };
-                    byte[] data = Encoding.UTF8.GetBytes(response.ToString(Formatting.None));
-                    stream.Write(data, 0, data.Length);
+                    devicesArray.Add(deviceObj);
                 }
+                var keyMapJson = new JObject();
+                foreach (var pair in _keyMap) { keyMapJson.Add(pair.Key, pair.Value); }
+
+                var response = new JObject { ["devices"] = devicesArray, ["key_map"] = keyMapJson };
+                string responseString = response.ToString(Formatting.None);
+                byte[] dataBytes = Encoding.UTF8.GetBytes(responseString);
+
+                byte[] lengthBytes = BitConverter.GetBytes(dataBytes.Length);
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(lengthBytes);
+                }
+
+                stream.Write(lengthBytes, 0, 4);
+                stream.Write(dataBytes, 0, dataBytes.Length);
+                stream.Flush();
             }
-            catch (Exception ex) { if (_isRunning) Console.WriteLine($"[Handshake ERROR] {ex.Message}"); }
         }
-        listener.Stop();
+        catch (SocketException) {}
+        finally { listener.Stop(); }
     }
 
     private void UdpServerLoop()

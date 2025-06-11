@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("MineLights");
@@ -23,6 +25,8 @@ public class MineLightsClient implements ClientModInitializer {
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
     public static volatile boolean isProxyConnected = false;
 
+    public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
+
     @Override
     public void onInitializeClient() {
         CONFIG_MANAGER = new SimpleJsonConfig("mine-lights");
@@ -32,7 +36,22 @@ public class MineLightsClient implements ClientModInitializer {
         discoveryThread.setDaemon(true);
         discoveryThread.start();
 
-        refreshLightingManager();
+        new Thread(() -> {
+            LOGGER.info("Waiting for MineLights Server broadcast...");
+            try {
+                if (proxyDiscoveredLatch.await(10, TimeUnit.SECONDS)) {
+                    LOGGER.info("MineLights Server discovered! Initializing connection.");
+                } else {
+                    LOGGER.warn(
+                            "MineLights Server not discovered via broadcast after 10 seconds. Proceeding with connection attempt anyway.");
+                }
+                refreshLightingManager();
+            } catch (InterruptedException e) {
+                LOGGER.error("Interrupted while waiting for server discovery.");
+                Thread.currentThread().interrupt();
+            }
+        }, "MineLights-Initializer-Waiter").start();
+
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             if (lightingManagerThread != null)
                 lightingManagerThread.interrupt();
@@ -56,6 +75,9 @@ public class MineLightsClient implements ClientModInitializer {
             }
         }
         discoveredDevices.clear();
+
+        proxyDiscoveredLatch = new CountDownLatch(1);
+
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-LightingManager");
         lightingManagerThread.start();
