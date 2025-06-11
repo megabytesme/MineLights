@@ -66,6 +66,19 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
                                         .build());
 
+                        if (MineLightsClient.IS_WINDOWS) {
+                                general.addEntry(entryBuilder
+                                                .startBooleanToggle(
+                                                                Text.translatable("option.mine-lights.autoStartServer"),
+                                                                MineLightsClient.CONFIG.autoStartServer)
+                                                .setDefaultValue(true)
+                                                .setTooltip(Text.translatable(
+                                                                "option.mine-lights.autoStartServer.tooltip"))
+                                                .setSaveConsumer(
+                                                                newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
+                                                .build());
+                        }
+
                         general.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
 
                         general.addEntry(entryBuilder
