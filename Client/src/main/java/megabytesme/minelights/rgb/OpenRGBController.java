@@ -9,7 +9,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OpenRGBController {
 
@@ -21,6 +23,7 @@ public class OpenRGBController {
     public static class OpenRGBDevice {
         public String name;
         public int ledCount;
+        public Map<String, Integer> keyMap = new HashMap<>();
     }
 
     private final List<OpenRGBDevice> devices = new ArrayList<>();
@@ -136,7 +139,10 @@ public class OpenRGBController {
 
         int numLeds = Short.toUnsignedInt(data.getShort());
         for (int i = 0; i < numLeds; i++) {
-            readString(data);
+            String ledName = readString(data);
+            if (!ledName.isEmpty()) {
+                device.keyMap.put(ledName, i);
+            }
             data.getInt();
         }
 
@@ -253,5 +259,21 @@ public class OpenRGBController {
             offset += devices.get(i).ledCount;
         }
         return offset;
+    }
+
+    public Map<String, Integer> getGlobalKeyMap() {
+        Map<String, Integer> globalKeyMap = new HashMap<>();
+        for (int i = 0; i < devices.size(); i++) {
+            OpenRGBDevice device = devices.get(i);
+            int globalOffset = getLedOffsetForDevice(i);
+
+            for (Map.Entry<String, Integer> entry : device.keyMap.entrySet()) {
+                String keyName = entry.getKey();
+                int localLedIndex = entry.getValue();
+                int globalLedId = globalOffset + localLedIndex;
+                globalKeyMap.put(keyName, globalLedId);
+            }
+        }
+        return globalKeyMap;
     }
 }
