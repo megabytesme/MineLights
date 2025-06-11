@@ -23,55 +23,85 @@ public class LightingServer
     private readonly Dictionary<string, int> _keyMap = new Dictionary<string, int>();
     private Thread? _handshakeThread, _udpListenerThread, _commandListenerThread, _discoveryThread;
     private readonly Action _shutdownAction;
+    private readonly object _deviceLock = new object();
+
+    private ServerConfig _config;
+    private readonly string _configPath;
+    private bool _isModControlActive = true;
+
+    private readonly List<IRGBDeviceProvider> _allProviders;
 
     public LightingServer(Action shutdownAction)
     {
         _shutdownAction = shutdownAction;
         _surface = new RGBSurface();
+        _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+
+        _allProviders = new List<IRGBDeviceProvider>
+        {
+            MsiDeviceProvider.Instance, CorsairDeviceProvider.Instance,
+            LogitechDeviceProvider.Instance, AsusDeviceProvider.Instance,
+            RazerDeviceProvider.Instance, WootingDeviceProvider.Instance,
+            SteelSeriesDeviceProvider.Instance, NovationDeviceProvider.Instance,
+            PicoPiDeviceProvider.Instance
+        };
+
+        _config = LoadConfig();
+    }
+
+    private ServerConfig LoadConfig()
+    {
+        try
+        {
+            if (File.Exists(_configPath))
+            {
+                Console.WriteLine($"[Config] Loading configuration from {_configPath}");
+                string json = File.ReadAllText(_configPath);
+                var config = JsonConvert.DeserializeObject<ServerConfig>(json) ?? new ServerConfig();
+
+                if (config.EnabledIntegrations == null || !config.EnabledIntegrations.Any())
+                {
+                    Console.WriteLine("[Config] No integrations specified, enabling defaults.");
+                    config.EnabledIntegrations = new List<string>
+                {
+                    "Corsair", "Logitech", "Asus", "Razer",
+                    "Wooting", "SteelSeries", "Msi"
+                };
+                }
+                return config;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Config] Error loading config, using defaults. Error: {ex.Message}");
+        }
+
+        Console.WriteLine("[Config] No config file found, creating a default one.");
+        return new ServerConfig
+        {
+            EnabledIntegrations = new List<string>
+        {
+            "Corsair", "Logitech", "Asus", "Razer",
+            "Wooting", "SteelSeries", "Msi"
+        }
+        };
+    }
+
+    private void SaveConfig()
+    {
+        try
+        {
+            string json = JsonConvert.SerializeObject(_config, Formatting.Indented);
+            File.WriteAllText(_configPath, json);
+            Console.WriteLine($"[Config] Configuration saved to {_configPath}");
+        }
+        catch (Exception ex) { Console.WriteLine($"[Config] Error saving config: {ex.Message}"); }
     }
 
     public void Start()
     {
         _isRunning = true;
-
-        void InitializeProvider(IRGBDeviceProvider provider)
-        {
-            try
-            {
-                Console.WriteLine($"[Server] Initializing {provider.GetType().Name}...");
-                provider.Initialize(throwExceptions: true);
-                Console.WriteLine($"[Server] -> {provider.GetType().Name} initialized.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Server] -> WARNING: Failed to initialize {provider.GetType().Name}. This provider will be unavailable. Error: {ex.Message}");
-            }
-        }
-
-        if (IsRunningAsAdmin()) InitializeProvider(MsiDeviceProvider.Instance);
-        InitializeProvider(CorsairDeviceProvider.Instance);
-        InitializeProvider(LogitechDeviceProvider.Instance);
-        InitializeProvider(AsusDeviceProvider.Instance);
-        InitializeProvider(RazerDeviceProvider.Instance);
-        InitializeProvider(WootingDeviceProvider.Instance);
-        InitializeProvider(SteelSeriesDeviceProvider.Instance);
-        InitializeProvider(NovationDeviceProvider.Instance);
-        InitializeProvider(PicoPiDeviceProvider.Instance);
-
-        Console.WriteLine("[Server] Loading all initialized providers into the surface...");
-        _surface.Load(MsiDeviceProvider.Instance);
-        _surface.Load(CorsairDeviceProvider.Instance);
-        _surface.Load(LogitechDeviceProvider.Instance);
-        _surface.Load(AsusDeviceProvider.Instance);
-        _surface.Load(RazerDeviceProvider.Instance);
-        _surface.Load(WootingDeviceProvider.Instance);
-        _surface.Load(SteelSeriesDeviceProvider.Instance);
-        _surface.Load(NovationDeviceProvider.Instance);
-        _surface.Load(PicoPiDeviceProvider.Instance);
-
-        Console.WriteLine($"[RGB.NET] Final device count after loading: {_surface.Devices.Count()}");
-
-        BuildIdMaps();
+        ReconfigureSurfaceFromConfig();
 
         _handshakeThread = new Thread(HandshakeServerLoop) { IsBackground = true };
         _udpListenerThread = new Thread(UdpServerLoop) { IsBackground = true };
@@ -86,13 +116,80 @@ public class LightingServer
     public void Stop()
     {
         _isRunning = false;
+        lock (_deviceLock)
+        {
+            var devicesToDetach = _surface.Devices.ToList();
+            if (devicesToDetach.Any())
+                _surface.Detach(devicesToDetach);
+
+            foreach (var provider in _allProviders)
+                if (provider.IsInitialized)
+                    provider.Dispose();
+        }
         _surface.Dispose();
+    }
+
+    private void ReconfigureSurfaceFromConfig()
+    {
+        lock (_deviceLock)
+        {
+            Console.WriteLine("[Server] Configuring surface based on settings...");
+
+            var currentDevices = _surface.Devices.ToList();
+            if (currentDevices.Any())
+                _surface.Detach(currentDevices);
+
+            foreach (var provider in _allProviders)
+            {
+                string providerName = provider.GetType().Name.Replace("DeviceProvider", "");
+                bool shouldBeEnabled = _config.EnabledIntegrations.Contains(providerName);
+
+                if (shouldBeEnabled && !provider.IsInitialized)
+                {
+                    if (provider is MsiDeviceProvider && !IsRunningAsAdmin())
+                    {
+                        Console.WriteLine($"[Server] -> Skipping {providerName}: Not running as admin.");
+                        continue;
+                    }
+                    try
+                    {
+                        Console.WriteLine($"[Server] Initializing {providerName}...");
+                        provider.Initialize(throwExceptions: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Server] -> WARNING: Initializing {providerName} failed. Error: {ex.Message}");
+                    }
+                }
+                else if (!shouldBeEnabled && provider.IsInitialized)
+                {
+                    Console.WriteLine($"[Server] Disposing disabled provider: {providerName}");
+                    provider.Dispose();
+                }
+            }
+
+            var devicesToAttach = _allProviders
+                .Where(p => p.IsInitialized)
+                .SelectMany(p => p.Devices)
+                .Where(d => !_config.DisabledDevices.Contains($"{d.DeviceInfo.Manufacturer}|{d.DeviceInfo.Model}"))
+                .ToList();
+
+            if (devicesToAttach.Any())
+            {
+                _surface.Attach(devicesToAttach);
+            }
+
+            Console.WriteLine($"[RGB.NET] Final device count: {_surface.Devices.Count()}");
+            BuildIdMaps();
+        }
     }
 
     private void BuildIdMaps()
     {
+        _ledIdMap.Clear();
+        _keyMap.Clear();
         int currentLedId = 0;
-        foreach (var device in _surface.Devices)
+        foreach (var device in _surface.Devices.OrderBy(d => d.DeviceInfo.DeviceType))
         {
             foreach (var led in device)
             {
@@ -114,7 +211,6 @@ public class LightingServer
         try
         {
             listener.Start();
-            Console.WriteLine("[Server] Handshake server listening on port 63211.");
             while (_isRunning)
             {
                 using var client = listener.AcceptTcpClient();
@@ -124,47 +220,49 @@ public class LightingServer
                 int clientConfigLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 byte[] clientConfigBytes = reader.ReadBytes(clientConfigLength);
                 string clientConfigJson = Encoding.UTF8.GetString(clientConfigBytes);
+                JObject clientConfig = JObject.Parse(clientConfigJson);
 
-                var devicesArray = new JArray();
-                foreach (var device in _surface.Devices)
+                _config.EnabledIntegrations = clientConfig["enabled_integrations"]?.ToObject<List<string>>() ?? _config.EnabledIntegrations;
+                _config.DisabledDevices = clientConfig["disabled_devices"]?.ToObject<List<string>>() ?? _config.DisabledDevices;
+                SaveConfig();
+                ReconfigureSurfaceFromConfig();
+
+                lock (_deviceLock)
                 {
-                    var deviceLeds = device.Select(led => _ledIdMap.FirstOrDefault(x => x.Value == led).Key).Where(k => k != 0 || _ledIdMap.Count == 1).ToArray();
-                    if (!deviceLeds.Any()) continue;
-                    var deviceObj = new JObject
+                    var devicesArray = new JArray();
+                    foreach (var device in _surface.Devices)
                     {
-                        ["sdk"] = device.DeviceInfo.Manufacturer,
-                        ["name"] = device.DeviceInfo.Model,
-                        ["ledCount"] = deviceLeds.Length,
-                        ["leds"] = new JArray(deviceLeds)
-                    };
-                    devicesArray.Add(deviceObj);
+                        var deviceLeds = device.Select(led => _ledIdMap.FirstOrDefault(x => x.Value == led).Key).Where(k => k != 0 || _ledIdMap.Count == 1).ToArray();
+                        if (!deviceLeds.Any()) continue;
+                        var deviceObj = new JObject
+                        {
+                            ["sdk"] = device.DeviceInfo.Manufacturer,
+                            ["name"] = device.DeviceInfo.Model,
+                            ["ledCount"] = deviceLeds.Length,
+                            ["leds"] = new JArray(deviceLeds)
+                        };
+                        devicesArray.Add(deviceObj);
+                    }
+                    var keyMapJson = new JObject();
+                    foreach (var pair in _keyMap) { keyMapJson.Add(pair.Key, pair.Value); }
+                    var response = new JObject { ["devices"] = devicesArray, ["key_map"] = keyMapJson };
+                    byte[] dataBytes = Encoding.UTF8.GetBytes(response.ToString(Formatting.None));
+                    int networkOrderLength = IPAddress.HostToNetworkOrder(dataBytes.Length);
+                    byte[] lengthBytes = BitConverter.GetBytes(networkOrderLength);
+
+                    stream.Write(lengthBytes, 0, 4);
+                    stream.Write(dataBytes, 0, dataBytes.Length);
+                    stream.Flush();
                 }
-                var keyMapJson = new JObject();
-                foreach (var pair in _keyMap) { keyMapJson.Add(pair.Key, pair.Value); }
-
-                var response = new JObject { ["devices"] = devicesArray, ["key_map"] = keyMapJson };
-                string responseString = response.ToString(Formatting.None);
-                byte[] dataBytes = Encoding.UTF8.GetBytes(responseString);
-
-                int networkOrderLength = IPAddress.HostToNetworkOrder(dataBytes.Length);
-                byte[] lengthBytes = BitConverter.GetBytes(networkOrderLength);
-
-                stream.Write(lengthBytes, 0, 4);
-                stream.Write(dataBytes, 0, dataBytes.Length);
-                stream.Flush();
             }
         }
-        catch (SocketException) 
-        {
-
-        }
+        catch (SocketException) { }
         finally { listener.Stop(); }
     }
 
     private void UdpServerLoop()
     {
         using var udpClient = new UdpClient(63212);
-        Console.WriteLine("[Server] UDP lighting listener on port 63212.");
         var from = new IPEndPoint(0, 0);
         while (_isRunning)
         {
@@ -174,26 +272,35 @@ public class LightingServer
                 string jsonString = Encoding.UTF8.GetString(recvBuffer);
                 JObject? frameData = JObject.Parse(jsonString);
 
+                bool isModEnabled = frameData?["inGame"]?.Value<bool>() ?? false;
+                if (!isModEnabled)
+                {
+                    if (_isModControlActive) _isModControlActive = false;
+                    continue;
+                }
+
+                _isModControlActive = true;
+
                 if (frameData?["led_colors"] is JArray colors)
                 {
-                    foreach (var item in colors)
+                    lock (_deviceLock)
                     {
-                        int id = item.Value<int>("id");
-                        int r = item.Value<int>("r");
-                        int g = item.Value<int>("g");
-                        int b = item.Value<int>("b");
-                        if (_ledIdMap.TryGetValue(id, out Led led))
+                        foreach (var item in colors)
                         {
-                            led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
+                            int id = item.Value<int>("id");
+                            int r = item.Value<int>("r");
+                            int g = item.Value<int>("g");
+                            int b = item.Value<int>("b");
+                            if (_ledIdMap.TryGetValue(id, out Led led))
+                            {
+                                led.Color = new RGB.NET.Core.Color((byte)r, (byte)g, (byte)b);
+                            }
                         }
+                        if (_isModControlActive) _surface.Update();
                     }
-                    _surface.Update();
                 }
             }
-            catch 
-            {
-
-            }
+            catch { }
         }
     }
 
@@ -203,25 +310,19 @@ public class LightingServer
         try
         {
             listener.Start();
-            Console.WriteLine("[Server] Command server listening on port 63213.");
             while (_isRunning)
             {
                 using var client = listener.AcceptTcpClient();
                 using var stream = client.GetStream();
-
                 var buffer = new byte[1024];
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 string command = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
                 if (command == "restart_admin") TriggerRestart(true);
                 else if (command == "restart") TriggerRestart(false);
                 else if (command == "shutdown") _shutdownAction?.Invoke();
             }
         }
-        catch (SocketException)
-        {
-
-        }
+        catch (SocketException) { }
         finally { listener.Stop(); }
     }
 
@@ -230,7 +331,6 @@ public class LightingServer
         using var client = new UdpClient { EnableBroadcast = true };
         var endpoint = new IPEndPoint(IPAddress.Broadcast, 63214);
         byte[] message = Encoding.UTF8.GetBytes("MINELIGHTS_PROXY_HELLO");
-        Console.WriteLine("[Server] Discovery broadcast started on port 63214.");
         while (_isRunning)
         {
             try
@@ -246,17 +346,10 @@ public class LightingServer
     {
         try
         {
-            Process.Start(new ProcessStartInfo(Application.ExecutablePath)
-            {
-                UseShellExecute = true,
-                Verb = asAdmin ? "runas" : "open"
-            });
+            Process.Start(new ProcessStartInfo(Application.ExecutablePath) { UseShellExecute = true, Verb = asAdmin ? "runas" : "open" });
             _shutdownAction?.Invoke();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Restart ERROR] {ex.Message}");
-        }
+        catch (Exception ex) { Console.WriteLine($"[Restart ERROR] {ex.Message}"); }
     }
 
     private bool IsRunningAsAdmin()

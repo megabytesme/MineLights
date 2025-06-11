@@ -50,6 +50,7 @@ public class MyAppContext : ApplicationContext
         };
 
         trayIcon.ContextMenuStrip.Items.Add("View Logs", null, OnViewLogs);
+        trayIcon.ContextMenuStrip.Items.Add(new ToolStripSeparator());
         trayIcon.ContextMenuStrip.Items.Add("Exit", null, OnExit);
     }
 
