@@ -21,12 +21,12 @@ public static class NativeDllLoader
 
             Console.WriteLine("[Loader] Attempting to load Corsair SDK...");
             ExtractResource("MineLightsV2.resources.x64.iCUESDK.x64_2019.dll", Path.Combine(tempPath, "iCUESDK.x64_2019.dll"));
-            CorsairDeviceProvider.PossibleX64NativePaths.Add(tempPath);
+            CorsairDeviceProvider.PossibleX64NativePaths.Add(Path.Combine(tempPath, "iCUESDK.x64_2019.dll"));
             Console.WriteLine("[Loader] Corsair SDK path configured.");
 
             Console.WriteLine("[Loader] Attempting to load MSI SDK...");
             ExtractResource("MineLightsV2.resources.x64.MysticLight_SDK_x64.dll", Path.Combine(tempPath, "MysticLight_SDK_x64.dll"));
-            MsiDeviceProvider.PossibleX64NativePaths.Add(tempPath);
+            MsiDeviceProvider.PossibleX64NativePaths.Add(Path.Combine(tempPath, "MysticLight_SDK_x64.dll"));
             Console.WriteLine("[Loader] MSI SDK path configured.");
         }
         catch (Exception ex)
