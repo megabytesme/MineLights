@@ -2,50 +2,68 @@
 
 class Program
 {
+    private static Mutex mutex = new Mutex(true, "{8E2D4B6C-7F01-4A5D-9C2E-2A47A5A0A9A3}");
+
+    [STAThread]
     static void Main(string[] args)
     {
-        Thread trayThread = new Thread(new ThreadStart(RunTrayApp));
-        trayThread.SetApartmentState(ApartmentState.STA);
-        trayThread.Start();
-        trayThread.Join();
+        if (!mutex.WaitOne(TimeSpan.Zero, true))
+        {
+            MessageBox.Show("MineLights Server is already running.", "MineLights", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
 
         NativeDllLoader.LoadNativeSDKs();
-    }
 
-    private static void RunTrayApp()
-    {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.Run(new MyAppContext());
+
+        mutex.ReleaseMutex();
+        GC.KeepAlive(mutex);
     }
 }
 
 public class MyAppContext : ApplicationContext
 {
     private NotifyIcon trayIcon;
+    private LightingServer lightingServer;
 
     public MyAppContext()
     {
+        lightingServer = new LightingServer(Shutdown);
+        lightingServer.Start();
+
+        var iconStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("MineLightsV2.resources.app_icon.ico");
+        if (iconStream == null) throw new FileNotFoundException("Tray icon resource not found.");
+
         trayIcon = new NotifyIcon()
         {
-            Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("MineLightsV2.resources.app_icon.ico")),
+            Icon = new Icon(iconStream),
             Text = "MineLights Server",
             ContextMenuStrip = new ContextMenuStrip(),
             Visible = true
         };
 
-        trayIcon.ContextMenuStrip.Items.Add("Show Version", null, OnShowVersion);
         trayIcon.ContextMenuStrip.Items.Add("Exit", null, OnExit);
     }
 
-    void OnShowVersion(object sender, EventArgs e)
+    private void Shutdown()
     {
-        MessageBox.Show("MineLights Server V2");
+        if (trayIcon.ContextMenuStrip?.InvokeRequired ?? false)
+        {
+            trayIcon.ContextMenuStrip.Invoke(new System.Windows.Forms.MethodInvoker(Shutdown));
+        }
+        else
+        {
+            lightingServer.Stop();
+            trayIcon.Visible = false;
+            Application.Exit();
+        }
     }
 
-    void OnExit(object sender, EventArgs e)
+    void OnExit(object? sender, EventArgs e)
     {
-        trayIcon.Visible = false;
-        Application.Exit();
+        Shutdown();
     }
 }

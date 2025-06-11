@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,13 +10,12 @@
 
   <ItemGroup>
     <None Remove="resources\app_icon.ico" />
-    <None Remove="resources\x64\CUESDK.x64_2019.dll" />
     <None Remove="resources\x64\MysticLight_SDK_x64.dll" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="resources\app_icon.ico" />
-    <EmbeddedResource Include="resources\x64\CUESDK.x64_2019.dll" />
+    <EmbeddedResource Include="resources\x64\iCUESDK.x64_2019.dll" />
     <EmbeddedResource Include="resources\x64\MysticLight_SDK_x64.dll" />
   </ItemGroup>
 
