@@ -43,5 +43,6 @@
   "integration.mine-lights.msi": "MSI (Mystic Light)",
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
-  "integration.mine-lights.openrgb": "OpenRGB"
+  "integration.mine-lights.openrgb": "OpenRGB",
+  "integration.mine-lights.yeelight": "Enable Yeelight"
 }

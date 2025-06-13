@@ -168,6 +168,12 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setDefaultValue(true)
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableOpenRgb = newValue)
                                         .build());
+                        integrations.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("integration.mine-lights.yeelight"),
+                                                        MineLightsClient.CONFIG.enableYeelight)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableYeelight = newValue)
+                                        .build());
 
                         ConfigCategory devices = builder
                                         .getOrCreateCategory(Text.translatable("category.mine-lights.devices"));

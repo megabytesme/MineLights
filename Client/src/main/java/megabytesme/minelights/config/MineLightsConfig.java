@@ -22,6 +22,7 @@ public class MineLightsConfig {
     public boolean enableNovation = true;
     public boolean enablePicoPi = true;
     public boolean enableOpenRgb = true;
+    public boolean enableYeelight = true;
     public List<String> disabledDevices = new ArrayList<>();
 
     public boolean enableHealthBar = true;
