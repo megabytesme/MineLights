@@ -10,6 +10,7 @@ import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
 import megabytesme.minelights.effects.RGBColorDto;
 import megabytesme.minelights.rgb.OpenRGBController;
+import megabytesme.minelights.rgb.YeelightController;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +39,14 @@ public class LightingManager implements Runnable {
     private final OpenRGBController openRgbController = new OpenRGBController();
     private final Map<Integer, Integer> openRgbLedToDeviceMap = new HashMap<>();
 
+    private final YeelightController yeelightController = new YeelightController();
+    private final Map<Integer, Integer> yeelightLedToDeviceMap = new HashMap<>();
+
     private final List<Integer> masterLedList = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, Integer> masterKeyMap = Collections.synchronizedMap(new HashMap<>());
     private final AtomicInteger proxyLedCount = new AtomicInteger(0);
     private final AtomicInteger openRgbLedCount = new AtomicInteger(0);
+    private final AtomicInteger yeelightLedCount = new AtomicInteger(0);
 
     public LightingManager() {
         performHandshakes();
@@ -130,18 +135,43 @@ public class LightingManager implements Runnable {
         });
         openRgbThread.setName("MineLights-OpenRGB-Handshake");
 
+        Thread yeelightThread = new Thread(() -> {
+            if (!MineLightsClient.CONFIG.enableYeelight)
+                return;
+            if (yeelightController.discover()) {
+                List<YeelightController.YeelightDevice> devices = yeelightController.getDevices();
+                int yeelightLedOffset = 3000;
+                for (int i = 0; i < devices.size(); i++) {
+                    YeelightController.YeelightDevice device = devices.get(i);
+                    String uniqueId = "Yeelight|"
+                            + (device.name != null && !device.name.isEmpty() ? device.name : device.id);
+                    if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId))
+                        continue;
+                    MineLightsClient.discoveredDevices.add(uniqueId);
+
+                    int globalLedId = yeelightLedOffset + i;
+                    masterLedList.add(globalLedId);
+                    yeelightLedToDeviceMap.put(globalLedId, i);
+                    yeelightLedCount.incrementAndGet();
+                }
+            }
+        });
+        yeelightThread.setName("MineLights-Yeelight-Discovery");
+
         Thread initializerThread = new Thread(() -> {
             try {
                 serverHandshakeThread.start();
                 openRgbThread.start();
+                yeelightThread.start();
                 serverHandshakeThread.join(5000);
                 openRgbThread.join(5000);
+                yeelightThread.join(5000);
 
                 this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
                 this.isInitialized = true;
                 LOGGER.info(
-                        "Initialization complete. Found {} LEDs from MineLights Server, and {} from OpenRGB. Total: {}",
-                        proxyLedCount.get(), openRgbLedCount.get(), masterLedList.size());
+                        "Initialization complete. Found {} LEDs from MineLights Server, {} from OpenRGB, and {} from Yeelight. Total: {}",
+                        proxyLedCount.get(), openRgbLedCount.get(), yeelightLedCount.get(), masterLedList.size());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -218,6 +248,9 @@ public class LightingManager implements Runnable {
                         int deviceIndex = openRgbLedToDeviceMap.get(globalLedId);
                         openRgbUpdates.computeIfAbsent(deviceIndex, k -> new ArrayList<>())
                                 .add(new KeyColorDto(globalLedId, color));
+                    } else if (yeelightLedToDeviceMap.containsKey(globalLedId)) {
+                        int deviceIndex = yeelightLedToDeviceMap.get(globalLedId);
+                        yeelightController.updateLed(deviceIndex, color);
                     } else {
                         proxyUpdateList.add(new KeyColorDto(globalLedId, color));
                     }
@@ -246,6 +279,7 @@ public class LightingManager implements Runnable {
             LOGGER.error("Error in lighting loop", e);
         } finally {
             openRgbController.disconnect();
+            yeelightController.disconnect();
         }
     }
 }
