@@ -262,6 +262,32 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
                                         .build());
                         playerStatus.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableCompassEffect"),
+                                                        MineLightsClient.CONFIG.enableCompassEffect)
+                                        .setDefaultValue(true)
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.enableCompassEffect = newValue)
+                                        .build());
+                        playerStatus.addEntry(entryBuilder
+                                        .startBooleanToggle(Text.translatable("option.mine-lights.alwaysShowCompass"),
+                                                        MineLightsClient.CONFIG.alwaysShowCompass)
+                                        .setDefaultValue(false)
+                                        .setTooltip(Text.translatable("option.mine-lights.alwaysShowCompass.tooltip"))
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
+                                        .build());
+                        playerStatus.addEntry(entryBuilder
+                                        .startEnumSelector(Text.translatable("option.mine-lights.compassPriority"),
+                                                        CompassPriority.class,
+                                                        MineLightsClient.CONFIG.compassPriority)
+                                        .setDefaultValue(CompassPriority.PRIORITY)
+                                        .setTooltip(Text.translatable("option.mine-lights.compassPriority.tooltip"))
+                                        .setEnumNameProvider(
+                                                        value -> Text.translatable("enum.mine-lights.compassPriority."
+                                                                        + value.name().toLowerCase()))
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassPriority = newValue)
+                                        .build());
+                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         Text.translatable("option.mine-lights.enableLowHealthWarning"),
                                                         MineLightsClient.CONFIG.enableLowHealthWarning)

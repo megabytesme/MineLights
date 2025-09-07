@@ -17,6 +17,10 @@ public class PlayerDto {
     private boolean isWithering;
     private boolean isTakingDamage;
     private List<WaypointDto> waypoints;
+    private CompassState compassState = CompassState.NONE;
+    private Double compassRelativeYaw;
+    private Double compassDistance;
+    private CompassType compassType = CompassType.NONE;
 
     public boolean getInGame() {
         return inGame;
@@ -128,5 +132,37 @@ public class PlayerDto {
 
     public void setWaypoints(List<WaypointDto> waypoints) {
         this.waypoints = waypoints;
+    }
+
+    public CompassState getCompassState() {
+        return compassState;
+    }
+
+    public void setCompassState(CompassState compassState) {
+        this.compassState = compassState;
+    }
+
+    public Double getCompassRelativeYaw() {
+        return compassRelativeYaw;
+    }
+
+    public void setCompassRelativeYaw(Double compassRelativeYaw) {
+        this.compassRelativeYaw = compassRelativeYaw;
+    }
+
+    public Double getCompassDistance() {
+        return compassDistance;
+    }
+
+    public void setCompassDistance(Double compassDistance) {
+        this.compassDistance = compassDistance;
+    }
+
+    public CompassType getCompassType() {
+        return compassType;
+    }
+
+    public void setCompassType(CompassType compassType) {
+        this.compassType = compassType;
     }
 }
