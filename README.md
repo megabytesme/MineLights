@@ -1,4 +1,5 @@
 # MineLights
+
 ![_bfb50031-5cf5-4366-aa3d-ec005d0aa4bf](https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8)
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets the latest version of Minecraft (1.21+) and uses a modular design to support a wide range of hardware.
@@ -11,7 +12,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
   - **Weather Effects**: Experience rain and dramatic lightning flashes during in-game thunderstorms.
   - **Status Effects**: Your lighting will react when you are on fire, poisoned, or withering.
   - **Block Effects**: Standing in lava, fire, or portals will trigger unique lighting themes.
-- **In-Game Status Bars**: Use your keyboard's function keys as real-time status bars for health, hunger, and experience.
+- **In-Game Status Bars**: Use your keyboard's function keys as real-time status bars for health, hunger, and experience, alongside tracking other players or waypoints!
 - **Highly Configurable**: An in-game configuration screen (via Mod Menu) lets you enable/disable every feature, integration, and even individual devices.
 
 ## Supported RGB Software
@@ -26,55 +27,63 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **Wooting**: Direct, low-latency control for Wooting analog keyboards (requires Wootility software to be running - Windows).
 - **Novation**: Support for Novation MIDI controllers like the Launchpad, enabling unique grid-based effects (Windows).
 - **Raspberry Pi Pico**: Directly control custom DIY lighting projects powered by a Raspberry Pi Pico (Windows).
+- **Yeelights** Directly control your Yeelights smarthome bulbs (Universal).
+
 ### This project uses the RGB.Net Nuget package.
 
 ## 🛠️ Installation
 
 ### Prerequisites
+
 - **Minecraft Fabric**: You must have the Fabric Loader installed.
 - **Mod Menu**: Required to access the in-game configuration screen.
 - **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
 ### Standard Installation
-1.  **Download the LATEST MineLights Release Package:**
-    *   Go to the [MineLights GitHub Releases page](https://github.com/megabytesme/MineLights/releases).
-    *   Download the latest release `.zip` file that supports your Minecraft version (e.g., `MineLights-v2.0.0.zip`). **This is a complete package, not just a mod JAR!**
 
-2.  **Install MineLights (CRITICAL STEPS - Read Carefully!):**
+1. **Download the LATEST MineLights Release Package:**
 
-    a.  Locate the `MineLights-vX.X.X.zip` file you just downloaded.
+   * Go to the [MineLights GitHub Releases page](https://github.com/megabytesme/MineLights/releases).
+   * Download the latest release `.zip` file that supports your Minecraft version (e.g., `MineLights-v2.0.0.zip`). **This is a complete package, not just a mod JAR!**
+2. **Install MineLights (CRITICAL STEPS - Read Carefully!):**
 
-    b.  **Extract the contents** of this `.zip` file to a temporary location (e.g., your Desktop).
+   a.  Locate the `MineLights-vX.X.X.zip` file you just downloaded.
 
-    c.  After extracting, you will have a folder (e.g., `MineLights-v2.0.0`). **Open this folder.**
+   b.  **Extract the contents** of this `.zip` file to a temporary location (e.g., your Desktop).
 
-    d.  Inside, you should see the mod's `.jar` file (e.g., `mine-lights-2.0.0.jar`), and a `MineLights` folder (which contains other files essential for the mod to work).
-   
-    e.  Select **BOTH** of these items (the `mine-lights-x.x.x.jar` file AND the `MineLights` folder) from inside the extracted folder.
-    
-    f.  Copy these selected items and **paste them directly into your Minecraft `mods` folder.**
+   c.  After extracting, you will have a folder (e.g., `MineLights-v2.0.0`). **Open this folder.**
 
-    **Your `mods` folder should now look something like this (along with other mods you may have):**
-    ```
-    .minecraft/
-    └── mods/
-        ├── mine-lights-2.0.0.jar   <-- The JAR from the extracted MineLights package
-        ├── MineLights/             <-- The 'MineLights' folder from the extracted MineLights package
-        └── (other mods...)
-    ```
+   d.  Inside, you should see the mod's `.jar` file (e.g., `mine-lights-2.0.0.jar`), and a `MineLights` folder (which contains other files essential for the mod to work).
 
-    ⚠️ **IMPORTANT!**
-    *   **DO NOT** just place the downloaded `MineLights-vX.X.X.zip` file into your `mods` folder.
-    *   **DO NOT** just extract only the `mine-lights-x.x.x.jar` from the zip and place it alone into the `mods` folder.
-    *   **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly with iCue and Mystic Light. For OpenRGB, this is optional!**
+   e.  Select **BOTH** of these items (the `mine-lights-x.x.x.jar` file AND the `MineLights` folder) from inside the extracted folder.
+
+   f.  Copy these selected items and **paste them directly into your Minecraft `mods` folder.**
+
+   **Your `mods` folder should now look something like this (along with other mods you may have):**
+
+   ```
+   .minecraft/
+   └── mods/
+       ├── mine-lights-2.0.0.jar   <-- The JAR from the extracted MineLights package
+       ├── MineLights/             <-- The 'MineLights' folder from the extracted MineLights package
+       └── (other mods...)
+   ```
+
+   ⚠️ **IMPORTANT!**
+
+   * **DO NOT** just place the downloaded `MineLights-vX.X.X.zip` file into your `mods` folder.
+   * **DO NOT** just extract only the `mine-lights-x.x.x.jar` from the zip and place it alone into the `mods` folder.
+   * **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly with iCue and Mystic Light. For OpenRGB, this is optional!**
 
 ### For iCUE & Mystic Light Support (Windows Only)
+
 The `mine-lights-x.x.x.jar` file does not contain the proprietary SDK files from Corsair or MSI. To enable support for these, you must use the external `MineLights.exe` helper along with the libraries in the zip.
-1.  **Run the Helper:**
-    -   Double-click `MineLights.exe` in your .minecraft/mods/MineLights/ folder to run it.
-    -   For **MSI Mystic Light** support, you **must** right-click `MineLights.exe` and select **"Run as administrator"**.
-    -   A new icon will appear in your Windows System Tray to show that it's running.
+
+1. **Run the Helper:**
+   - Double-click `MineLights.exe` in your .minecraft/mods/MineLights/ folder to run it.
+   - For **MSI Mystic Light** support, you **must** right-click `MineLights.exe` and select **"Run as administrator"**.
+   - A new icon will appear in your Windows System Tray to show that it's running.
 
 ## Usage
 
