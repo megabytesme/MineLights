@@ -1,4 +1,13 @@
 {
+  "category.mine-lights.about": "Th' Ship's Log",
+  "text.mine-lights.about.title": "MineLights",
+  "text.mine-lights.about.version": "Charted Version %s",
+  "text.mine-lights.about.copyright": "Cap'n's Rights © 2025 MegaBytesMe",
+  "text.mine-lights.about.source_code": "Th' Secret Blueprints",
+  "text.mine-lights.about.issues": "Report a Mutiny",
+  "text.mine-lights.about.support_intro": "If ye fancy this mod, consider offerin' a bit o' tribute for its makin':",
+  "text.mine-lights.about.kofi": "Buy me a Grog on Ko-fi",
+  "text.mine-lights.about.description": "MineLights be a Minecraft Fabric mod that brings shinin' RGB lights to the Java Edition seas.",
   "title.mine-lights.config": "MineLights Booty Settin's",
   "category.mine-lights.general": "Cap'n's Orders",
   "category.mine-lights.integrations": "Th' Ship's Crew",

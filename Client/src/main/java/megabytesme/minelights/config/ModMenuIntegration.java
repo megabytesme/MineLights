@@ -349,6 +349,44 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
                                         .build());
 
+                        ConfigCategory aboutCategory = builder
+                                        .getOrCreateCategory(Text.translatable("category.mine-lights.about"));
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(
+                                        Text.translatable("text.mine-lights.about.title")
+                                                        .styled(style -> style.withBold(true)))
+                                        .build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(
+                                        Text.translatable("text.mine-lights.about.version", "2.0.2.0")).build());
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(
+                                        Text.translatable("text.mine-lights.about.copyright")).build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextField(
+                                        Text.translatable("text.mine-lights.about.source_code"),
+                                        "https://github.com/megabytesme/MineLights")
+                                        .build());
+                        aboutCategory.addEntry(entryBuilder.startTextField(
+                                        Text.translatable("text.mine-lights.about.issues"),
+                                        "https://github.com/megabytesme/MineLights/issues")
+                                        .build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(
+                                        Text.translatable("text.mine-lights.about.support_intro")).build());
+                        aboutCategory.addEntry(entryBuilder.startTextField(
+                                        Text.translatable("text.mine-lights.about.kofi"),
+                                        "https://ko-fi.com/megabytesme")
+                                        .build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(Text.literal("")).build());
+
+                        aboutCategory.addEntry(entryBuilder.startTextDescription(
+                                        Text.translatable("text.mine-lights.about.description")).build());
+
                         return builder.build();
                 };
         }
