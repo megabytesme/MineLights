@@ -1,5 +1,7 @@
 package megabytesme.minelights;
 
+import java.util.List;
+
 public class PlayerDto {
     private boolean inGame;
     private float health;
@@ -14,6 +16,7 @@ public class PlayerDto {
     private boolean isPoisoned;
     private boolean isWithering;
     private boolean isTakingDamage;
+    private List<WaypointDto> waypoints;
 
     public boolean getInGame() {
         return inGame;
@@ -117,5 +120,13 @@ public class PlayerDto {
 
     public void setIsTakingDamage(boolean isTakingDamage) {
         this.isTakingDamage = isTakingDamage;
+    }
+
+    public List<WaypointDto> getWaypoints() {
+        return waypoints;
+    }
+
+    public void setWaypoints(List<WaypointDto> waypoints) {
+        this.waypoints = waypoints;
     }
 }

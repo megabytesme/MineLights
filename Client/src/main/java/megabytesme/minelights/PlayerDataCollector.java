@@ -5,8 +5,11 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.world.World;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.world.biome.Biome;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class PlayerDataCollector {
@@ -44,6 +47,26 @@ public class PlayerDataCollector {
         } else {
             playerDto.setWeather("Clear");
         }
+
+        List<WaypointDto> waypoints = new ArrayList<>();
+        client.player.networkHandler.getWaypointHandler().forEachWaypoint(client.cameraEntity, (waypoint) -> {
+            if (waypoint.getSource().left().map(uuid -> uuid.equals(client.cameraEntity.getUuid())).orElse(false)) {
+                return;
+            }
+
+            WaypointDto waypointDto = new WaypointDto();
+            waypointDto.setRelativeYaw(waypoint.getRelativeYaw(world, client.gameRenderer.getCamera()));
+            waypointDto.setPitch(waypoint.getPitch(world, client.gameRenderer));
+            waypointDto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(client.cameraEntity)));
+
+            int color = waypoint.getConfig().color.orElseGet(() -> waypoint.getSource().map(
+                    uuid -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, uuid.hashCode()), 0.9F),
+                    name -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, name.hashCode()), 0.9F)));
+            waypointDto.setColor(color);
+
+            waypoints.add(waypointDto);
+        });
+        playerDto.setWaypoints(waypoints);
 
         return playerDto;
     }
