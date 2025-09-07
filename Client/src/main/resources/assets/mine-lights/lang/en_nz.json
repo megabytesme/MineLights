@@ -1,4 +1,13 @@
 {
+  "category.mine-lights.about": "About",
+  "text.mine-lights.about.title": "MineLights",
+  "text.mine-lights.about.version": "Version %s",
+  "text.mine-lights.about.copyright": "Copyright © 2025 MegaBytesMe",
+  "text.mine-lights.about.source_code": "Source Code",
+  "text.mine-lights.about.issues": "Report an Issue",
+  "text.mine-lights.about.support_intro": "If you enjoy this mod, please consider supporting its development:",
+  "text.mine-lights.about.kofi": "Buy me a coffee on Ko-fi",
+  "text.mine-lights.about.description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
   "title.mine-lights.config": "MineLights Configuration",
   "category.mine-lights.general": "General",
   "category.mine-lights.integrations": "Integrations",

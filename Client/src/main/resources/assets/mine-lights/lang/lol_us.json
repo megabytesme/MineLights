@@ -1,4 +1,13 @@
 {
+  "category.mine-lights.about": "ABOUT DIS MOD",
+  "text.mine-lights.about.title": "MineLights",
+  "text.mine-lights.about.version": "Vershun %s",
+  "text.mine-lights.about.copyright": "COPYRITE © 2025 MegaBytesMe",
+  "text.mine-lights.about.source_code": "TEH CODEZ",
+  "text.mine-lights.about.issues": "REPORT A BUGZ",
+  "text.mine-lights.about.support_intro": "if u liek dis mod, plz consider supportin its development:",
+  "text.mine-lights.about.kofi": "buy me a cheezburger on Ko-fi",
+  "text.mine-lights.about.description": "MineLights iz a Minecraft Fabric mod dat bringz shiny RGB lightz to Minecraft Java Edition.",
   "title.mine-lights.config": "MineLights SETTINZ",
   "category.mine-lights.general": "JENERAL",
   "category.mine-lights.integrations": "INTEGRAISHUNZ",
