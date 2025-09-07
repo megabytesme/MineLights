@@ -1,4 +1,13 @@
 {
+  "category.mine-lights.about": "关于",
+  "text.mine-lights.about.title": "MineLights",
+  "text.mine-lights.about.version": "版本 %s",
+  "text.mine-lights.about.copyright": "版权所有 © 2025 MegaBytesMe",
+  "text.mine-lights.about.source_code": "源代码",
+  "text.mine-lights.about.issues": "报告问题",
+  "text.mine-lights.about.support_intro": "如果您喜欢这个模组，请考虑支持它的开发：",
+  "text.mine-lights.about.kofi": "在 Ko-fi 上请我喝杯咖啡",
+  "text.mine-lights.about.description": "MineLights是一个Minecraft Fabric模组, 它为Minecraft Java版带来了RGB灯光集成。",
   "title.mine-lights.config": "MineLights 配置",
   "category.mine-lights.general": "通用",
   "category.mine-lights.integrations": "集成",

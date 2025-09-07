@@ -1,4 +1,13 @@
 {
+  "category.mine-lights.about": "Of the Mod Itself",
+  "text.mine-lights.about.title": "MineLights",
+  "text.mine-lights.about.version": "By Version %s",
+  "text.mine-lights.about.copyright": "Copyright © 2025 MegaBytesMe",
+  "text.mine-lights.about.source_code": "The Scrivener's Code",
+  "text.mine-lights.about.issues": "Report a Grievance",
+  "text.mine-lights.about.support_intro": "Shouldst this mod find favour in thy sight, pray, consider supporting its creation:",
+  "text.mine-lights.about.kofi": "Procure for me a draught on Ko-fi",
+  "text.mine-lights.about.description": "MineLights is a Minecraft Fabric mod, which doth bring forth shimmering RGB illuminations unto the Java Edition of Minecraft.",
   "title.mine-lights.config": "MineLights' Settings & Devices",
   "category.mine-lights.general": "Of General Matters",
   "category.mine-lights.integrations": "Of Divers Workings",
