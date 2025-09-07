@@ -30,6 +30,9 @@ public class MineLightsConfig {
     public boolean enableSaturationBar = true;
     public boolean enableExperienceBar = true;
     public boolean enableLocatorBar = true;
+    public boolean enableCompassEffect = true;
+    public boolean alwaysShowCompass = false;
+    public CompassPriority compassPriority = CompassPriority.PRIORITY;
     public boolean enableLowHealthWarning = true;
     public boolean enableBiomeEffects = true;
     public boolean enableWeatherEffects = true;

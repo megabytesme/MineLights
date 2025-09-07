@@ -1,5 +1,7 @@
 package megabytesme.minelights.effects;
 
+import megabytesme.minelights.CompassState;
+import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
 import megabytesme.minelights.WaypointDto;
@@ -44,6 +46,9 @@ public class EffectPainter {
     private boolean isHeartBeatingUp = true;
     private long lastHeartbeatStep = 0;
 
+    private long lastCompassSpinTime = 0;
+    private int compassSpinIndex = 0;
+
     public EffectPainter(List<Integer> allLedIds, Map<String, Integer> namedKeyMap) {
         this.allLedIds = allLedIds;
         this.namedKeyMap = namedKeyMap;
@@ -85,6 +90,10 @@ public class EffectPainter {
 
         if (MineLightsClient.CONFIG.enableSaturationBar) {
             paintSaturationAndAirBar(state, player);
+        }
+
+        if (MineLightsClient.CONFIG.enableCompassEffect) {
+            paintCompass(state, player);
         }
 
         if (MineLightsClient.CONFIG.enableLowHealthWarning) {
@@ -377,6 +386,92 @@ public class EffectPainter {
             Integer ledId = getMappedId(keyName);
             if (ledId != null)
                 state.keys.put(ledId, new RGBColorDto(r, r, r));
+        }
+    }
+
+    private void paintCompass(FrameStateDto state, PlayerDto player) {
+        if (player.getCompassType() == CompassType.NONE) {
+            return;
+        }
+
+        RGBColorDto compassColor;
+        RGBColorDto backgroundColor;
+
+        switch (player.getCompassType()) {
+            case RECOVERY:
+                compassColor = new RGBColorDto(0, 191, 255);
+                backgroundColor = new RGBColorDto(0, 20, 35);
+                break;
+            default:
+                compassColor = new RGBColorDto(255, 0, 0);
+                backgroundColor = new RGBColorDto(35, 0, 0);
+                break;
+        }
+
+        for (String keyName : KeyMap.getNumpadDirectional()) {
+            Integer ledId = getMappedId(keyName);
+            if (ledId != null) {
+                state.keys.put(ledId, backgroundColor);
+            }
+        }
+
+        Integer centerLedId = getMappedId(KeyMap.getNumpadCenter());
+        if (centerLedId != null) {
+            state.keys.put(centerLedId, compassColor);
+        }
+
+        if (player.getCompassState() == CompassState.SPINNING) {
+            long now = System.currentTimeMillis();
+            if (now - lastCompassSpinTime > 75) {
+                compassSpinIndex = (compassSpinIndex + 1) % KeyMap.getNumpadDirectional().size();
+                lastCompassSpinTime = now;
+            }
+            String keyToLight = KeyMap.getNumpadDirectional().get(compassSpinIndex);
+            Integer ledId = getMappedId(keyToLight);
+            if (ledId != null) {
+                state.keys.put(ledId, compassColor);
+            }
+        } else if (player.getCompassState() == CompassState.POINTING) {
+            if (player.getCompassDistance() != null && player.getCompassDistance() < 8) {
+                if (centerLedId != null) {
+                    long now = System.currentTimeMillis();
+                    double pulseWave = (Math.sin(now / (2000.0 / (2.0 * Math.PI))) + 1.0) / 2.0;
+                    float brightness = (float) (0.6 + pulseWave * 0.4);
+
+                    RGBColorDto pulsedColor = new RGBColorDto(
+                            (int) (compassColor.r * brightness),
+                            (int) (compassColor.g * brightness),
+                            (int) (compassColor.b * brightness));
+                    state.keys.put(centerLedId, pulsedColor);
+                }
+            } else {
+                Double relativeYaw = player.getCompassRelativeYaw();
+                if (relativeYaw == null)
+                    return;
+
+                String keyToLight;
+                if (relativeYaw >= -22.5 && relativeYaw < 22.5)
+                    keyToLight = "NUMPAD8"; // N
+                else if (relativeYaw >= 22.5 && relativeYaw < 67.5)
+                    keyToLight = "NUMPAD9"; // NE
+                else if (relativeYaw >= 67.5 && relativeYaw < 112.5)
+                    keyToLight = "NUMPAD6"; // E
+                else if (relativeYaw >= 112.5 && relativeYaw < 157.5)
+                    keyToLight = "NUMPAD3"; // SE
+                else if (relativeYaw >= 157.5 || relativeYaw < -157.5)
+                    keyToLight = "NUMPAD2"; // S
+                else if (relativeYaw >= -157.5 && relativeYaw < -112.5)
+                    keyToLight = "NUMPAD1"; // SW
+                else if (relativeYaw >= -112.5 && relativeYaw < -67.5)
+                    keyToLight = "NUMPAD4"; // W
+                else
+                    keyToLight = "NUMPAD7"; // NW
+
+                Integer ledId = getMappedId(keyToLight);
+                if (ledId != null) {
+                    state.keys.put(ledId, compassColor);
+                }
+            }
         }
     }
 

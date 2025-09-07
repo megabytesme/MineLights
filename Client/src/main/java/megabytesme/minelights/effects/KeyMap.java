@@ -31,4 +31,12 @@ public class KeyMap {
     public static List<String> getHeartbeatWhite() {
         return Arrays.asList("R", "Y", "G");
     }
+
+    public static List<String> getNumpadDirectional() {
+        return Arrays.asList("NUMPAD8", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD2", "NUMPAD1", "NUMPAD4", "NUMPAD7");
+    }
+
+    public static String getNumpadCenter() {
+        return "NUMPAD5";
+    }
 }
