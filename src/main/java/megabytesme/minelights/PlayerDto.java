@@ -11,6 +11,7 @@ public class PlayerDto {
     private float experience;
     private String currentBlock;
     private String currentBiome;
+    private String currentWorld;
     private String weather;
     private boolean isOnFire;
     private boolean isPoisoned;
@@ -164,5 +165,13 @@ public class PlayerDto {
 
     public void setCompassType(CompassType compassType) {
         this.compassType = compassType;
+    }
+
+    public String getCurrentWorld() {
+        return currentWorld;
+    }
+
+    public void setCurrentWorld(String currentWorld) {
+        this.currentWorld = currentWorld;
     }
 }
