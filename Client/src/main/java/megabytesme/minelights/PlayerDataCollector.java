@@ -46,6 +46,8 @@ public class PlayerDataCollector {
         Optional<RegistryKey<Biome>> biomeKey = world.getBiome(player.getBlockPos()).getKey();
         biomeKey.ifPresent(key -> playerDto.setCurrentBiome(key.getValue().toString()));
 
+        playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
+
         playerDto.setIsOnFire(player.isOnFire());
         playerDto.setIsPoisoned(player.hasStatusEffect(StatusEffects.POISON));
         playerDto.setIsWithering(player.hasStatusEffect(StatusEffects.WITHER));
