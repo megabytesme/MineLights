@@ -420,7 +420,8 @@ public class EffectPainter {
             state.keys.put(centerLedId, compassColor);
         }
 
-        if (player.getCompassState() == CompassState.SPINNING) {
+        if (player.getCompassState() == CompassState.SPINNING || player.getCurrentWorld().equals("the_nether")
+                || player.getCurrentWorld().equals("the_end")) {
             long now = System.currentTimeMillis();
             if (now - lastCompassSpinTime > 75) {
                 compassSpinIndex = (compassSpinIndex + 1) % KeyMap.getNumpadDirectional().size();
