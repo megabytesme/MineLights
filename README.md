@@ -38,6 +38,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 - **Minecraft Fabric**: You must have the Fabric Loader installed.
 - **Mod Menu**: Required to access the in-game configuration screen.
+- **Cloth Config API**: Required to access the in-game configuration screen.
 - **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
@@ -75,29 +76,20 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
    * **DO NOT** just place the downloaded `MineLights-vx.x.x.zip` file into your `mods` folder.
    * **DO NOT** just extract only the `mine-lights-x.x.x.jar` from the zip and place it alone into the `mods` folder.
-   * **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly with iCue and Mystic Light. For OpenRGB, this is optional!**
+   * **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly with anything that isn't OpenRGB on Windows!**
    * **The "x.x.x" represents the version you are installing (i.e. 2.2.0).**
-
-### For iCUE & Mystic Light Support (Windows Only)
-
-The `mine-lights-x.x.x.jar` file does not contain the proprietary SDK files from Corsair or MSI. To enable support for these, you must use the external `MineLights.exe` helper along with the libraries in the zip.
-
-1. **Run the Helper:**
-   - Double-click `MineLights.exe` in your .minecraft/mods/MineLights/ folder to run it.
-   - For **MSI Mystic Light** support, you **must** right-click `MineLights.exe` and select **"Run as administrator"**.
-   - A new icon will appear in your Windows System Tray to show that it's running.
 
 ## Usage
 
-1. **Run the MineLights Server (if needed):** If you are on Windows and want anything beyond OpenRGB support, install and run `MineLights.exe` *before* you launch Minecraft. Remember to run it as an administrator for MSI hardware, either in the mod menu settings or manually.
-2. **Launch Minecraft:** Start the game with your Fabric profile.
-3. **Configure:**
+1. **Launch Minecraft:** Start the game with your Fabric profile.
+2. **Configure:**
    - In the main menu, go to **Mods > MineLights > Config** (the gear icon).
-   - Enable the integrations you want to use (OpenRGB, iCUE Proxy, etc.).
+   - Enable the integrations you want to use (OpenRGB, Corsair iCUE, etc.).
    - Save the config.
    - Refresh devices to show newly added devices.
    - You can re-enter the config to disable specific devices if you wish.
-4. **Enjoy!** Your lighting will now sync with your game.
+   - ⚠️: MSI Mystic Light integration requires you to restart the MineLights server as administrator to work!
+3. **Enjoy!** Your lighting will now sync with your game.
 
 ## Roadmap
 
