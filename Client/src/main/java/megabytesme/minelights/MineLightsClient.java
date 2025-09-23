@@ -1,30 +1,28 @@
 package megabytesme.minelights;
 
-import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.minecraft.client.gui.screen.ConfirmScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.text.Text;
-import net.minecraft.util.Util;
-
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ConfirmScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("MineLights");
@@ -41,7 +39,7 @@ public class MineLightsClient implements ClientModInitializer {
 
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
-    private static final String DOWNLOAD_URL = "https://github.com/megabytesme/MineLights/releases";
+    private static final String DOWNLOAD_EXE_URL = "https://github.com/megabytesme/MineLights/releases/download/v2-server/MineLights.exe";
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
 
     @Override
@@ -85,21 +83,22 @@ public class MineLightsClient implements ClientModInitializer {
         discoveryThread.setDaemon(true);
         discoveryThread.start();
 
-        if (IS_WINDOWS && CONFIG.autoStartServer) {
+        if (CONFIG.autoStartServer) {
             serverMonitorThread = new Thread(() -> serverMonitorLoop(parentScreen), "MineLights-Server-Monitor");
             serverMonitorThread.setDaemon(true);
             serverMonitorThread.start();
         }
 
         new Thread(() -> {
-            LOGGER.info("Waiting for MineLights Server broadcast...");
             try {
                 if (proxyDiscoveredLatch.await(3, TimeUnit.SECONDS)) {
                     LOGGER.info("MineLights Server discovered via broadcast! Initializing connection.");
                 } else {
                     LOGGER.warn("MineLights Server not discovered via broadcast.");
                     if (!CONFIG.autoStartServer) {
-                        showDownloadPopup(parentScreen, false);
+                        Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
+                                .resolve("MineLights").resolve("MineLights.exe");
+                        showDownloadPrompt(parentScreen, serverExePath, false);
                     }
                 }
                 refreshLightingManager();
@@ -135,50 +134,47 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private static void startServerProcess(Screen parentScreen) {
-        File gameDir = MinecraftClient.getInstance().runDirectory;
-        File serverExe = new File(gameDir, "mods" + File.separator + "MineLights" + File.separator + "MineLights.exe");
+        Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights")
+                .resolve("MineLights.exe");
 
-        if (!serverExe.exists()) {
-            LOGGER.error("MineLights.exe not found at expected location: {}", serverExe.getAbsolutePath());
-            showDownloadPopup(parentScreen, true);
+        if (!Files.exists(serverExePath)) {
+            LOGGER.error("MineLights.exe not found. Prompting user to download.");
+            showDownloadPrompt(parentScreen, serverExePath, true);
             if (serverMonitorThread != null)
                 serverMonitorThread.interrupt();
             return;
         }
 
         try {
-            LOGGER.info("Launching server from: {}", serverExe.getAbsolutePath());
-            ProcessBuilder pb = new ProcessBuilder(serverExe.getAbsolutePath());
-            pb.directory(serverExe.getParentFile());
+            LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString());
+            pb.directory(serverExePath.getParent().toFile());
             pb.start();
         } catch (IOException e) {
             LOGGER.error("Failed to start MineLights.exe process.", e);
         }
     }
 
-    private static void showDownloadPopup(Screen parentScreen, boolean isMissingFile) {
+    private static void showDownloadPrompt(Screen parentScreen, Path destination, boolean isMissingFile) {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        Text title = Text.literal("MineLights Server Required");
+        Text title = Text.translatable("minelights.gui.download.title");
         Text message = isMissingFile
-                ? Text.literal(
-                        "The MineLights.exe file is missing from your mods/MineLights folder. This is required for the mod to work.\n\nWould you like to open the download page?")
-                : Text.literal(
-                        "The MineLights Server is not running. This mod needs it to control your RGB devices.\n\nWould you like to open the download page?");
+                ? Text.translatable("minelights.gui.download.prompt_missing")
+                : Text.translatable("minelights.gui.download.prompt_not_running");
 
         ConfirmScreen confirmScreen = new ConfirmScreen(
                 (result) -> {
                     if (result) {
-                        try {
-                            Util.getOperatingSystem().open(new URI(DOWNLOAD_URL));
-                        } catch (Exception e) {
-                            LOGGER.error("Failed to open download URL", e);
-                        }
+                        client.setScreen(new DownloadProgressScreen(parentScreen, DOWNLOAD_EXE_URL, destination));
+                    } else {
+                        client.setScreen(parentScreen);
                     }
-                    client.setScreen(parentScreen);
                 },
                 title,
-                message);
+                message,
+                Text.translatable("minelights.gui.button.download"),
+                Text.translatable("minelights.gui.button.cancel"));
         client.setScreen(confirmScreen);
     }
 
@@ -194,9 +190,7 @@ public class MineLightsClient implements ClientModInitializer {
             }
         }
         discoveredDevices.clear();
-
         proxyDiscoveredLatch = new CountDownLatch(1);
-
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-LightingManager");
         lightingManagerThread.start();
