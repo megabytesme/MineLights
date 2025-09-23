@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
   "integration.mine-lights.openrgb": "OpenRGB",
-  "integration.mine-lights.yeelight": "ENABL YEELIGHT"
+  "integration.mine-lights.yeelight": "ENABL YEELIGHT",
+  "minelights.gui.download.title": "MineLights Servur Needed, kthx",
+  "minelights.gui.download.prompt_missing": "OH NOES! MineLights.exe iz missin frum ur mods/MineLights folder. Dis iz needed fer teh mod to werk.\n\nU wantz me to gets it fur u automagikally?",
+  "minelights.gui.download.prompt_not_running": "MineLights Servur iz not runnin. Dis mod needz it to control ur shiny RGB thingz.\n\nU wantz me to gets it?",
+  "minelights.gui.button.download": "Getz",
+  "minelights.gui.button.cancel": "Nope",
+  "minelights.gui.button.close": "Bye",
+  "minelights.gui.download.progress_title": "Gettin MineLights Servur",
+  "minelights.gui.download.info": "Gettin teh needed MineLights servur app.",
+  "minelights.gui.download.status.downloading_speed": "Gettin... %s%% (%s)",
+  "minelights.gui.download.status.starting": "Done gettin. Startin servur...",
+  "minelights.gui.download.status.success": "Servur started! Connectin nao...",
+  "minelights.gui.download.status.failed": "Gettin Failed: %s"
 }
