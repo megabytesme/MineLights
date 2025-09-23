@@ -6,7 +6,8 @@
   <h1 style="position: relative; z-index: 1; text-align: center;">MineLights</h1>
 </div>
 
-![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32)
+![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32)  
+<small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small>
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets the latest version of Minecraft (1.21+) and uses a modular design to support a wide range of hardware.
 
