@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
   "integration.mine-lights.openrgb": "OpenRGB",
-  "integration.mine-lights.yeelight": "Enable Yeelight"
+  "integration.mine-lights.yeelight": "Enable Yeelight",
+  "minelights.gui.download.title": "Ye Be Needin' the MineLights Server",
+  "minelights.gui.download.prompt_missing": "Arrr! The MineLights.exe be missin' from yer mods/MineLights folder. Without it, the mod be sunk.\n\nShall we fetch it fer ye?",
+  "minelights.gui.download.prompt_not_running": "The MineLights Server be sleepin'. This mod needs it to command yer RGB booty.\n\nShall we wake it?",
+  "minelights.gui.button.download": "Plunder",
+  "minelights.gui.button.cancel": "Belay",
+  "minelights.gui.button.close": "Avast",
+  "minelights.gui.download.progress_title": "Plunderin' MineLights Server",
+  "minelights.gui.download.info": "Fetchin' the MineLights server app ye be needin'.",
+  "minelights.gui.download.status.downloading_speed": "Plunderin'... %s%% (%s)",
+  "minelights.gui.download.status.starting": "Plunder complete. Hoistin' the server...",
+  "minelights.gui.download.status.success": "Server be sailin'! Connectin' now...",
+  "minelights.gui.download.status.failed": "Plunder Failed: %s"
 }

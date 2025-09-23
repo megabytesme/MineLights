@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
   "integration.mine-lights.openrgb": "OpenRGB",
-  "integration.mine-lights.yeelight": "Enable Yeelight"
+  "integration.mine-lights.yeelight": "Enable Yeelight",
+  "minelights.gui.download.title": "MineLights Server Doth Be Required",
+  "minelights.gui.download.prompt_missing": "Lo! The MineLights.exe file is absent from thy mods/MineLights folder. Without it, the mod shall not function.\n\nWouldst thou have it fetched anon?",
+  "minelights.gui.download.prompt_not_running": "The MineLights Server runneth not. This mod requireth it to command thine RGB devices.\n\nShall I procure it forthwith?",
+  "minelights.gui.button.download": "Procure",
+  "minelights.gui.button.cancel": "Forbear",
+  "minelights.gui.button.close": "Depart",
+  "minelights.gui.download.progress_title": "Fetching MineLights Server",
+  "minelights.gui.download.info": "Fetching the MineLights server application most requisite.",
+  "minelights.gui.download.status.downloading_speed": "Fetching... %s%% (%s)",
+  "minelights.gui.download.status.starting": "Fetch complete. Commencing server...",
+  "minelights.gui.download.status.success": "Server hath commenced! Connecting anon...",
+  "minelights.gui.download.status.failed": "Fetch Hath Failed: %s"
 }

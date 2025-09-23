@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
   "integration.mine-lights.openrgb": "OpenRGB",
-  "integration.mine-lights.yeelight": "启用 Yeelight"
+  "integration.mine-lights.yeelight": "启用 Yeelight",
+  "minelights.gui.download.title": "需要 MineLights 服务器",
+  "minelights.gui.download.prompt_missing": "mods/MineLights 文件夹中缺少 MineLights.exe 文件。此文件是模组运行所必需的。\n\n是否要自动下载它？",
+  "minelights.gui.download.prompt_not_running": "MineLights 服务器未运行。此模组需要它来控制您的 RGB 设备。\n\n是否要下载它？",
+  "minelights.gui.button.download": "下载",
+  "minelights.gui.button.cancel": "取消",
+  "minelights.gui.button.close": "关闭",
+  "minelights.gui.download.progress_title": "正在下载 MineLights 服务器",
+  "minelights.gui.download.info": "正在下载所需的 MineLights 服务器应用程序。",
+  "minelights.gui.download.status.downloading_speed": "正在下载... %s%%（%s）",
+  "minelights.gui.download.status.starting": "下载完成。正在启动服务器...",
+  "minelights.gui.download.status.success": "服务器启动成功！正在连接...",
+  "minelights.gui.download.status.failed": "下载失败：%s"
 }
