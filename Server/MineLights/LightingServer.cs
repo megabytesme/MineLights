@@ -157,7 +157,7 @@ public class LightingServer
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[Server] -> WARNING: Initializing {providerName} failed. Error: {ex.Message}");
+                        Console.WriteLine($"[Server] -> WARNING: Initializing {providerName} failed. Details: {ex.ToString()}");
                     }
                 }
                 else if (!shouldBeEnabled && provider.IsInitialized)
