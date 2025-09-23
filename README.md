@@ -1,6 +1,12 @@
-# MineLights
+<div style="position: relative; display: inline-block; width: 100%;">
+  <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8"
+       alt="MineLights Icon"
+       style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+              opacity: 0.1; width: 200px; z-index: 0;">
+  <h1 style="position: relative; z-index: 1; text-align: center;">MineLights</h1>
+</div>
 
-![_bfb50031-5cf5-4366-aa3d-ec005d0aa4bf](https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8)
+![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32)
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets the latest version of Minecraft (1.21+) and uses a modular design to support a wide range of hardware.
 
@@ -15,6 +21,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **In-Game Status Bars**: Use your keyboard's function keys as real-time status bars for health, hunger, and experience, alongside tracking other players or waypoints!
 - **Compass**: A compass on your numpad (Extended keyboards only) will appear, if you have either a compass or recovery compass in your inventory! Alternatively it can always be displayed via a toggle in settings.
 - **Highly Configurable**: An in-game configuration screen (via Mod Menu) lets you enable/disable every feature, integration, and even individual devices.
+- **Multiple Languages**: Support for English, Anglish, German and Chinese (Simplified) has been added (Along with some joke languages)
 
 ## Supported RGB Software
 
