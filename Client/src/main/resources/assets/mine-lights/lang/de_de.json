@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "Novation",
   "integration.mine-lights.picopi": "PicoPi",
   "integration.mine-lights.openrgb": "OpenRGB",
-  "integration.mine-lights.yeelight": "Yeelight aktivieren"
+  "integration.mine-lights.yeelight": "Yeelight aktivieren",
+  "minelights.gui.download.title": "MineLights-Server erforderlich",
+  "minelights.gui.download.prompt_missing": "Die Datei MineLights.exe fehlt im Ordner mods/MineLights. Diese wird für die Mod benötigt.\n\nMöchten Sie sie automatisch herunterladen?",
+  "minelights.gui.download.prompt_not_running": "Der MineLights-Server läuft nicht. Diese Mod benötigt ihn zur Steuerung Ihrer RGB-Geräte.\n\nMöchten Sie ihn herunterladen?",
+  "minelights.gui.button.download": "Herunterladen",
+  "minelights.gui.button.cancel": "Abbrechen",
+  "minelights.gui.button.close": "Schließen",
+  "minelights.gui.download.progress_title": "MineLights-Server wird heruntergeladen",
+  "minelights.gui.download.info": "Lädt die erforderliche MineLights-Server-Anwendung herunter.",
+  "minelights.gui.download.status.downloading_speed": "Wird heruntergeladen... %s%% (%s)",
+  "minelights.gui.download.status.starting": "Download abgeschlossen. Server wird gestartet...",
+  "minelights.gui.download.status.success": "Server erfolgreich gestartet! Verbindung wird hergestellt...",
+  "minelights.gui.download.status.failed": "Download fehlgeschlagen: %s"
 }

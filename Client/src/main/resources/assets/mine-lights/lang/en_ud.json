@@ -64,5 +64,17 @@
   "integration.mine-lights.novation": "uoıʇɐʌoN",
   "integration.mine-lights.picopi": "IdoɔıԀ",
   "integration.mine-lights.openrgb": "𐐒פᴚuǝdO",
-  "integration.mine-lights.yeelight": "ʇɥƃıןǝǝ⅄ ǝןqɐuƎ"
+  "integration.mine-lights.yeelight": "ʇɥƃıןǝǝ⅄ ǝןqɐuƎ",
+  "minelights.gui.download.title": "ɹǝɹınǝɹ ɹǝʌɹǝS sʇɥƃılǝuıWǝuıM",
+  "minelights.gui.download.prompt_missing": "˙ʞɹoʍ oʇ pɹoɟ sʇɥƃılǝuıWǝuıM/ sdoɯ ɹnoʎ morɟ ɹǝpʅoɟ ǝxǝ.sʇɥƃılǝuıW ǝɥʇ sʎsʅıɯ ǝʇıɹoɹn sɐ ʇı sɐɥ\n\n¿ʎʅʅɐɔıʇɐɯoʇ ʇı pɐoʅuʍop oʇ ǝʞıʅ noʎ pʅnoʍ",
+  "minelights.gui.download.prompt_not_running": "˙sǝɔıʌǝp qɐƃɹ ɹnoʎ lɹoʇuoɔ oʇ ʇı sǝpǝǝu poɯ sᴉɥʇ ˙ƃuᴉuuoɹ ʇou sᴉɹǝʌɹǝS sʇɥƃılǝuıWǝuıM ǝɥʇ\n\n¿ʇı pɐoʅuʍop oʇ ǝʞıʅ noʎ pʅnoʍ",
+  "minelights.gui.button.download": "pɐoʅuʍoᗡ",
+  "minelights.gui.button.cancel": "ʅǝɔuɐↃ",
+  "minelights.gui.button.close": "ǝsolↃ",
+  "minelights.gui.download.progress_title": "ƃuᴉpɐoʅuʍoᗡ ɹǝʌɹǝS sʇɥƃılǝuıWǝuıM",
+  "minelights.gui.download.info": "˙uoıʇɐɔıʅddɐ ɹǝʌɹǝs sʇɥƃılǝuıWǝuıM ʇuǝɹɹnɥ ƃuᴉpɐoʅuʍoᗡ",
+  "minelights.gui.download.status.downloading_speed": "ƃuᴉpɐoʅuʍoᗡ... %s%% (%s)",
+  "minelights.gui.download.status.starting": "˙ɹǝʌɹǝs ƃuᴉʇɹɐʇs ˙ǝʇǝlʍǝɔ pɐoʅuʍoᗡ",
+  "minelights.gui.download.status.success": "˙ʍou ɹǝʇɔǝuuoɔ ƃuᴉʇɹɐʇs ʎllnɟssǝɔɔns ɹǝʌɹǝS",
+  "minelights.gui.download.status.failed": "˙%s :pǝlᴉɐℲ pɐoʅuʍoᗡ"
 }
