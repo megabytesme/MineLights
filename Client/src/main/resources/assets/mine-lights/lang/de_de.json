@@ -76,5 +76,9 @@
   "minelights.gui.download.status.downloading_speed": "Wird heruntergeladen... %s%% (%s)",
   "minelights.gui.download.status.starting": "Download abgeschlossen. Server wird gestartet...",
   "minelights.gui.download.status.success": "Server erfolgreich gestartet! Verbindung wird hergestellt...",
-  "minelights.gui.download.status.failed": "Download fehlgeschlagen: %s"
+  "minelights.gui.download.status.failed": "Download fehlgeschlagen: %s",
+  "minelights.gui.update.title": "MineLights-Server-Update verfügbar",
+  "minelights.gui.update.info": "Ihre MineLights-Serverdatei ist veraltet oder beschädigt.\n\nMöchten Sie sie jetzt aktualisieren?",
+  "minelights.gui.button.update_now": "Jetzt aktualisieren",
+  "minelights.gui.button.skip": "Überspringen"
 }

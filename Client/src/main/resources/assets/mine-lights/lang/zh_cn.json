@@ -76,5 +76,9 @@
   "minelights.gui.download.status.downloading_speed": "正在下载... %s%%（%s）",
   "minelights.gui.download.status.starting": "下载完成。正在启动服务器...",
   "minelights.gui.download.status.success": "服务器启动成功！正在连接...",
-  "minelights.gui.download.status.failed": "下载失败：%s"
+  "minelights.gui.download.status.failed": "下载失败：%s",
+  "minelights.gui.update.title": "MineLights 服务器有可用更新",
+  "minelights.gui.update.info": "您的 MineLights 服务器可执行文件已过期或已损坏。\n\n是否立即更新？",
+  "minelights.gui.button.update_now": "立即更新",
+  "minelights.gui.button.skip": "跳过"
 }
