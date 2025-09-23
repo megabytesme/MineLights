@@ -76,5 +76,9 @@
   "minelights.gui.download.status.downloading_speed": "Gettin... %s%% (%s)",
   "minelights.gui.download.status.starting": "Done gettin. Startin servur...",
   "minelights.gui.download.status.success": "Servur started! Connectin nao...",
-  "minelights.gui.download.status.failed": "Gettin Failed: %s"
+  "minelights.gui.download.status.failed": "Gettin Failed: %s",
+  "minelights.gui.update.title": "MineLights Servur Updatin Time!",
+  "minelights.gui.update.info": "Ur MineLights Servur file iz oldz or broked.\n\nU wantz me 2 fix it nao?",
+  "minelights.gui.button.update_now": "Fix Nao",
+  "minelights.gui.button.skip": "Nah, Skipz"
 }

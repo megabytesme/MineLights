@@ -76,5 +76,9 @@
   "minelights.gui.download.status.downloading_speed": "Plunderin'... %s%% (%s)",
   "minelights.gui.download.status.starting": "Plunder complete. Hoistin' the server...",
   "minelights.gui.download.status.success": "Server be sailin'! Connectin' now...",
-  "minelights.gui.download.status.failed": "Plunder Failed: %s"
+  "minelights.gui.download.status.failed": "Plunder Failed: %s",
+  "minelights.gui.update.title": "Ye Be Needin’ a MineLights Server Update",
+  "minelights.gui.update.info": "Yarr! Yer MineLights Server executable be out o’ date or scuppered.\n\nShall we haul ye a new one now?",
+  "minelights.gui.button.update_now": "Hoist the Update",
+  "minelights.gui.button.skip": "Belay That"
 }
