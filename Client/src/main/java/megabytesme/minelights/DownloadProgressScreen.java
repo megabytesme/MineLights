@@ -1,8 +1,10 @@
 package megabytesme.minelights;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.MultilineTextWidget;
 import net.minecraft.text.Text;
 
 import java.io.FileOutputStream;
@@ -29,7 +31,7 @@ public class DownloadProgressScreen extends Screen {
     private final AtomicInteger progress = new AtomicInteger(0);
     private final AtomicReference<String> errorMessage = new AtomicReference<>("");
     private final AtomicReference<String> downloadSpeed = new AtomicReference<>("");
-
+    private MultilineTextWidget statusWidget;
     private ButtonWidget closeButton;
 
     public DownloadProgressScreen(Screen parent, String downloadUrl, Path destination) {
@@ -43,53 +45,50 @@ public class DownloadProgressScreen extends Screen {
 
     @Override
     protected void init() {
-        this.closeButton = ButtonWidget
-                .builder(Text.translatable("minelights.gui.button.close"), button -> this.close())
-                .dimensions(this.width / 2 - 100, this.height - 40, 200, 20)
-                .build();
+        int centerX = this.width / 2;
+        int widgetWidth = 300;
+        int widgetX = centerX - (widgetWidth / 2);
 
+        MultilineTextWidget titleWidget = new MultilineTextWidget(widgetX, 40,
+                Text.translatable("minelights.gui.download.progress_title"), this.textRenderer)
+                .setMaxWidth(widgetWidth).setCentered(true);
+        this.addDrawableChild(titleWidget);
+
+        MultilineTextWidget infoWidget = new MultilineTextWidget(widgetX, 65,
+                Text.translatable("minelights.gui.download.info"), this.textRenderer)
+                .setMaxWidth(widgetWidth).setCentered(true);
+        this.addDrawableChild(infoWidget);
+
+        this.statusWidget = new MultilineTextWidget(widgetX, this.height / 2 + 15,
+                Text.empty(), this.textRenderer)
+                .setMaxWidth(widgetWidth).setCentered(true);
+        this.addDrawableChild(this.statusWidget);
+
+        this.closeButton = ButtonWidget
+                .builder(Text.translatable("minelights.gui.button.close"), b -> this.close())
+                .dimensions(centerX - 100, this.height - 40, 200, 20)
+                .build();
         this.closeButton.active = false;
         this.addDrawableChild(this.closeButton);
-    }
-
-    @Override
-    public void close() {
-        this.client.setScreen(parent);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
-        context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.translatable("minelights.gui.download.progress_title"), this.width / 2, 20, 0xFFFFFF);
-
-        Text infoText = Text.translatable("minelights.gui.download.info");
-        context.drawCenteredTextWithShadow(this.textRenderer, infoText, this.width / 2, this.height / 2 - 35, 0xA0A0A0);
-
-        Text statusText;
-        if (status.get() == Status.DOWNLOADING) {
-            statusText = Text.translatable("minelights.gui.download.status.downloading_speed", progress.get(),
-                    downloadSpeed.get());
-        } else if (status.get() == Status.STARTING) {
-            statusText = Text.translatable("minelights.gui.download.status.starting");
-        } else if (status.get() == Status.SUCCESS) {
-            statusText = Text.translatable("minelights.gui.download.status.success");
-        } else {
-            statusText = Text.translatable("minelights.gui.download.status.failed", errorMessage.get());
-        }
-        context.drawCenteredTextWithShadow(this.textRenderer, statusText, this.width / 2, this.height / 2 - 18,
-                0xFFFFFF);
-
-        int barWidth = 200;
+        int barWidth = 300;
         int barHeight = 8;
         int barX = this.width / 2 - barWidth / 2;
         int barY = this.height / 2;
-
         int fillWidth = (int) (barWidth * (this.progress.get() / 100.0f));
 
         context.fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
         context.fill(barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
+    }
+
+    @Override
+    public void close() {
+        this.client.setScreen(parent);
     }
 
     private String formatSpeed(long bytesPerSecond) {
@@ -99,6 +98,26 @@ public class DownloadProgressScreen extends Screen {
         if (kbps < 1024)
             return String.format("%d KB/s", kbps);
         return String.format("%.2f MB/s", kbps / 1024.0);
+    }
+
+    private String formatETA(long seconds) {
+        if (seconds < 0)
+            return "Calculating...";
+        long mins = seconds / 60;
+        long secs = seconds % 60;
+        return String.format("%dm %ds remaining", mins, secs);
+    }
+
+    private void updateStatusWidget(long totalFileSize, long totalBytesRead, long speed) {
+        long remainingBytes = totalFileSize - totalBytesRead;
+        long etaSeconds = speed > 0 ? remainingBytes / speed : -1;
+        String eta = formatETA(etaSeconds);
+        String speedString = downloadSpeed.get();
+        if (speedString == null || speedString.isEmpty())
+            speedString = "0 B/s";
+
+        statusWidget.setMessage(Text.literal(
+                String.format("%d%% (%s) — %s", progress.get(), speedString, eta)));
     }
 
     private void downloadAndStartServer() {
@@ -127,15 +146,25 @@ public class DownloadProgressScreen extends Screen {
 
                     long currentTime = System.currentTimeMillis();
                     if (currentTime - lastTime >= 500) {
-                        long speed = ((totalBytesRead - lastBytes) * 1000) / (currentTime - lastTime);
-                        downloadSpeed.set(formatSpeed(speed));
+                        long currentSpeed = ((totalBytesRead - lastBytes) * 1000) / (currentTime - lastTime);
+                        downloadSpeed.set(formatSpeed(currentSpeed));
                         lastTime = currentTime;
                         lastBytes = totalBytesRead;
+
+                        final long fTotalFileSize = totalFileSize;
+                        final long fTotalBytesRead = totalBytesRead;
+                        final long fSpeed = currentSpeed;
+
+                        MinecraftClient.getInstance()
+                                .execute(() -> updateStatusWidget(fTotalFileSize, fTotalBytesRead, fSpeed));
                     }
                 }
             }
 
             status.set(Status.STARTING);
+            MinecraftClient.getInstance().execute(
+                    () -> statusWidget.setMessage(Text.translatable("minelights.gui.download.status.starting")));
+
             if (MineLightsClient.serverMonitorThread != null)
                 MineLightsClient.serverMonitorThread.interrupt();
 
@@ -160,6 +189,8 @@ public class DownloadProgressScreen extends Screen {
                 MineLightsClient.LOGGER.info("Server is running. Refreshing device list.");
                 MineLightsClient.refreshLightingManager();
                 status.set(Status.SUCCESS);
+                MinecraftClient.getInstance().execute(
+                        () -> statusWidget.setMessage(Text.translatable("minelights.gui.download.status.success")));
             } else {
                 throw new IOException("Server did not start within 10 seconds.");
             }
@@ -168,8 +199,11 @@ public class DownloadProgressScreen extends Screen {
             MineLightsClient.LOGGER.error("Failed during download or server start", e);
             errorMessage.set(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             status.set(Status.FAILED);
+            MinecraftClient.getInstance().execute(() -> statusWidget.setMessage(Text.translatable(
+                    "minelights.gui.download.status.failed",
+                    errorMessage.get())));
         } finally {
-            this.closeButton.active = true;
+            MinecraftClient.getInstance().execute(() -> closeButton.active = true);
         }
     }
 }
