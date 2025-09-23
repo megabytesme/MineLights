@@ -1,5 +1,8 @@
 package megabytesme.minelights;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -15,12 +18,14 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DownloadProgressScreen extends Screen {
     private final Screen parent;
-    private final String downloadUrl;
+    private final String tagName = "v2-server";
     private final Path destination;
 
     private enum Status {
@@ -34,10 +39,9 @@ public class DownloadProgressScreen extends Screen {
     private MultilineTextWidget statusWidget;
     private ButtonWidget closeButton;
 
-    public DownloadProgressScreen(Screen parent, String downloadUrl, Path destination) {
+    public DownloadProgressScreen(Screen parent, Path destination) {
         super(Text.empty());
         this.parent = parent;
-        this.downloadUrl = downloadUrl;
         this.destination = destination;
 
         new Thread(this::downloadAndStartServer, "MineLights-Downloader").start();
@@ -120,10 +124,40 @@ public class DownloadProgressScreen extends Screen {
                 String.format("%d%% (%s) — %s", progress.get(), speedString, eta)));
     }
 
+    private String sha256(Path file) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (InputStream fis = Files.newInputStream(file)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+        }
+        return HexFormat.of().formatHex(digest.digest());
+    }
+
     private void downloadAndStartServer() {
         try {
-            Files.createDirectories(destination.getParent());
+            URL apiUrl = URI.create("https://api.github.com/repos/megabytesme/MineLights/releases/tags/" + tagName)
+                    .toURL();
+            HttpURLConnection conn = (HttpURLConnection) apiUrl.openConnection();
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
 
+            String json;
+            try (InputStream in = conn.getInputStream()) {
+                json = new String(in.readAllBytes());
+            }
+
+            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray assets = root.getAsJsonArray("assets");
+            if (assets.isEmpty())
+                throw new IOException("No assets found in release");
+
+            JsonObject asset = assets.get(0).getAsJsonObject();
+            String downloadUrl = asset.get("browser_download_url").getAsString();
+            String expectedHash = asset.get("digest").getAsString().replace("sha256:", "");
+
+            Files.createDirectories(destination.getParent());
             URL url = URI.create(downloadUrl).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "MineLights-Mod-Downloader/1.0");
@@ -161,6 +195,11 @@ public class DownloadProgressScreen extends Screen {
                 }
             }
 
+            String actualHash = sha256(destination);
+            if (!actualHash.equalsIgnoreCase(expectedHash)) {
+                throw new IOException("Hash mismatch! Expected " + expectedHash + " but got " + actualHash);
+            }
+
             status.set(Status.STARTING);
             MinecraftClient.getInstance().execute(
                     () -> statusWidget.setMessage(Text.translatable("minelights.gui.download.status.starting")));
@@ -196,7 +235,7 @@ public class DownloadProgressScreen extends Screen {
             }
 
         } catch (Exception e) {
-            MineLightsClient.LOGGER.error("Failed during download or server start", e);
+            MineLightsClient.LOGGER.error("Failed during download, verification, or server start", e);
             errorMessage.set(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             status.set(Status.FAILED);
             MinecraftClient.getInstance().execute(() -> statusWidget.setMessage(Text.translatable(
