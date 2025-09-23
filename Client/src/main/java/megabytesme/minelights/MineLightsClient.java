@@ -31,7 +31,7 @@ public class MineLightsClient implements ClientModInitializer {
     private static LightingManager lightingManager;
     private static Thread lightingManagerThread;
     private static Thread discoveryThread;
-    private static Thread serverMonitorThread;
+    public static Thread serverMonitorThread;
 
     public static final List<String> discoveredDevices = Collections.synchronizedList(new ArrayList<>());
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
@@ -125,7 +125,7 @@ public class MineLightsClient implements ClientModInitializer {
         }
     }
 
-    private static boolean isServerRunning() {
+    public static boolean isServerRunning() {
         try (Socket ignored = new Socket("127.0.0.1", 63213)) {
             return true;
         } catch (IOException e) {
@@ -157,25 +157,26 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static void showDownloadPrompt(Screen parentScreen, Path destination, boolean isMissingFile) {
         MinecraftClient client = MinecraftClient.getInstance();
+        client.execute(() -> {
+            Text title = Text.translatable("minelights.gui.download.title");
+            Text message = isMissingFile
+                    ? Text.translatable("minelights.gui.download.prompt_missing")
+                    : Text.translatable("minelights.gui.download.prompt_not_running");
 
-        Text title = Text.translatable("minelights.gui.download.title");
-        Text message = isMissingFile
-                ? Text.translatable("minelights.gui.download.prompt_missing")
-                : Text.translatable("minelights.gui.download.prompt_not_running");
-
-        ConfirmScreen confirmScreen = new ConfirmScreen(
-                (result) -> {
-                    if (result) {
-                        client.setScreen(new DownloadProgressScreen(parentScreen, DOWNLOAD_EXE_URL, destination));
-                    } else {
-                        client.setScreen(parentScreen);
-                    }
-                },
-                title,
-                message,
-                Text.translatable("minelights.gui.button.download"),
-                Text.translatable("minelights.gui.button.cancel"));
-        client.setScreen(confirmScreen);
+            ConfirmScreen confirmScreen = new ConfirmScreen(
+                    (result) -> {
+                        if (result) {
+                            client.setScreen(new DownloadProgressScreen(parentScreen, DOWNLOAD_EXE_URL, destination));
+                        } else {
+                            client.setScreen(parentScreen);
+                        }
+                    },
+                    title,
+                    message,
+                    Text.translatable("minelights.gui.button.download"),
+                    Text.translatable("minelights.gui.button.cancel"));
+            client.setScreen(confirmScreen);
+        });
     }
 
     public static void refreshLightingManager() {
