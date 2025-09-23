@@ -49,42 +49,10 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
-### Standard Installation
+### Installation
+- Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
-1. **Download the LATEST MineLights Release Package:**
-
-   * Go to the [MineLights GitHub Releases page](https://github.com/megabytesme/MineLights/releases).
-   * Download the latest release `.zip` file that supports your Minecraft version (e.g., `MineLights-v2.2.0.zip`). **This is a complete package, not just a mod JAR!**
-2. **Install MineLights (CRITICAL STEPS - Read Carefully!):**
-
-   a.  Locate the `MineLights-vx.x.x.zip` file you just downloaded.
-
-   b.  **Extract the contents** of this `.zip` file to a temporary location (e.g., your Desktop).
-
-   c.  After extracting, you will have a folder (e.g., `MineLights-vx.x.x`). **Open this folder.**
-
-   d.  Inside, you should see the mod's `.jar` file (e.g., `mine-lights-x.x.x.jar`), and a `MineLights` folder (which contains other files essential for the mod to work).
-
-   e.  Select **BOTH** of these items (the `mine-lights-x.x.x.jar` file AND the `MineLights` folder) from inside the extracted folder.
-
-   f.  Copy these selected items and **paste them directly into your Minecraft `mods` folder.**
-
-   **Your `mods` folder should now look something like this (along with other mods you may have):**
-
-   ```
-   .minecraft/
-   └── mods/
-       ├── mine-lights-x.x.x.jar   <-- The JAR from the extracted MineLights package
-       ├── MineLights/             <-- The 'MineLights' folder from the extracted MineLights package
-       └── (other mods...)
-   ```
-
-   ⚠️ **IMPORTANT!**
-
-   * **DO NOT** just place the downloaded `MineLights-vx.x.x.zip` file into your `mods` folder.
-   * **DO NOT** just extract only the `mine-lights-x.x.x.jar` from the zip and place it alone into the `mods` folder.
-   * **The `MineLights` folder MUST be present in your `mods` folder alongside the `mine-lights-x.x.x.jar` for the mod to function correctly with anything that isn't OpenRGB on Windows!**
-   * **The "x.x.x" represents the version you are installing (i.e. 2.2.0).**
+**Installing MineLights version 2.1 or below**: Follow the guide in the release changelog.
 
 ## Usage
 
