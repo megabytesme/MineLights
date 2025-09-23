@@ -3,16 +3,12 @@ package megabytesme.minelights;
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.MultilineTextWidget;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +49,7 @@ public class MineLightsClient implements ClientModInitializer {
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
+    private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights/releases/tags/v2-server";
 
     @Override
     public void onInitializeClient() {
@@ -60,21 +57,26 @@ public class MineLightsClient implements ClientModInitializer {
         CONFIG = CONFIG_MANAGER.load(MineLightsConfig.class, new MineLightsConfig());
 
         if (IS_WINDOWS) {
+            initializeServerConnection();
             ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
                 if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
-                    initializeServerConnection(screen);
+                    new Thread(() -> checkForServerUpdate(screen), "MineLights-Update-Check").start();
                 }
             });
-        } else {
-            new Thread(() -> {
-                try {
-                    proxyDiscoveredLatch.await(3, TimeUnit.SECONDS);
-                    refreshLightingManager();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }, "MineLights-Initializer-Waiter").start();
         }
+
+        new Thread(() -> {
+            try {
+                if (proxyDiscoveredLatch.await(3, TimeUnit.SECONDS)) {
+                    LOGGER.info("MineLights Server discovered via broadcast! Initializing connection.");
+                } else if (!IS_WINDOWS) {
+                    LOGGER.warn("MineLights Server not discovered via broadcast on non-Windows OS.");
+                }
+                refreshLightingManager();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }, "MineLights-Initializer-Waiter").start();
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             if (lightingManagerThread != null)
@@ -91,16 +93,15 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private static void checkForServerUpdate(Screen parentScreen) {
-        if (!IS_WINDOWS)
-            return;
-
         try {
             Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath()
                     .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
 
-            URI apiUri = URI.create("https://api.github.com/repos/megabytesme/MineLights/releases/tags/v2-server");
+            URI apiUri = URI.create(GITHUB_API_URL);
             HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
             conn.setRequestProperty("Accept", "application/vnd.github+json");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
 
             String json;
             try (InputStream in = conn.getInputStream()) {
@@ -115,55 +116,39 @@ public class MineLightsClient implements ClientModInitializer {
             JsonObject asset = assets.get(0).getAsJsonObject();
             String expectedHash = asset.get("digest").getAsString().replace("sha256:", "");
 
-            if (Files.exists(serverExePath)) {
-                String localHash = sha256(serverExePath);
-                if (!localHash.equalsIgnoreCase(expectedHash)) {
-                    LOGGER.info("MineLights.exe is outdated or corrupted.");
-                    MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance()
-                            .setScreen(new UpdatePromptScreen(parentScreen, serverExePath)));
-                }
+            if (!Files.exists(serverExePath)) {
+                LOGGER.info("MineLights.exe not found. Prompting for initial download.");
+                showDownloadPrompt(parentScreen, serverExePath, true);
+                return;
+            }
+
+            String localHash = sha256(serverExePath);
+            if (!localHash.equalsIgnoreCase(expectedHash)) {
+                LOGGER.info("MineLights.exe is outdated or corrupted. Prompting for update.");
+                showUpdatePrompt(parentScreen, serverExePath);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to check for server update", e);
         }
     }
 
-    @Environment(EnvType.CLIENT)
-    public static class UpdatePromptScreen extends Screen {
-        private final Screen parent;
-        private final Path destination;
-
-        public UpdatePromptScreen(Screen parent, Path destination) {
-            super(Text.translatable("minelights.gui.update.title"));
-            this.parent = parent;
-            this.destination = destination;
-        }
-
-        @Override
-        protected void init() {
-            int centerX = this.width / 2;
-            int centerY = this.height / 2;
-            int widgetWidth = 300;
-            int widgetX = centerX - (widgetWidth / 2);
-
-            this.addDrawableChild(new MultilineTextWidget(widgetX, centerY - 40,
-                    Text.translatable("minelights.gui.update.info"), this.textRenderer)
-                    .setMaxWidth(widgetWidth).setCentered(true));
-
-            this.addDrawableChild(ButtonWidget.builder(
+    private static void showUpdatePrompt(Screen parentScreen, Path destination) {
+        MinecraftClient.getInstance().execute(() -> {
+            ConfirmScreen confirmScreen = new ConfirmScreen(
+                    (result) -> {
+                        if (result) {
+                            MinecraftClient.getInstance()
+                                    .setScreen(new DownloadProgressScreen(parentScreen, destination));
+                        } else {
+                            MinecraftClient.getInstance().setScreen(parentScreen);
+                        }
+                    },
+                    Text.translatable("minelights.gui.update.title"),
+                    Text.translatable("minelights.gui.update.info"),
                     Text.translatable("minelights.gui.button.update_now"),
-                    b -> this.client.setScreen(new DownloadProgressScreen(this.parent, destination)))
-                    .dimensions(centerX - 100, centerY, 200, 20).build());
-
-            this.addDrawableChild(ButtonWidget.builder(
-                    Text.translatable("minelights.gui.button.skip"),
-                    b -> this.close()).dimensions(centerX - 100, centerY + 24, 200, 20).build());
-        }
-
-        @Override
-        public void close() {
-            this.client.setScreen(this.parent);
-        }
+                    Text.translatable("minelights.gui.button.skip"));
+            MinecraftClient.getInstance().setScreen(confirmScreen);
+        });
     }
 
     private static String sha256(Path file) throws Exception {
@@ -178,48 +163,39 @@ public class MineLightsClient implements ClientModInitializer {
         return HexFormat.of().formatHex(digest.digest());
     }
 
-    private void initializeServerConnection(Screen parentScreen) {
-        if (!IS_WINDOWS) {
-            return;
-        }
-        checkForServerUpdate(parentScreen);
+    private void initializeServerConnection() {
         discoveryThread = new Thread(new DiscoveryListener(), "MineLights-Discovery");
         discoveryThread.setDaemon(true);
         discoveryThread.start();
 
         if (CONFIG.autoStartServer) {
-            serverMonitorThread = new Thread(() -> serverMonitorLoop(parentScreen), "MineLights-Server-Monitor");
+            serverMonitorThread = new Thread(MineLightsClient::serverMonitorLoop, "MineLights-Server-Monitor");
             serverMonitorThread.setDaemon(true);
             serverMonitorThread.start();
-        }
-
-        new Thread(() -> {
-            try {
-                if (proxyDiscoveredLatch.await(3, TimeUnit.SECONDS)) {
-                    LOGGER.info("MineLights Server discovered via broadcast! Initializing connection.");
-                } else {
-                    LOGGER.warn("MineLights Server not discovered via broadcast.");
-                    if (!CONFIG.autoStartServer) {
-                        Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
-                                .resolve("MineLights").resolve("MineLights.exe");
-                        showDownloadPrompt(parentScreen, serverExePath, false);
+        } else {
+            new Thread(() -> {
+                if (!isServerRunning()) {
+                    Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
+                            .resolve("MineLights").resolve("MineLights.exe");
+                    if (!Files.exists(serverExePath)) {
+                        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+                            if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
+                                showDownloadPrompt(screen, serverExePath, true);
+                            }
+                        });
                     }
                 }
-                refreshLightingManager();
-            } catch (InterruptedException e) {
-                LOGGER.error("Interrupted while waiting for server discovery.");
-                Thread.currentThread().interrupt();
-            }
-        }, "MineLights-Initializer-Waiter").start();
+            }).start();
+        }
     }
 
-    private static void serverMonitorLoop(Screen parentScreen) {
+    private static void serverMonitorLoop() {
         LOGGER.info("Starting MineLights Server monitor.");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 if (!isServerRunning()) {
                     LOGGER.info("Server is not running. Attempting to launch MineLights.exe...");
-                    startServerProcess(parentScreen);
+                    startServerProcess();
                 }
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -237,15 +213,20 @@ public class MineLightsClient implements ClientModInitializer {
         }
     }
 
-    private static void startServerProcess(Screen parentScreen) {
+    private static void startServerProcess() {
         Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights")
                 .resolve("MineLights.exe");
 
         if (!Files.exists(serverExePath)) {
-            LOGGER.error("MineLights.exe not found. Prompting user to download.");
-            showDownloadPrompt(parentScreen, serverExePath, true);
+            LOGGER.error("MineLights.exe not found.");
             if (serverMonitorThread != null)
                 serverMonitorThread.interrupt();
+
+            ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+                if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
+                    showDownloadPrompt(screen, serverExePath, true);
+                }
+            });
             return;
         }
 
