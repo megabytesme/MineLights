@@ -76,5 +76,9 @@
   "minelights.gui.download.status.downloading_speed": "ƃuᴉpɐoʅuʍoᗡ... %s%% (%s)",
   "minelights.gui.download.status.starting": "˙ɹǝʌɹǝs ƃuᴉʇɹɐʇs ˙ǝʇǝlʍǝɔ pɐoʅuʍoᗡ",
   "minelights.gui.download.status.success": "˙ʍou ɹǝʇɔǝuuoɔ ƃuᴉʇɹɐʇs ʎllnɟssǝɔɔns ɹǝʌɹǝS",
-  "minelights.gui.download.status.failed": "˙%s :pǝlᴉɐℲ pɐoʅuʍoᗡ"
+  "minelights.gui.download.status.failed": "˙%s :pǝlᴉɐℲ pɐoʅuʍoᗡ",
+  "minelights.gui.update.title": "ǝʌɐʅıɐʌ∀ ǝʇɐpd∩ ɹǝʌɹǝS sʇɥƃılǝuıWǝuıM",
+  "minelights.gui.update.info": "˙pǝʇɐp∩ ɹo pǝʇpuɐɥɔ ɥʇɐɥ sᴉ ǝʅqɐʇnɔǝxǝ ɹǝʌɹǝS sʇɥƃılǝuıWǝuıM ɹno⅄\n\n¿ʍou ʇı ǝʇɐpd∩ oʇ ʇuɐʍ noʎ pʅnoʍ",
+  "minelights.gui.button.update_now": "ʍou ǝʇɐpd∩",
+  "minelights.gui.button.skip": "dıʞS"
 }
