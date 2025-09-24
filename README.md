@@ -1,10 +1,11 @@
-<div style="position: relative; display: inline-block; width: 100%;">
-  <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8"
-       alt="MineLights Icon"
-       style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-              opacity: 0.1; width: 200px; z-index: 0;">
-  <h1 style="position: relative; z-index: 1; text-align: center;">MineLights</h1>
-</div>
+# MineLights
+
+| Old logo |  | New logo |
+|-----------|-------|------------|
+| <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8" alt="MineLights Icon" height="200"> | ➡️ | <img src="https://github.com/user-attachments/assets/c0d50adb-0242-4603-89a5-074b40903606" alt="MineLights Icon" height="200"> |
+| AI Placeholder | Now... | Made by me! (I love MS Paint) |
+
+<small><em>New logo, same project!</em></small>
 
 ![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32)  
 <small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small>
