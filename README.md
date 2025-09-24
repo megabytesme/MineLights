@@ -1,14 +1,9 @@
 # MineLights
 
-| Old logo |  | New logo |
-|-----------|-------|------------|
-| <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8" alt="MineLights Icon" height="200"> | ➡️ | <img src="https://github.com/user-attachments/assets/c0d50adb-0242-4603-89a5-074b40903606" alt="MineLights Icon" height="200"> |
-| AI Placeholder | Now... | Made by me! (I love MS Paint) |
-
-<small><em>New logo, same project!</em></small>
-
-![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32)  
-<small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small>
+| Old logo |   | New logo | Video |
+|----------|---|----------|-------|
+| <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8" alt="MineLights Icon" height="200"> | ➡️ | <img src="https://github.com/user-attachments/assets/c0d50adb-0242-4603-89a5-074b40903606" alt="MineLights Icon" height="200"> | ![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32) |
+| AI Placeholder Image (during dev) | Now... | Made by me! (I love MS Paint) | <small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small> |
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets the latest version of Minecraft (1.21+) and uses a modular design to support a wide range of hardware.
 
