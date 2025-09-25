@@ -3,17 +3,18 @@ package megabytesme.minelights;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 
@@ -72,7 +73,7 @@ public class PlayerDataCollector {
             if (MineLightsClient.CONFIG.alwaysShowCompass && world.getRegistryKey().equals(World.OVERWORLD)) {
                 dto.setCompassType(CompassType.STANDARD);
                 GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(), world.getSpawnPos());
-                setCompassTarget(dto, player, spawnPos.pos());
+                setCompassTarget(dto, player, spawnPos.getPos());
             } else {
                 dto.setCompassState(megabytesme.minelights.CompassState.NONE);
                 dto.setCompassType(CompassType.NONE);
@@ -84,9 +85,10 @@ public class PlayerDataCollector {
 
         GlobalPos targetPos = getCompassTargetPos(result.stack, player, world);
 
-        if (targetPos != null && targetPos.dimension().equals(world.getRegistryKey())
-                && !(targetPos.pos().getSquaredDistance(player.getPos()) < 1.0E-5)) {
-            setCompassTarget(dto, player, targetPos.pos());
+        if (targetPos != null
+                && targetPos.getDimension().equals(world.getRegistryKey())
+                && !(targetPos.getPos().getSquaredDistance(player.getPos()) < 1.0E-5)) {
+            setCompassTarget(dto, player, targetPos.getPos());
         } else {
             dto.setCompassState(megabytesme.minelights.CompassState.SPINNING);
         }
@@ -154,13 +156,20 @@ public class PlayerDataCollector {
     }
 
     private static GlobalPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
-        if (stack.contains(DataComponentTypes.LODESTONE_TRACKER)) {
-            LodestoneTrackerComponent lodestoneTrackerComponent = stack.get(DataComponentTypes.LODESTONE_TRACKER);
-            return lodestoneTrackerComponent != null ? lodestoneTrackerComponent.target().orElse(null) : null;
+        if (stack.isOf(Items.COMPASS) && stack.hasNbt()) {
+            NbtCompound tag = stack.getNbt();
+            if (tag != null && tag.contains("LodestonePos") && tag.contains("LodestoneDimension")) {
+                BlockPos pos = NbtHelper.toBlockPos(tag.getCompound("LodestonePos"));
+                Identifier dimId = new Identifier(tag.getString("LodestoneDimension")); // fixed for 1.20.1
+                RegistryKey<World> dimKey = RegistryKey.of(RegistryKeys.WORLD, dimId);
+                return GlobalPos.create(dimKey, pos);
+            }
         }
+
         if (stack.isOf(Items.RECOVERY_COMPASS)) {
             return holder.getLastDeathPos().orElse(null);
         }
+
         return GlobalPos.create(world.getRegistryKey(), world.getSpawnPos());
     }
 
