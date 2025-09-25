@@ -1,24 +1,4 @@
-.gradle
-**/build/
-!src/**/build/
-
-# Ignore Gradle GUI config
-gradle-app.setting
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
-# Avoid ignore Gradle wrappper properties
-!gradle-wrapper.properties
-
-# Cache of project
-.gradletasknamecache
-
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
+# Visual Studio
 /.vs/MineLights/FileContentIndex/1b46a4bc-8361-4800-a18e-e09dcbc138e6.vsidx
 /.vs
 /Server/MineLights/MineLights/x64/Debug
@@ -50,3 +30,39 @@ gradle-app.setting
 /Server/MineLights/bin/Release/net9.0-windows
 /Server/MineLights/obj/publish/win-x64
 /Server/MineLights/obj/Release/net9.0-windows
+/Server/.vs
+/Server/MineLights/bin/Debug/net9.0-windows
+
+# gradle
+Client/.gradle/
+Client/build/
+Client/out/
+Client/classes/
+
+# eclipse
+Client/*.launch
+
+# idea
+Client/.idea/
+Client/*.iml
+Client/*.ipr
+Client/*.iws
+
+# vscode
+Client/.settings/
+Client/.vscode/
+Client/bin/
+Client/.classpath
+Client/.project
+
+# macos
+Client/*.DS_Store
+
+# fabric
+Client/run/
+
+# java
+Client/hs_err_*.log
+Client/replay_*.log
+Client/*.hprof
+Client/*.jfr
