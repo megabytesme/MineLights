@@ -62,28 +62,6 @@ public class PlayerDataCollector {
             playerDto.setWeather("Clear");
         }
 
-        List<WaypointDto> waypoints = new ArrayList<>();
-        if (client.cameraEntity != null) {
-            client.player.networkHandler.getWaypointHandler().forEachWaypoint(client.cameraEntity, (waypoint) -> {
-                if (waypoint.getSource().left().map(uuid -> uuid.equals(client.cameraEntity.getUuid())).orElse(false)) {
-                    return;
-                }
-
-                WaypointDto waypointDto = new WaypointDto();
-                waypointDto.setRelativeYaw(waypoint.getRelativeYaw(world, client.gameRenderer.getCamera()));
-                waypointDto.setPitch(waypoint.getPitch(world, client.gameRenderer));
-                waypointDto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(client.cameraEntity)));
-
-                int color = waypoint.getConfig().color.orElseGet(() -> waypoint.getSource().map(
-                        uuid -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, uuid.hashCode()), 0.9F),
-                        name -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, name.hashCode()), 0.9F)));
-                waypointDto.setColor(color);
-
-                waypoints.add(waypointDto);
-            });
-        }
-        playerDto.setWaypoints(waypoints);
-
         return playerDto;
     }
 

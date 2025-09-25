@@ -254,14 +254,6 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                                         .build());
                         playerStatus.addEntry(entryBuilder
-                                        .startBooleanToggle(Text.translatable("option.mine-lights.enableLocatorBar"),
-                                                        MineLightsClient.CONFIG.enableLocatorBar)
-                                        .setDefaultValue(true)
-                                        .setTooltip(Text.translatable("option.mine-lights.enableLocatorBar.tooltip"))
-                                        .setSaveConsumer(
-                                                        newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
-                                        .build());
-                        playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(Text.translatable("option.mine-lights.enableCompassEffect"),
                                                         MineLightsClient.CONFIG.enableCompassEffect)
                                         .setDefaultValue(true)
