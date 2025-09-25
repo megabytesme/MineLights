@@ -358,7 +358,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                                        Text.translatable("text.mine-lights.about.version", "2.0.2.0")).build());
+                                        Text.translatable("text.mine-lights.about.version", "2.0.2.1")).build());
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         Text.translatable("text.mine-lights.about.copyright")).build());
 
