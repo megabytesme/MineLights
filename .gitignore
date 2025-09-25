@@ -66,3 +66,8 @@ Client/hs_err_*.log
 Client/replay_*.log
 Client/*.hprof
 Client/*.jfr
+
+Client/versions/
+Client/buildSrc/build/
+Client/buildSrc/.gradle/
+.gradle/
