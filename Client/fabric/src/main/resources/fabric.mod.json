@@ -1,28 +1,36 @@
 {
   "schemaVersion": 1,
-  "id": "${id}",
+  "id": "mine-lights",
   "version": "${version}",
-  "name": "${name}",
-  "description": "This is an example description! Tell everyone what your mod is about!",
-  "authors": [
-    "Me!"
-  ],
+  "name": "MineLights",
+  "description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
+  "authors": ["MegaBytesMe"],
   "contact": {
+    "homepage": "https://modrinth.com/mod/minelights",
+    "sources": "https://github.com/megabytesme/MineLights",
+    "issues": "https://github.com/megabytesme/MineLights/issues"
   },
-  "license": "CC0-1.0",
-  "icon": "assets/${id}/icon.png",
-  "environment": "*",
+  "license": "CC BY-NC-SA 4.0",
+  "icon": "assets/mine-lights/icon.png",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "com.example.template.fabric.TemplateModFabric"
-    ]
+    "client": ["megabytesme.minelights.FabricMineLightsClient"],
+    "modmenu": ["megabytesme.minelights.config.ModMenuIntegrationFabric"]
   },
-  "mixins": [
-    "template-common.mixins.json",
-    "template-fabric.mixins.json"
-  ],
+  "mixins": [],
   "depends": {
-    "fabricloader": ">=0.15",
-    "minecraft": "${minecraft}"
+    "fabricloader": ">=0.15.11",
+    "minecraft": "${minecraft}",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {},
+  "custom": {
+    "modmenu": {
+      "modmenu": true,
+      "links": {
+        "Donate": "https://ko-fi.com/megabytesme"
+      }
+    }
   }
 }

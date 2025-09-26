@@ -1,15 +1,35 @@
 modLoader = "javafml"
 loaderVersion = "*"
-license = "CC0-1.0"
+license = "CC BY-NC-SA 4.0"
+modId = "${id}"
 
 [[mods]]
 modId = "${id}"
 version = "${version}"
 displayName = "${name}"
-authors = "Me"
-description = "This is an example description! Tell everyone what your mod is about!"
+authors = "MegaBytesMe"
+description = '''
+MineLights is a Minecraft mod that brings RGB lighting integrations to Minecraft Java Edition.
+'''
 logoFile = "assets/${id}/icon.png"
 logoBlur = false
+
+displayURL="https://modrinth.com/mod/minelights"
+issueTrackerURL="https://github.com/megabytesme/MineLights/issues"
+
+[[dependencies.${id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="*"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.${id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft}"
+    ordering="NONE"
+    side="CLIENT"
 
 [[mixins]]
 config = "template-common.mixins.json"
