@@ -5,6 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+//? if >=1.15 {
+/* import net.minecraft.client.util.math.MatrixStack;
+*///?}
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 
@@ -48,23 +51,34 @@ public class DownloadProgressScreen extends Screen {
     protected void init() {
         super.init();
         int centerX = this.width / 2;
-        this.closeButton = new ButtonWidget(centerX - 100, this.height - 40, 200, 20,
-                new TranslatableText("minelights.gui.button.close").getString(), (button) -> this.onClose());
+        //? if >=1.16 {
+        /* this.closeButton = new ButtonWidget(centerX - 100, this.height - 40, 200, 20,
+            new TranslatableText("minelights.gui.button.close"), (button) -> this.onClose());
         this.closeButton.active = false;
         this.addButton(this.closeButton);
+        *///?} else {
+        /* this.closeButton = new ButtonWidget(centerX - 100, this.height - 40, 200, 20,
+            new TranslatableText("minelights.gui.button.close").getString(), (button) -> this.onClose());
+        this.closeButton.active = false;
+        this.addButton(this.closeButton);
+        *///?}
     }
 
-    @Override
+    //? if <1.15 {
+    /* @Override
     public void render(int mouseX, int mouseY, float delta) {
         this.renderBackground();
         super.render(mouseX, mouseY, delta);
 
         int centerX = this.width / 2;
-        this.drawCenteredString(this.font, new TranslatableText("minelights.gui.download.progress_title").getString(),
-                centerX, 40, 0xFFFFFF);
-        this.drawCenteredString(this.font, new TranslatableText("minelights.gui.download.info").getString(), centerX,
-                65, 0xFFFFFF);
-        this.drawCenteredString(this.font, this.statusMessage, centerX, this.height / 2 + 15, 0xFFFFFF);
+        this.drawCenteredString(this.font,
+            new TranslatableText("minelights.gui.download.progress_title").getString(),
+            centerX, 40, 0xFFFFFF);
+        this.drawCenteredString(this.font,
+            new TranslatableText("minelights.gui.download.info").getString(),
+            centerX, 65, 0xFFFFFF);
+        this.drawCenteredString(this.font, this.statusMessage,
+            centerX, this.height / 2 + 15, 0xFFFFFF);
 
         int barWidth = 300;
         int barHeight = 8;
@@ -75,10 +89,67 @@ public class DownloadProgressScreen extends Screen {
         fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
         fill(barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
     }
+    *///?}
+    //? if =1.15 {
+    /* @Override
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        this.renderBackground(matrices);
+        super.render(matrices, mouseX, mouseY, delta);
+
+        int centerX = this.width / 2;
+        this.drawCenteredString(this.font,
+                new TranslatableText("minelights.gui.download.progress_title").getString(),
+                centerX, 40, 0xFFFFFF);
+        this.drawCenteredString(this.font,
+                new TranslatableText("minelights.gui.download.info").getString(),
+                centerX, 65, 0xFFFFFF);
+        this.drawCenteredString(this.font, this.statusMessage,
+                centerX, this.height / 2 + 15, 0xFFFFFF);
+
+        int barWidth = 300;
+        int barHeight = 8;
+        int barX = this.width / 2 - barWidth / 2;
+        int barY = this.height / 2;
+        int fillWidth = (int) (barWidth * (this.progress.get() / 100.0f));
+
+        fill(matrices, barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
+        fill(matrices, barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
+    }
+    *///?}
+    //? if >=1.16 {
+    /* @Override
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        this.renderBackground(matrices);
+        super.render(matrices, mouseX, mouseY, delta);
+
+        int centerX = this.width / 2;
+        this.drawCenteredText(matrices, this.textRenderer,
+                new TranslatableText("minelights.gui.download.progress_title"),
+                centerX, 40, 0xFFFFFF);
+        this.drawCenteredText(matrices, this.textRenderer,
+                new TranslatableText("minelights.gui.download.info"),
+                centerX, 65, 0xFFFFFF);
+        this.drawCenteredString(matrices, this.textRenderer, this.statusMessage,
+                centerX, this.height / 2 + 15, 0xFFFFFF);
+
+        int barWidth = 300;
+        int barHeight = 8;
+        int barX = this.width / 2 - barWidth / 2;
+        int barY = this.height / 2;
+        int fillWidth = (int) (barWidth * (this.progress.get() / 100.0f));
+
+        fill(matrices, barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
+        fill(matrices, barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
+    }
+    *///?}
 
     @Override
     public void onClose() {
-        this.minecraft.openScreen(this.parent);
+        //? if >=1.15 {
+        /* this.client.openScreen(this.parent);
+        *///?} else {
+        /* this.minecraft.openScreen(this.parent);
+        *///?}
     }
 
     private String formatSpeed(long bytesPerSecond) {
@@ -170,7 +241,7 @@ public class DownloadProgressScreen extends Screen {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "MineLights-Mod-Downloader/1.0");
 
-            long totalFileSize = connection.getContentLength();
+            long totalFileSize = connection.getContentLengthLong();
             long totalBytesRead = 0;
             long lastTime = System.currentTimeMillis();
             long lastBytes = 0;
@@ -240,7 +311,13 @@ public class DownloadProgressScreen extends Screen {
             this.statusMessage = new TranslatableText("minelights.gui.download.status.failed", errorMessage.get())
                     .getString();
         } finally {
-            this.minecraft.execute(() -> this.closeButton.active = true);
+            //? if >=1.16 {
+            /* if (this.client != null) {
+             this.client.execute(() -> this.closeButton.active = true);
+             }
+            *///?} else {
+            /* this.minecraft.execute(() -> this.closeButton.active = true);
+            *///?}
         }
     }
 }

@@ -8,9 +8,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
+//? if >=1.16 {
+/* import net.minecraft.util.dynamic.GlobalPos;
+*///?}
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
+//? if >=1.16 {
+/* import net.minecraft.world.World;
+*///?}
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.ArrayList;
@@ -32,21 +38,25 @@ public class PlayerDataCollector {
         playerDto.setHealth(player.getHealth());
         playerDto.setHunger(player.getHungerManager().getFoodLevel());
         playerDto.setSaturation(player.getHungerManager().getSaturationLevel());
-        // if mc >= 1.14.4
-        // playerDto.setAir(player.getAir());
-        // else
-        // playerDto.setAir(player.getBreath());
-        // endif
+        //? if <=1.14.3 {
+        /* playerDto.setAir(player.getBreath());
+        *///?} else {
+        /* playerDto.setAir(player.getAir());
+        *///?}
         playerDto.setExperience(player.experienceProgress);
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
         playerDto.setCurrentBiome(Registry.BIOME.getId(world.getBiome(player.getBlockPos())).toString());
 
-        // if mc >= 1.14.4
-        // playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension()).toString());
-        // else
-        // playerDto.setCurrentWorld(Registry.DIMENSION_TYPE.getId(world.getDimension().getType()).toString());
-        // endif
+        //? if <=1.14.3 {
+        /* playerDto.setCurrentWorld(Registry.DIMENSION_TYPE.getId(world.getDimension().getType()).toString());
+        *///?} else if 1.14.4 {
+        /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension().getType()).toString());
+        *///?} else if <1.16 {
+        /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension()).toString());
+        *///?} else {
+        /* playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
+        *///?}
         playerDto.setIsOnFire(player.isOnFire());
         playerDto.setIsPoisoned(player.hasStatusEffect(StatusEffects.POISON));
         playerDto.setIsWithering(player.hasStatusEffect(StatusEffects.WITHER));
@@ -68,13 +78,27 @@ public class PlayerDataCollector {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension.getType() == DimensionType.OVERWORLD) {
-                dto.setCompassType(CompassType.STANDARD);
-                setCompassTarget(dto, player, world.getSpawnPos());
-            } else {
-                dto.setCompassState(CompassState.NONE);
-                dto.setCompassType(CompassType.NONE);
-            }
+            //? if >=1.16 {
+            /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
+             world.getRegistryKey().equals(World.OVERWORLD)) {
+             dto.setCompassType(CompassType.STANDARD);
+             GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
+             world.getSpawnPos());
+             setCompassTarget(dto, player, spawnPos.getPos());
+             } else {
+             dto.setCompassState(megabytesme.minelights.CompassState.NONE);
+             dto.setCompassType(CompassType.NONE);
+             }
+            *///?} else {
+            /* if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension.getType() ==
+             DimensionType.OVERWORLD) {
+             dto.setCompassType(CompassType.STANDARD);
+             setCompassTarget(dto, player, world.getSpawnPos());
+             } else {
+             dto.setCompassState(CompassState.NONE);
+             dto.setCompassType(CompassType.NONE);
+             }
+            *///?}
             return;
         }
 
@@ -104,7 +128,11 @@ public class PlayerDataCollector {
         stacksToCheck.add(player.getMainHandStack());
         stacksToCheck.add(player.getOffHandStack());
         for (int i = 0; i < 36; i++) {
-            stacksToCheck.add(player.inventory.getInvStack(i));
+            //? if >=1.16 {
+            /* stacksToCheck.add(player.inventory.getStack(i));
+            *///?} else {
+            /* stacksToCheck.add(player.inventory.getInvStack(i));
+            *///?}
         }
 
         for (ItemStack stack : stacksToCheck) {
@@ -118,19 +146,22 @@ public class PlayerDataCollector {
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
         if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
             CompoundTag tag = stack.getTag();
-            // if mc >= 1.14.4
-            // if (tag != null && tag.contains("LodestoneDimension")) {
-            // CompoundTag posTag = tag.getCompound("LodestonePos");
-            // return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"),
-            // posTag.getInt("Z"));
-            // }
-            // else
-            // if (tag != null && tag.containsKey("LodestonePos")) {
-            // CompoundTag posTag = tag.getCompound("LodestonePos");
-            // return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"),
-            // posTag.getInt("Z"));
-            // }
-            // endif
+            //? if <=1.14.3 {
+            /* if (tag != null && tag.containsKey("LodestoneDimension")) {
+                CompoundTag posTag = tag.getCompound("LodestonePos");
+                return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
+            }
+            *///?} else if <1.17 {
+            /* if (tag != null && tag.contains("LodestonePos")) {
+                CompoundTag posTag = tag.getCompound("LodestonePos");
+                return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
+            }
+            *///?} else {
+            /* if (tag != null && tag.containsKey("LodestonePos")) {
+                CompoundTag posTag = tag.getCompound("LodestonePos");
+                return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
+            }
+            *///?}
         }
         return world.getSpawnPos();
     }
