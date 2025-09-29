@@ -2,8 +2,8 @@ package megabytesme.minelights.rgb;
 
 import com.google.gson.Gson;
 import megabytesme.minelights.effects.RGBColorDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class YeelightController {
-    public static final Logger LOGGER = LoggerFactory.getLogger("MineLights-Yeelight");
+    public static final Logger LOGGER = LogManager.getLogger("Minelights-Yeelight");
     private static final String DISCOVERY_MSG = "M-SEARCH * HTTP/1.1\r\n" +
             "HOST: 239.255.255.250:1982\r\n" +
             "MAN: \"ssdp:discover\"\r\n" +

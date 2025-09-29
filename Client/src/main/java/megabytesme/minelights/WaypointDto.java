@@ -1,11 +1,8 @@
 package megabytesme.minelights;
 
-import net.minecraft.world.waypoint.TrackedWaypoint.Pitch;
-
 public class WaypointDto {
     private double relativeYaw;
     private int color;
-    private Pitch pitch;
     private float distance;
 
     public double getRelativeYaw() {
@@ -22,14 +19,6 @@ public class WaypointDto {
 
     public void setColor(int color) {
         this.color = color;
-    }
-
-    public Pitch getPitch() {
-        return pitch;
-    }
-
-    public void setPitch(Pitch pitch) {
-        this.pitch = pitch;
     }
 
     public float getDistance() {

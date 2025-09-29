@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "Ye Be Needin’ a MineLights Server Update",
   "minelights.gui.update.info": "Yarr! Yer MineLights Server executable be out o’ date or scuppered.\n\nShall we haul ye a new one now?",
   "minelights.gui.button.update_now": "Hoist the Update",
-  "minelights.gui.button.skip": "Belay That"
+  "minelights.gui.button.skip": "Belay That",
+  "gui.yes": "Aye",
+  "gui.no": "Nay"
 }

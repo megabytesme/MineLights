@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "MineLights Thew Newing on Hand",
   "minelights.gui.update.info": "Your MineLights Thew run-writ is old or marred.\n\nWould you like to new it now?",
   "minelights.gui.button.update_now": "New Now",
-  "minelights.gui.button.skip": "Skip"
+  "minelights.gui.button.skip": "Skip",
+  "gui.yes": "Yes",
+  "gui.no": "No"
 }

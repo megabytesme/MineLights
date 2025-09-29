@@ -4,11 +4,10 @@ import megabytesme.minelights.CompassState;
 import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
-import megabytesme.minelights.WaypointDto;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.GameOptions;
-
+import net.minecraft.client.options.GameOptions;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -77,29 +76,15 @@ public class EffectPainter {
         }
 
         paintEnvironmentalBase(state, player);
-
-        if (MineLightsClient.CONFIG.enableExperienceBar) {
+        if (MineLightsClient.CONFIG.enableExperienceBar)
             paintExperienceBar(state, player);
-        }
-
-        if (MineLightsClient.CONFIG.enableLocatorBar) {
-            paintLocatorBar(state, player);
-        }
-
         paintPlayerBars(state, player);
-
-        if (MineLightsClient.CONFIG.enableSaturationBar) {
+        if (MineLightsClient.CONFIG.enableSaturationBar)
             paintSaturationAndAirBar(state, player);
-        }
-
-        if (MineLightsClient.CONFIG.enableCompassEffect) {
+        if (MineLightsClient.CONFIG.enableCompassEffect)
             paintCompass(state, player);
-        }
-
-        if (MineLightsClient.CONFIG.enableLowHealthWarning) {
+        if (MineLightsClient.CONFIG.enableLowHealthWarning)
             paintHealthEffects(state, player);
-        }
-
         paintPlayerEffects(state, player);
 
         return state;
@@ -213,49 +198,6 @@ public class EffectPainter {
         }
     }
 
-    private void paintLocatorBar(FrameStateDto state, PlayerDto player) {
-        if (player.getWaypoints() == null || player.getWaypoints().isEmpty()) {
-            return;
-        }
-
-        List<String> locatorBarKeys = KeyMap.getExperienceBar();
-        if (locatorBarKeys.isEmpty()) {
-            return;
-        }
-
-        int numKeys = locatorBarKeys.size();
-        float viewAngle = 60.0f;
-
-        for (WaypointDto waypoint : player.getWaypoints()) {
-            double yaw = waypoint.getRelativeYaw();
-
-            if (yaw > -viewAngle && yaw <= viewAngle) {
-                double normalizedPosition = (yaw + viewAngle) / (viewAngle * 2.0);
-                int keyIndex = (int) (normalizedPosition * numKeys);
-                keyIndex = Math.max(0, Math.min(numKeys - 1, keyIndex));
-
-                Integer ledId = getMappedId(locatorBarKeys.get(keyIndex));
-                if (ledId == null) {
-                    continue;
-                }
-
-                int packedColor = waypoint.getColor();
-                int r = (packedColor >> 16) & 0xFF;
-                int g = (packedColor >> 8) & 0xFF;
-                int b = packedColor & 0xFF;
-                RGBColorDto waypointColor = new RGBColorDto(r, g, b);
-
-                if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.UP) {
-                    waypointColor = lerpColor(waypointColor, new RGBColorDto(255, 255, 255), 0.5f);
-                } else if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.DOWN) {
-                    waypointColor = lerpColor(waypointColor, new RGBColorDto(0, 0, 0), 0.5f);
-                }
-
-                state.keys.put(ledId, waypointColor);
-            }
-        }
-    }
-
     private void paintPlayerBars(FrameStateDto state, PlayerDto player) {
         if (player.getIsTakingDamage() && !wasTakingDamageLastFrame) {
             isDamageFlashActive = true;
@@ -307,7 +249,6 @@ public class EffectPainter {
 
     private void paintSaturationAndAirBar(FrameStateDto state, PlayerDto player) {
         List<String> barKeys = KeyMap.getSaturationBar();
-
         boolean isInWaterNow = player.getCurrentBlock().equals("block.minecraft.water");
 
         if (isInWaterNow) {
@@ -330,7 +271,6 @@ public class EffectPainter {
         } else {
             value = player.getSaturation();
             maxValue = 20f;
-
             fullColor = new RGBColorDto(200, 255, 0);
             dimColor = new RGBColorDto(40, 50, 0);
         }
@@ -502,14 +442,14 @@ public class EffectPainter {
         List<String> friendlyNames = new ArrayList<>();
         GameOptions options = MinecraftClient.getInstance().options;
 
-        List<String> keybindsToFetch = List.of(
-                options.forwardKey.getBoundKeyTranslationKey(),
-                options.backKey.getBoundKeyTranslationKey(),
-                options.leftKey.getBoundKeyTranslationKey(),
-                options.rightKey.getBoundKeyTranslationKey(),
-                options.jumpKey.getBoundKeyTranslationKey(),
-                options.sneakKey.getBoundKeyTranslationKey(),
-                options.sprintKey.getBoundKeyTranslationKey());
+        List<String> keybindsToFetch = Arrays.asList(
+                options.keyForward.getDefaultKeyCode().toString(),
+                options.keyBack.getDefaultKeyCode().toString(),
+                options.keyLeft.getDefaultKeyCode().toString(),
+                options.keyRight.getDefaultKeyCode().toString(),
+                options.keyJump.getDefaultKeyCode().toString(),
+                options.keySneak.getDefaultKeyCode().toString(),
+                options.keySprint.getDefaultKeyCode().toString());
 
         for (String key : keybindsToFetch) {
             if (key == null || !key.startsWith("key.keyboard.")) {
@@ -517,10 +457,9 @@ public class EffectPainter {
             }
 
             String[] parts = key.split("\\.");
-
             String friendlyName = "";
             if (parts.length == 4) {
-                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase(); // "L" + "SHIFT" -> "LSHIFT"
+                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
             } else if (parts.length == 3) {
                 friendlyName = parts[2].toUpperCase();
             }

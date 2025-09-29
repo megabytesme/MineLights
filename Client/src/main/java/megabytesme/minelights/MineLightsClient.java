@@ -1,22 +1,22 @@
 package megabytesme.minelights;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.MinecraftClient;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.text.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import net.minecraft.text.TranslatableText;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -27,14 +27,13 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MineLightsClient implements ClientModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger("MineLights");
+    public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static MineLightsConfig CONFIG;
     private static SimpleJsonConfig CONFIG_MANAGER;
     private static LightingManager lightingManager;
@@ -50,6 +49,7 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights/releases/tags/v2-server";
+    private boolean titleScreenHooked = false;
 
     @Override
     public void onInitializeClient() {
@@ -58,9 +58,13 @@ public class MineLightsClient implements ClientModInitializer {
 
         if (IS_WINDOWS) {
             initializeServerConnection();
-            ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-                if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
-                    new Thread(() -> checkForServerUpdate(screen), "MineLights-Update-Check").start();
+
+            ClientTickEvents.END_CLIENT_TICK.register(client -> {
+                if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
+                    titleScreenHooked = true;
+                    if (!hasPerformedServerCheck.getAndSet(true)) {
+                        new Thread(() -> checkForServerUpdate(client.currentScreen), "MineLights-Update-Check").start();
+                    }
                 }
             });
         }
@@ -92,11 +96,20 @@ public class MineLightsClient implements ClientModInitializer {
         });
     }
 
+    private static String readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[4096];
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return new String(buffer.toByteArray());
+    }
+
     private static void checkForServerUpdate(Screen parentScreen) {
         try {
-            Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath()
-                    .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
-
+            Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
+                    .resolve("MineLights").resolve("MineLights.exe");
             URI apiUri = URI.create(GITHUB_API_URL);
             HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
             conn.setRequestProperty("Accept", "application/vnd.github+json");
@@ -105,16 +118,22 @@ public class MineLightsClient implements ClientModInitializer {
 
             String json;
             try (InputStream in = conn.getInputStream()) {
-                json = new String(in.readAllBytes());
+                json = readAllBytes(in);
             }
 
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.isEmpty())
+            if (assets.size() == 0)
                 return;
 
             JsonObject asset = assets.get(0).getAsJsonObject();
-            String expectedHash = asset.get("digest").getAsString().replace("sha256:", "");
+            String expectedHash = "";
+            if (asset.has("digest")) {
+                expectedHash = asset.get("digest").getAsString().replace("sha256:", "");
+            } else {
+                LOGGER.warn("GitHub release asset is missing 'digest' field for hash verification.");
+                return;
+            }
 
             if (!Files.exists(serverExePath)) {
                 LOGGER.info("MineLights.exe not found. Prompting for initial download.");
@@ -124,7 +143,8 @@ public class MineLightsClient implements ClientModInitializer {
 
             String localHash = sha256(serverExePath);
             if (!localHash.equalsIgnoreCase(expectedHash)) {
-                LOGGER.info("MineLights.exe is outdated or corrupted. Prompting for update.");
+                LOGGER.info("MineLights.exe is outdated or corrupted. Local hash: {}, Expected hash: {}", localHash,
+                        expectedHash);
                 showUpdatePrompt(parentScreen, serverExePath);
             }
         } catch (Exception e) {
@@ -138,17 +158,27 @@ public class MineLightsClient implements ClientModInitializer {
                     (result) -> {
                         if (result) {
                             MinecraftClient.getInstance()
-                                    .setScreen(new DownloadProgressScreen(parentScreen, destination));
+                                    .openScreen(new DownloadProgressScreen(parentScreen, destination));
                         } else {
-                            MinecraftClient.getInstance().setScreen(parentScreen);
+                            MinecraftClient.getInstance().openScreen(parentScreen);
                         }
                     },
-                    Text.translatable("minelights.gui.update.title"),
-                    Text.translatable("minelights.gui.update.info"),
-                    Text.translatable("minelights.gui.button.update_now"),
-                    Text.translatable("minelights.gui.button.skip"));
-            MinecraftClient.getInstance().setScreen(confirmScreen);
+                    new TranslatableText("minelights.gui.update.title"),
+                    new TranslatableText("minelights.gui.update.info"));
+            MinecraftClient.getInstance().openScreen(confirmScreen);
         });
+    }
+
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
+
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     private static String sha256(Path file) throws Exception {
@@ -160,7 +190,7 @@ public class MineLightsClient implements ClientModInitializer {
                 digest.update(buffer, 0, bytesRead);
             }
         }
-        return HexFormat.of().formatHex(digest.digest());
+        return bytesToHex(digest.digest());
     }
 
     private void initializeServerConnection() {
@@ -178,9 +208,12 @@ public class MineLightsClient implements ClientModInitializer {
                     Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
                             .resolve("MineLights").resolve("MineLights.exe");
                     if (!Files.exists(serverExePath)) {
-                        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-                            if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
-                                showDownloadPrompt(screen, serverExePath, true);
+                        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+                            if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
+                                titleScreenHooked = true;
+                                if (!hasPerformedServerCheck.getAndSet(true)) {
+                                    showDownloadPrompt(client.currentScreen, serverExePath, true);
+                                }
                             }
                         });
                     }
@@ -222,9 +255,9 @@ public class MineLightsClient implements ClientModInitializer {
             if (serverMonitorThread != null)
                 serverMonitorThread.interrupt();
 
-            ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-                if (screen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
-                    showDownloadPrompt(screen, serverExePath, true);
+            ClientTickEvents.END_CLIENT_TICK.register(client -> {
+                if (client.currentScreen instanceof TitleScreen && !hasPerformedServerCheck.getAndSet(true)) {
+                    showDownloadPrompt(client.currentScreen, serverExePath, true);
                 }
             });
             return;
@@ -243,24 +276,22 @@ public class MineLightsClient implements ClientModInitializer {
     private static void showDownloadPrompt(Screen parentScreen, Path destination, boolean isMissingFile) {
         MinecraftClient client = MinecraftClient.getInstance();
         client.execute(() -> {
-            Text title = Text.translatable("minelights.gui.download.title");
+            Text title = new TranslatableText("minelights.gui.download.title");
             Text message = isMissingFile
-                    ? Text.translatable("minelights.gui.download.prompt_missing")
-                    : Text.translatable("minelights.gui.download.prompt_not_running");
+                    ? new TranslatableText("minelights.gui.download.prompt_missing")
+                    : new TranslatableText("minelights.gui.download.prompt_not_running");
 
             ConfirmScreen confirmScreen = new ConfirmScreen(
                     (result) -> {
                         if (result) {
-                            client.setScreen(new DownloadProgressScreen(parentScreen, destination));
+                            client.openScreen(new DownloadProgressScreen(parentScreen, destination));
                         } else {
-                            client.setScreen(parentScreen);
+                            client.openScreen(parentScreen);
                         }
                     },
                     title,
-                    message,
-                    Text.translatable("minelights.gui.button.download"),
-                    Text.translatable("minelights.gui.button.cancel"));
-            client.setScreen(confirmScreen);
+                    message);
+            client.openScreen(confirmScreen);
         });
     }
 
