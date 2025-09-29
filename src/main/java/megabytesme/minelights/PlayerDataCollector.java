@@ -32,14 +32,21 @@ public class PlayerDataCollector {
         playerDto.setHealth(player.getHealth());
         playerDto.setHunger(player.getHungerManager().getFoodLevel());
         playerDto.setSaturation(player.getHungerManager().getSaturationLevel());
-        playerDto.setAir(player.getAir());
+        // if mc >= 1.14.4
+        // playerDto.setAir(player.getAir());
+        // else
+        // playerDto.setAir(player.getBreath());
+        // endif
         playerDto.setExperience(player.experienceProgress);
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
         playerDto.setCurrentBiome(Registry.BIOME.getId(world.getBiome(player.getBlockPos())).toString());
 
-        playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension().getType()).toString());
-
+        // if mc >= 1.14.4
+        // playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension()).toString());
+        // else
+        // playerDto.setCurrentWorld(Registry.DIMENSION_TYPE.getId(world.getDimension().getType()).toString());
+        // endif
         playerDto.setIsOnFire(player.isOnFire());
         playerDto.setIsPoisoned(player.hasStatusEffect(StatusEffects.POISON));
         playerDto.setIsWithering(player.hasStatusEffect(StatusEffects.WITHER));
@@ -111,10 +118,19 @@ public class PlayerDataCollector {
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
         if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
             CompoundTag tag = stack.getTag();
-            if (tag != null && tag.contains("LodestonePos")) {
-                CompoundTag posTag = tag.getCompound("LodestonePos");
-                return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
-            }
+            // if mc >= 1.14.4
+            // if (tag != null && tag.contains("LodestoneDimension")) {
+            // CompoundTag posTag = tag.getCompound("LodestonePos");
+            // return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"),
+            // posTag.getInt("Z"));
+            // }
+            // else
+            // if (tag != null && tag.containsKey("LodestonePos")) {
+            // CompoundTag posTag = tag.getCompound("LodestonePos");
+            // return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"),
+            // posTag.getInt("Z"));
+            // }
+            // endif
         }
         return world.getSpawnPos();
     }
