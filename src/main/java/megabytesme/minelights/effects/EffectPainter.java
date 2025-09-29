@@ -441,15 +441,26 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         GameOptions options = MinecraftClient.getInstance().options;
-
-        List<String> keybindsToFetch = Arrays.asList(
-                options.keyForward.getDefaultKeyCode().toString(),
-                options.keyBack.getDefaultKeyCode().toString(),
-                options.keyLeft.getDefaultKeyCode().toString(),
-                options.keyRight.getDefaultKeyCode().toString(),
-                options.keyJump.getDefaultKeyCode().toString(),
-                options.keySneak.getDefaultKeyCode().toString(),
-                options.keySprint.getDefaultKeyCode().toString());
+        List<String> keybindsToFetch = new ArrayList<>();
+        //? if >=1.16 {
+        /* keybindsToFetch = Arrays.asList(
+         options.keyForward.getBoundKeyTranslationKey(),
+         options.keyBack.getBoundKeyTranslationKey(),
+         options.keyLeft.getBoundKeyTranslationKey(),
+         options.keyRight.getBoundKeyTranslationKey(),
+         options.keyJump.getBoundKeyTranslationKey(),
+         options.keySneak.getBoundKeyTranslationKey(),
+         options.keySprint.getBoundKeyTranslationKey());
+        *///?} else {
+        /* keybindsToFetch = Arrays.asList(
+         options.keyForward.getDefaultKeyCode().toString(),
+         options.keyBack.getDefaultKeyCode().toString(),
+         options.keyLeft.getDefaultKeyCode().toString(),
+         options.keyRight.getDefaultKeyCode().toString(),
+         options.keyJump.getDefaultKeyCode().toString(),
+         options.keySneak.getDefaultKeyCode().toString(),
+         options.keySprint.getDefaultKeyCode().toString());
+        *///?}
 
         for (String key : keybindsToFetch) {
             if (key == null || !key.startsWith("key.keyboard.")) {
