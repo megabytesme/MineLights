@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "MineLights Servur Updatin Time!",
   "minelights.gui.update.info": "Ur MineLights Servur file iz oldz or broked.\n\nU wantz me 2 fix it nao?",
   "minelights.gui.button.update_now": "Fix Nao",
-  "minelights.gui.button.skip": "Nah, Skipz"
+  "minelights.gui.button.skip": "Nah, Skipz",
+  "gui.yes": "Yesh",
+  "gui.no": "Nope"
 }

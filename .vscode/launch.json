@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Attach to 1.14.3 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.14.4 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug 1.14.3 Client",
+      "configurations": ["Attach to 1.14.3 Client"],
+      "preLaunchTask": "Run 1.14.3 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.14.4 Client",
+      "configurations": ["Attach to 1.14.4 Client"],
+      "preLaunchTask": "Run 1.14.4 Client (Debug)"
+    }
+  ]
+}

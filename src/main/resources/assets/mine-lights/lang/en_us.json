@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "MineLights Server Update Available",
   "minelights.gui.update.info": "Your MineLights Server executable is outdated or corrupted.\n\nWould you like to update it now?",
   "minelights.gui.button.update_now": "Update Now",
-  "minelights.gui.button.skip": "Skip"
+  "minelights.gui.button.skip": "Skip",
+  "gui.yes": "Yes",
+  "gui.no": "No"
 }

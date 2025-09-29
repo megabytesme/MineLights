@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "MineLights Server Update Doth Await",
   "minelights.gui.update.info": "Thy MineLights Server executable is aged or hath suffered corruption.\n\nWouldst thou have it renewed anon?",
   "minelights.gui.button.update_now": "Renew Anon",
-  "minelights.gui.button.skip": "Forbear"
+  "minelights.gui.button.skip": "Forbear",
+  "gui.yes": "Aye",
+  "gui.no": "Nay"
 }
