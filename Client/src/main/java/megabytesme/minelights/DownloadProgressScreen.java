@@ -3,13 +3,12 @@ package megabytesme.minelights;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.MultilineTextWidget;
-import net.minecraft.text.Text;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +18,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.HexFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -32,53 +30,41 @@ public class DownloadProgressScreen extends Screen {
         DOWNLOADING, SUCCESS, FAILED, STARTING
     }
 
-    private final AtomicReference<Status> status = new AtomicReference<>(Status.DOWNLOADING);
+    private final AtomicReference<Status> status = new AtomicReference<>(Status.STARTING);
     private final AtomicInteger progress = new AtomicInteger(0);
     private final AtomicReference<String> errorMessage = new AtomicReference<>("");
     private final AtomicReference<String> downloadSpeed = new AtomicReference<>("");
-    private MultilineTextWidget statusWidget;
+    private String statusMessage = "";
     private ButtonWidget closeButton;
 
     public DownloadProgressScreen(Screen parent, Path destination) {
-        super(Text.empty());
+        super(new LiteralText(""));
         this.parent = parent;
         this.destination = destination;
-
         new Thread(this::downloadAndStartServer, "MineLights-Downloader").start();
     }
 
     @Override
     protected void init() {
+        super.init();
         int centerX = this.width / 2;
-        int widgetWidth = 300;
-        int widgetX = centerX - (widgetWidth / 2);
-
-        MultilineTextWidget titleWidget = new MultilineTextWidget(widgetX, 40,
-                Text.translatable("minelights.gui.download.progress_title"), this.textRenderer)
-                .setMaxWidth(widgetWidth).setCentered(true);
-        this.addDrawableChild(titleWidget);
-
-        MultilineTextWidget infoWidget = new MultilineTextWidget(widgetX, 65,
-                Text.translatable("minelights.gui.download.info"), this.textRenderer)
-                .setMaxWidth(widgetWidth).setCentered(true);
-        this.addDrawableChild(infoWidget);
-
-        this.statusWidget = new MultilineTextWidget(widgetX, this.height / 2 + 15,
-                Text.empty(), this.textRenderer)
-                .setMaxWidth(widgetWidth).setCentered(true);
-        this.addDrawableChild(this.statusWidget);
-
-        this.closeButton = ButtonWidget
-                .builder(Text.translatable("minelights.gui.button.close"), b -> this.close())
-                .dimensions(centerX - 100, this.height - 40, 200, 20)
-                .build();
+        this.closeButton = new ButtonWidget(centerX - 100, this.height - 40, 200, 20,
+                new TranslatableText("minelights.gui.button.close").getString(), (button) -> this.onClose());
         this.closeButton.active = false;
-        this.addDrawableChild(this.closeButton);
+        this.addButton(this.closeButton);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void render(int mouseX, int mouseY, float delta) {
+        this.renderBackground();
+        super.render(mouseX, mouseY, delta);
+
+        int centerX = this.width / 2;
+        this.drawCenteredString(this.font, new TranslatableText("minelights.gui.download.progress_title").getString(),
+                centerX, 40, 0xFFFFFF);
+        this.drawCenteredString(this.font, new TranslatableText("minelights.gui.download.info").getString(), centerX,
+                65, 0xFFFFFF);
+        this.drawCenteredString(this.font, this.statusMessage, centerX, this.height / 2 + 15, 0xFFFFFF);
 
         int barWidth = 300;
         int barHeight = 8;
@@ -86,13 +72,13 @@ public class DownloadProgressScreen extends Screen {
         int barY = this.height / 2;
         int fillWidth = (int) (barWidth * (this.progress.get() / 100.0f));
 
-        context.fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
-        context.fill(barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
+        fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF303030);
+        fill(barX, barY, barX + fillWidth, barY + barHeight, 0xFFFFFFFF);
     }
 
     @Override
-    public void close() {
-        this.client.setScreen(parent);
+    public void onClose() {
+        this.minecraft.openScreen(this.parent);
     }
 
     private String formatSpeed(long bytesPerSecond) {
@@ -120,8 +106,19 @@ public class DownloadProgressScreen extends Screen {
         if (speedString == null || speedString.isEmpty())
             speedString = "0 B/s";
 
-        statusWidget.setMessage(Text.literal(
-                String.format("%d%% (%s) — %s", progress.get(), speedString, eta)));
+        this.statusMessage = String.format("%d%% (%s) — %s", progress.get(), speedString, eta);
+    }
+
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
+
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     private String sha256(Path file) throws Exception {
@@ -133,11 +130,22 @@ public class DownloadProgressScreen extends Screen {
                 digest.update(buffer, 0, bytesRead);
             }
         }
-        return HexFormat.of().formatHex(digest.digest());
+        return bytesToHex(digest.digest());
+    }
+
+    private static String readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[4096];
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return new String(buffer.toByteArray());
     }
 
     private void downloadAndStartServer() {
         try {
+            status.set(Status.DOWNLOADING);
             URL apiUrl = URI.create("https://api.github.com/repos/megabytesme/MineLights/releases/tags/" + tagName)
                     .toURL();
             HttpURLConnection conn = (HttpURLConnection) apiUrl.openConnection();
@@ -145,12 +153,12 @@ public class DownloadProgressScreen extends Screen {
 
             String json;
             try (InputStream in = conn.getInputStream()) {
-                json = new String(in.readAllBytes());
+                json = readAllBytes(in);
             }
 
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.isEmpty())
+            if (assets.size() == 0)
                 throw new IOException("No assets found in release");
 
             JsonObject asset = assets.get(0).getAsJsonObject();
@@ -161,9 +169,8 @@ public class DownloadProgressScreen extends Screen {
             URL url = URI.create(downloadUrl).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "MineLights-Mod-Downloader/1.0");
-            connection.connect();
 
-            long totalFileSize = connection.getContentLengthLong();
+            long totalFileSize = connection.getContentLength();
             long totalBytesRead = 0;
             long lastTime = System.currentTimeMillis();
             long lastBytes = 0;
@@ -184,13 +191,7 @@ public class DownloadProgressScreen extends Screen {
                         downloadSpeed.set(formatSpeed(currentSpeed));
                         lastTime = currentTime;
                         lastBytes = totalBytesRead;
-
-                        final long fTotalFileSize = totalFileSize;
-                        final long fTotalBytesRead = totalBytesRead;
-                        final long fSpeed = currentSpeed;
-
-                        MinecraftClient.getInstance()
-                                .execute(() -> updateStatusWidget(fTotalFileSize, fTotalBytesRead, fSpeed));
+                        updateStatusWidget(totalFileSize, totalBytesRead, currentSpeed);
                     }
                 }
             }
@@ -201,8 +202,7 @@ public class DownloadProgressScreen extends Screen {
             }
 
             status.set(Status.STARTING);
-            MinecraftClient.getInstance().execute(
-                    () -> statusWidget.setMessage(Text.translatable("minelights.gui.download.status.starting")));
+            this.statusMessage = new TranslatableText("minelights.gui.download.status.starting").getString();
 
             if (MineLightsClient.serverMonitorThread != null)
                 MineLightsClient.serverMonitorThread.interrupt();
@@ -228,8 +228,7 @@ public class DownloadProgressScreen extends Screen {
                 MineLightsClient.LOGGER.info("Server is running. Refreshing device list.");
                 MineLightsClient.refreshLightingManager();
                 status.set(Status.SUCCESS);
-                MinecraftClient.getInstance().execute(
-                        () -> statusWidget.setMessage(Text.translatable("minelights.gui.download.status.success")));
+                this.statusMessage = new TranslatableText("minelights.gui.download.status.success").getString();
             } else {
                 throw new IOException("Server did not start within 10 seconds.");
             }
@@ -238,11 +237,10 @@ public class DownloadProgressScreen extends Screen {
             MineLightsClient.LOGGER.error("Failed during download, verification, or server start", e);
             errorMessage.set(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             status.set(Status.FAILED);
-            MinecraftClient.getInstance().execute(() -> statusWidget.setMessage(Text.translatable(
-                    "minelights.gui.download.status.failed",
-                    errorMessage.get())));
+            this.statusMessage = new TranslatableText("minelights.gui.download.status.failed", errorMessage.get())
+                    .getString();
         } finally {
-            MinecraftClient.getInstance().execute(() -> closeButton.active = true);
+            this.minecraft.execute(() -> this.closeButton.active = true);
         }
     }
 }

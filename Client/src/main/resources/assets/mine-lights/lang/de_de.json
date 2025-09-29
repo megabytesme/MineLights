@@ -80,5 +80,7 @@
   "minelights.gui.update.title": "MineLights-Server-Update verfügbar",
   "minelights.gui.update.info": "Ihre MineLights-Serverdatei ist veraltet oder beschädigt.\n\nMöchten Sie sie jetzt aktualisieren?",
   "minelights.gui.button.update_now": "Jetzt aktualisieren",
-  "minelights.gui.button.skip": "Überspringen"
+  "minelights.gui.button.skip": "Überspringen",
+  "gui.yes": "Ja",
+  "gui.no": "Nein"
 }
