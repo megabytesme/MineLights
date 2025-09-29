@@ -12,8 +12,8 @@ import megabytesme.minelights.effects.RGBColorDto;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.YeelightController;
 import net.minecraft.client.MinecraftClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LightingManager implements Runnable {
-    public static final Logger LOGGER = LoggerFactory.getLogger("MineLights-LM");
+    public static final Logger LOGGER = LogManager.getLogger("MineLights-LightingManager");
 
     private EffectPainter effectPainter;
     private final Gson gson = new Gson();
@@ -97,7 +97,7 @@ public class LightingManager implements Runnable {
 
                     String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
                     LOGGER.info("Successfully received handshake data of length: {}", jsonString.length());
-                    JsonObject handshakeData = JsonParser.parseString(jsonString).getAsJsonObject();
+                    JsonObject handshakeData = new JsonParser().parse(jsonString).getAsJsonObject();
 
                     parseHandshakeData(handshakeData);
                 } else {
@@ -196,8 +196,8 @@ public class LightingManager implements Runnable {
         }
         if (handshakeData.has("key_map")) {
             JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
-            for (String key : mapObject.keySet()) {
-                masterKeyMap.put(key, mapObject.get(key).getAsInt());
+            for (Map.Entry<String, JsonElement> entry : mapObject.entrySet()) {
+                masterKeyMap.put(entry.getKey(), entry.getValue().getAsInt());
             }
         }
     }

@@ -1,28 +1,25 @@
 {
   "schemaVersion": 1,
-  "id": "${mod_id}",
-  "version": "${mod_version}",
-  "name": "${mod_name}",
-  "description": "${mod_description}",
-  "authors": ["${mod_authors}"],
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": ["${authors}"],
   "contact": {
-    "homepage": "${mod_homepage}",
-    "sources": "${mod_sources}",
-    "issues": "${mod_issues}"
+    "homepage": "${homepage}",
+    "sources": "${sources}",
+    "issues": "${issues}"
   },
-  "license": "${mod_license}",
-  "icon": "${mod_icon}",
-  "environment": "${mod_environment}",
+  "license": "${license}",
+  "icon": "${icon}",
+  "environment": "${environment}",
   "entrypoints": {
     "client": ["megabytesme.minelights.MineLightsClient"],
     "modmenu": ["megabytesme.minelights.config.ModMenuIntegration"]
   },
   "mixins": [],
   "depends": {
-    "fabricloader": ">=${loader_version}",
-    "minecraft": "${minecraft_version_range}",
-    "java": ">=${java_version}",
-    "fabric-api": ">=${fabric_version}"
+    "minecraft": "${minecraft}"
   },
   "suggests": {},
   "custom": {
