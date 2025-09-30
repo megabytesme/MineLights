@@ -3,7 +3,9 @@ package megabytesme.minelights.config;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
+//? if >=1.16 {
 import net.minecraft.client.util.math.MatrixStack;
+//? }
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
@@ -16,7 +18,13 @@ public class LiveStatusEntry extends AbstractConfigListEntry<Text> {
     private final Supplier<Text> supplier;
 
     public LiveStatusEntry(String fieldName, Supplier<Text> supplier) {
+        //? if >=1.16 {
         super(new LiteralText(fieldName), false);
+        //? } else {
+        /*
+        super(new LiteralText(fieldName).getString(), false);
+        */
+        //? }
         this.supplier = supplier;
     }
 
@@ -53,12 +61,25 @@ public class LiveStatusEntry extends AbstractConfigListEntry<Text> {
         return Collections.emptyList();
     }
 
+    //? if >=1.16 {
     @Override
     public void render(MatrixStack matrices, int index, int y, int x,
                        int entryWidth, int entryHeight,
                        int mouseX, int mouseY,
                        boolean isHovered, float delta) {
+    //? } else {
+    /*
+    @Override
+    public void render(int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isHovered, float delta) {
+    */
+    //? }
         Text current = supplier.get();
+        //? if >=1.16 {
         MinecraftClient.getInstance().textRenderer.draw(matrices, current, x, y, 0xFFFFFF);
+        //? } else {
+        /*
+        MinecraftClient.getInstance().textRenderer.draw(current.asString(), (float)x, (float)y, 0xFFFFFF);
+        */
+        //? }
     }
 }
