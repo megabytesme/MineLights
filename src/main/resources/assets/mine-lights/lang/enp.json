@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "Drives a lookup with GitHub for the newest þénweard workfile and fetches it if needed.",
   "minelights.status.running": "Standing: Þénweard is running.",
   "minelights.status.not_running": "Standing: Þénweard is not running.",
-  "minelights.status.downloading": "Standing: Downloading... (%d%%)",
+  "minelights.status.downloading": "Standing: Loadin... %d/%d megabyte (%d%%) Left time: %s Speed: %s MB/s",
   "minelights.status.verifying": "Standing: Checking the download...",
   "minelights.status.starting": "Standing: Beginning the þénweard...",
   "minelights.status.success": "Standing: Download and beginning sped well!",

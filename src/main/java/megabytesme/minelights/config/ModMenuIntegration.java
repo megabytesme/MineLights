@@ -79,8 +79,18 @@ public class ModMenuIntegration implements ModMenuApi {
                                         MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
                                         switch (status) {
                                         case DOWNLOADING:
-                                                return new TranslatableText("minelights.status.downloading",
-                                                        MineLightsClient.downloadProgress.get());
+                                                long soFarMB = MineLightsClient.downloadBytesSoFar.get() / (1024 * 1024);
+                                                long totalMB = MineLightsClient.downloadTotalBytes.get() / (1024 * 1024);
+                                                String eta = MineLightsClient.downloadEta.get();
+                                                String speed = MineLightsClient.downloadSpeedMBps.get();
+                                                return new TranslatableText(
+                                                        "minelights.status.downloading",
+                                                        soFarMB,
+                                                        totalMB,
+                                                        MineLightsClient.downloadProgress.get(),
+                                                        eta,
+                                                        speed
+                                                );
                                         case VERIFYING:
                                                 return new TranslatableText("minelights.status.verifying");
                                         case SUCCESS:

@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "forces chk on guthib fur newezd servr file an downloads if it needz it.",
   "minelights.status.running": "Status: Servr iz runnin.",
   "minelights.status.not_running": "Status: Servr iz nappin.",
-  "minelights.status.downloading": "Status: Gettin teh filez... (%d%%)",
+  "minelights.status.downloading": "STETUS: gettin ur bytez... %d/%d MEOWB (%d%%) ETA: %s SPEEDY: %s MEOWB/s kthx",
   "minelights.status.verifying": "Status: Makin shur filez r gud...",
   "minelights.status.starting": "Status: Startin teh servr...",
   "minelights.status.success": "Status: Got filez an started! YAY!",

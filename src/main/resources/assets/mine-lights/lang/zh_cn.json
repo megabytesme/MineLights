@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "强制从GitHub检查最新的服务器可执行文件，并在需要时下载。",
   "minelights.status.running": "状态：服务器正在运行。",
   "minelights.status.not_running": "状态：服务器未运行。",
-  "minelights.status.downloading": "状态：正在下载... (%d%%)",
+  "minelights.status.downloading": "状态：正在下载... %d/%d MB（%d%%）预计剩余时间：%s 速度：%s MB/秒",
   "minelights.status.verifying": "状态：正在验证下载...",
   "minelights.status.starting": "状态：正在启动服务器...",
   "minelights.status.success": "状态：下载并启动成功！",

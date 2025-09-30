@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MineLightsClient implements ClientModInitializer {
@@ -63,6 +64,10 @@ public class MineLightsClient implements ClientModInitializer {
     public static final AtomicReference<DownloadStatus> downloadStatus = new AtomicReference<>(DownloadStatus.IDLE);
     public static final AtomicInteger downloadProgress = new AtomicInteger(0);
     public static final AtomicReference<String> downloadError = new AtomicReference<>("");
+    public static final AtomicLong downloadBytesSoFar = new AtomicLong(0);
+    public static final AtomicLong downloadTotalBytes = new AtomicLong(0);
+    public static final AtomicReference<String> downloadEta = new AtomicReference<>("");
+    public static final AtomicReference<String> downloadSpeedMBps = new AtomicReference<>("");
     private static Process serverProcess = null;
 
     @Override
@@ -230,20 +235,45 @@ public class MineLightsClient implements ClientModInitializer {
 
             long totalFileSize = connection.getContentLengthLong();
             long totalBytesRead = 0;
+            downloadTotalBytes.set(totalFileSize);
+            downloadBytesSoFar.set(0);
+            long startTime = System.nanoTime();
 
             try (InputStream inputStream = connection.getInputStream();
-                 FileOutputStream outputStream = new FileOutputStream(destination.toFile())) {
+                FileOutputStream outputStream = new FileOutputStream(destination.toFile())) {
                 byte[] buffer = new byte[8192];
                 int bytesRead;
+                long lastBytesRead = 0;
+                long lastTimeCheck = startTime;
+
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
+                    downloadBytesSoFar.set(totalBytesRead);
+
                     if (totalFileSize > 0) {
                         downloadProgress.set((int) ((totalBytesRead * 100) / totalFileSize));
                     }
+
+                    double secondsElapsed = (System.nanoTime() - startTime) / 1_000_000_000.0;
+                    if (secondsElapsed > 0 && totalFileSize > 0) {
+                        double bytesPerSecond = totalBytesRead / secondsElapsed;
+                        long secondsRemaining = (long) ((totalFileSize - totalBytesRead) / bytesPerSecond);
+                        downloadEta.set(formatEta(secondsRemaining));
+                    }
+
+                    long now = System.nanoTime();
+                    double intervalSeconds = (now - lastTimeCheck) / 1_000_000_000.0;
+                    if (intervalSeconds >= 1.0) {
+                        long bytesInInterval = totalBytesRead - lastBytesRead;
+                        double mbps = bytesInInterval / (1024.0 * 1024.0) / intervalSeconds;
+                        downloadSpeedMBps.set(String.format("%.2f", mbps));
+                        lastBytesRead = totalBytesRead;
+                        lastTimeCheck = now;
+                    }
                 }
             }
-            
+
             downloadStatus.set(DownloadStatus.VERIFYING);
             String actualHash = sha256(destination);
             if (!expectedHash.isEmpty() && !actualHash.equalsIgnoreCase(expectedHash)) {
@@ -260,6 +290,12 @@ public class MineLightsClient implements ClientModInitializer {
             downloadStatus.set(DownloadStatus.FAILED);
             return false;
         }
+    }
+
+    private static String formatEta(long seconds) {
+        long mins = seconds / 60;
+        long secs = seconds % 60;
+        return String.format("%dm %ds", mins, secs);
     }
 
     private void initializeServerConnection() {
