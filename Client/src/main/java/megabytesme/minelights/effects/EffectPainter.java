@@ -5,10 +5,9 @@ import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
 import net.minecraft.client.MinecraftClient;
-
 //? if >=1.17 {
-/*import net.minecraft.client.option.GameOptions;
-*///?} else {
+import net.minecraft.client.option.GameOptions;
+//?} else {
 /* import net.minecraft.client.options.GameOptions;
 *///?}
 import java.util.ArrayList;
@@ -489,9 +488,19 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
-        //? if >=1.16 {
+        GameOptions options = MinecraftClient.getInstance().options;
+        //? if >= 1.19 {
+        keybindsToFetch = Arrays.asList(
+            options.forwardKey.getBoundKeyTranslationKey(),
+            options.backKey.getBoundKeyTranslationKey(),
+            options.leftKey.getBoundKeyTranslationKey(),
+            options.rightKey.getBoundKeyTranslationKey(),
+            options.jumpKey.getBoundKeyTranslationKey(),
+            options.sneakKey.getBoundKeyTranslationKey(),
+            options.sprintKey.getBoundKeyTranslationKey()
+        );
+        //?} else if >=1.16 {
         /* 
-         GameOptions options = MinecraftClient.getInstance().options;
          keybindsToFetch = Arrays.asList(
          options.keyForward.getBoundKeyTranslationKey(),
          options.keyBack.getBoundKeyTranslationKey(),
@@ -502,15 +511,15 @@ public class EffectPainter {
          options.keySprint.getBoundKeyTranslationKey());
         *///?} else {
         /*
-         GameOptions options = MinecraftClient.getInstance().options; 
-         keybindsToFetch = Arrays.asList(
-         options.keyForward.getDefaultKeyCode().toString(),
-         options.keyBack.getDefaultKeyCode().toString(),
-         options.keyLeft.getDefaultKeyCode().toString(),
-         options.keyRight.getDefaultKeyCode().toString(),
-         options.keyJump.getDefaultKeyCode().toString(),
-         options.keySneak.getDefaultKeyCode().toString(),
-         options.keySprint.getDefaultKeyCode().toString());
+        keybindsToFetch = Arrays.asList(
+            options.keyForward.getDefaultKeyCode().toString(),
+            options.keyBack.getDefaultKeyCode().toString(),
+            options.keyLeft.getDefaultKeyCode().toString(),
+            options.keyRight.getDefaultKeyCode().toString(),
+            options.keyJump.getDefaultKeyCode().toString(),
+            options.keySneak.getDefaultKeyCode().toString(),
+            options.keySprint.getDefaultKeyCode().toString()
+        );
         *///?}
 
         for (String key : keybindsToFetch) {

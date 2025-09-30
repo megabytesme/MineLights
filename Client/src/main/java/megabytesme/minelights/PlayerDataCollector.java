@@ -17,7 +17,11 @@ import net.minecraft.nbt.NbtCompound;
 *///?}
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
+//? if >=1.20 {
+import net.minecraft.registry.Registry;
+//?} else {
+/* import net.minecraft.util.registry.Registry;
+*///?}
 //? if >=1.16 {
 import net.minecraft.world.World;
 //?}
@@ -112,7 +116,7 @@ public class PlayerDataCollector {
 
         BlockPos targetPos = getCompassTargetPos(result.stack, player, world);
 
-        if (targetPos != null && !(targetPos.getSquaredDistance(new BlockPos(player.getPos())) < 1.0E-5)) {
+        if (targetPos != null && !(targetPos.getSquaredDistance(player.getBlockPos()) < 1.0E-5)) {
             setCompassTarget(dto, player, targetPos);
         } else {
             dto.setCompassState(CompassState.SPINNING);
