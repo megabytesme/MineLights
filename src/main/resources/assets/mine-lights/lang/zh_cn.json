@@ -43,6 +43,7 @@
   "enum.mine-lights.compassPriority.priority": "物品栏顺序",
   "enum.mine-lights.compassPriority.standard_first": "标准指南针优先",
   "enum.mine-lights.compassPriority.recovery_first": "追溯指针优先",
+  "enum.mine-lights.compassPriority.lodestone_first": "磁石优先",
   "option.mine-lights.enableLowHealthWarning": "启用低生命值警告",
   "option.mine-lights.highlightMovementKeys": "高亮移动键",
   "option.mine-lights.highlightMovementKeys.tooltip": "高亮显示WASD、冲刺、潜行和跳跃键。",

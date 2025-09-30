@@ -43,6 +43,7 @@
   "enum.mine-lights.compassPriority.priority": "Order o' Plunder",
   "enum.mine-lights.compassPriority.standard_first": "Ol' Reliable First",
   "enum.mine-lights.compassPriority.recovery_first": "Davy Jones' Locker Chart First",
+  "enum.mine-lights.compassPriority.lodestone_first": "Lodestone Foremost",
   "option.mine-lights.enableLowHealthWarning": "Warn Me When I'm Scurvy-Ridden",
   "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",
   "option.mine-lights.highlightMovementKeys.tooltip": "Highlights WASD, Sprint, Sneak, an' Jump keys.",

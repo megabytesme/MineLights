@@ -43,6 +43,7 @@
   "enum.mine-lights.compassPriority.priority": "INVENTORY ORDER",
   "enum.mine-lights.compassPriority.standard_first": "STANDARD FURST",
   "enum.mine-lights.compassPriority.recovery_first": "RECOVERY FURST",
+  "enum.mine-lights.compassPriority.lodestone_first": "LODESTONE FURST",
   "option.mine-lights.enableLowHealthWarning": "ENABL LOW HEALTH WARNIN",
   "option.mine-lights.highlightMovementKeys": "HIGHLIGHT MOVE KEYZ",
   "option.mine-lights.highlightMovementKeys.tooltip": "highlightz WASD, Sprint, Sneak, an Jump keyz.",

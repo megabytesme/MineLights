@@ -43,6 +43,7 @@
   "enum.mine-lights.compassPriority.priority": "Order of the Satchel",
   "enum.mine-lights.compassPriority.standard_first": "Standard Compass First",
   "enum.mine-lights.compassPriority.recovery_first": "Recovery Compass First",
+  "enum.mine-lights.compassPriority.lodestone_first": "Lodestone Foremost",
   "option.mine-lights.enableLowHealthWarning": "Give Warning of Low Health",
   "option.mine-lights.highlightMovementKeys": "Make Bright the Keys of Movement",
   "option.mine-lights.highlightMovementKeys.tooltip": "Maketh bright the keys of WASD, Sprint, Sneak, and Jump.",
