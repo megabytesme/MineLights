@@ -46,14 +46,12 @@ public class PlayerDataCollector {
         playerDto.setExperience(player.experienceProgress);
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
-        playerDto.setCurrentBiome(Registry.BIOME.getId(world.getBiome(player.getBlockPos())).toString());
-
+        playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).toString());
+        
         //? if <=1.14.3 {
         /* playerDto.setCurrentWorld(Registry.DIMENSION_TYPE.getId(world.getDimension().getType()).toString());
-        *///?} else if 1.14.4 {
-        /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension().getType()).toString());
         *///?} else if <1.16 {
-        /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension()).toString());
+        /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension().getType()).toString());
         *///?} else {
         /* playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
         *///?}
