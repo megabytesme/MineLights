@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "˙pǝpǝǝu ɟᴉ ʇᴉ spɐolunop puɐ ǝlqɐʇnɔǝxǝ ɹǝʌɹǝs ʇsǝʇɐl ǝɥʇ ɹoɟ qnɥʇᴉפ ʇsuᴉɐƃɐ ʞɔǝɥɔ ɐ sǝɔɹoℲ",
   "minelights.status.running": "˙ƃuᴉuunɹ sᴉ ɹǝʌɹǝS :snʇɐʇS",
   "minelights.status.not_running": "˙ƃuᴉuunɹ ʇou sᴉ ɹǝʌɹǝS :snʇɐʇS",
-  "minelights.status.downloading": ")%%p%( ˙˙˙ƃuᴉpɐolunop :snʇɐʇS",
+  "minelights.status.downloading": "ʇnʇɐʇS :ƃuᴉpɐolʍuoᗡ... %d/%d ᗺW (%d%%) ⅄⊥Ǝ :%s pǝǝds :%s ᗺW/s",
   "minelights.status.verifying": "˙˙˙pɐolunop ƃuᴉʎɟᴉɹǝΛ :snʇɐʇS",
   "minelights.status.starting": "˙˙˙ɹǝʌɹǝs ƃuᴉʇɹɐʇS :snʇɐʇS",
   "minelights.status.success": "¡lnɟssǝɔɔns ʇɹɐʇs puɐ pɐolunop :snʇɐʇS",

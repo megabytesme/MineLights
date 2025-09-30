@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "Forces a check against GitHub for the latest server executable and downloads it if needed.",
   "minelights.status.running": "Status: Server is running.",
   "minelights.status.not_running": "Status: Server is not running.",
-  "minelights.status.downloading": "Status: Downloading... (%d%%)",
+  "minelights.status.downloading": "Status: Downloading... %d/%d MB (%d%%) ETA: %s Speed: %s MB/s",
   "minelights.status.verifying": "Status: Verifying download...",
   "minelights.status.starting": "Status: Starting server...",
   "minelights.status.success": "Status: Download and start successful!",

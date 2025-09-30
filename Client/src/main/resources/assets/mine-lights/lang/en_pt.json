@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "Forces a parley with the GitHub galleon for the latest server treasure map and plunders it if need be.",
   "minelights.status.running": "Status: The ship be sailin'.",
   "minelights.status.not_running": "Status: The ship be docked.",
-  "minelights.status.downloading": "Status: Plunderin' the loot... (%d%%)",
+  "minelights.status.downloading": "Status: Plunderin'... %d/%d MB o' booty (%d%%) ETA: %s Speed: %s MB/s",
   "minelights.status.verifying": "Status: Countin' the gold...",
   "minelights.status.starting": "Status: Raisin' the anchor...",
   "minelights.status.success": "Status: Heave ho! The treasure be ours!",

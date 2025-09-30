@@ -70,7 +70,7 @@
   "option.mine-lights.force_update.tooltip": "It doth compel a query to GitHub for the latest server executable, and, if need be, downloads it forthwith.",
   "minelights.status.running": "State: The server doth run apace.",
   "minelights.status.not_running": "State: The server lies dormant.",
-  "minelights.status.downloading": "State: Acquiring the file... (%d%%)",
+  "minelights.status.downloading": "State: 'tis fetching... %d of %d megabytes (%d%%) Time till completion: %s Pace: %s MB/s",
   "minelights.status.verifying": "State: Pray, confirming the acquisition...",
   "minelights.status.starting": "State: The server commences...",
   "minelights.status.success": "State: The download and commencement hath met with success!",
