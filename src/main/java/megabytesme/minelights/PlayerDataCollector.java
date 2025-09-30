@@ -10,8 +10,8 @@ import net.minecraft.item.Items;
 //? if <=1.16.5 {
 /* import net.minecraft.nbt.CompoundTag;
 *///?} else {
-/* import net.minecraft.nbt.NbtCompound;
-*///?}
+import net.minecraft.nbt.NbtCompound;
+//?}
 //? if >=1.16 {
 /* import net.minecraft.util.dynamic.GlobalPos;
 *///?}
@@ -130,11 +130,13 @@ public class PlayerDataCollector {
         stacksToCheck.add(player.getMainHandStack());
         stacksToCheck.add(player.getOffHandStack());
         for (int i = 0; i < 36; i++) {
-            //? if >=1.16 {
-            /* stacksToCheck.add(player.inventory.getStack(i));
-            *///?} else {
-            /* stacksToCheck.add(player.inventory.getInvStack(i));
-            *///?}
+        //? if >=1.17 {
+        stacksToCheck.add(player.getInventory().getStack(i));
+        //?} else if >=1.16 {
+        /* stacksToCheck.add(player.inventory.getStack(i));
+        *///?} else {
+        /* stacksToCheck.add(player.inventory.getInvStack(i));
+        *///?}
         }
 
         for (ItemStack stack : stacksToCheck) {
@@ -146,12 +148,19 @@ public class PlayerDataCollector {
     }
 
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
-        if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
+            //? if <=1.18.2 {
+            /* if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
+            *///?} else {
+            if (stack.getItem() == Items.COMPASS && stack.hasNbt()) {
+            //?}            
             //? if <=1.16.5 {
             /* CompoundTag tag = stack.getTag();
-            *///?} else {
+            *///?} else if <1.18 {
             /* NbtCompound tag = stack.getTag();
-            *///?}
+            *///?} else {
+            NbtCompound tag = stack.getNbt();
+            //?}
+
             //? if <=1.14.3 {
             /* if (tag != null && tag.containsKey("LodestoneDimension")) {
                 CompoundTag posTag = tag.getCompound("LodestonePos");
@@ -163,11 +172,11 @@ public class PlayerDataCollector {
                 return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
             }
             *///?} else {
-            /* if (tag != null && tag.containsKey("LodestonePos")) {
-                CompoundTag posTag = tag.getCompound("LodestonePos");
+            if (tag != null && tag.contains("LodestonePos")) {
+                NbtCompound posTag = tag.getCompound("LodestonePos");
                 return new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z"));
             }
-            *///?}
+            //?}
         }
         return world.getSpawnPos();
     }
@@ -186,7 +195,6 @@ public class PlayerDataCollector {
         /* relativeYaw = (targetYaw - player.yaw);
         *///?} else {
         /* relativeYaw = (targetYaw - player.getYaw());
-            CompoundTag tag = stack.getTag();
         *///?}
         while (relativeYaw <= -180.0D)
             relativeYaw += 360.0D;
