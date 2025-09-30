@@ -43,6 +43,7 @@
   "enum.mine-lights.compassPriority.priority": "Inventar-Reihenfolge",
   "enum.mine-lights.compassPriority.standard_first": "Standard zuerst",
   "enum.mine-lights.compassPriority.recovery_first": "Bergungskompass zuerst",
+  "enum.mine-lights.compassPriority.lodestone_first": "Magnetstein zuerst",
   "option.mine-lights.enableLowHealthWarning": "Warnung bei niedrigem Leben aktivieren",
   "option.mine-lights.highlightMovementKeys": "Bewegungstasten hervorheben",
   "option.mine-lights.highlightMovementKeys.tooltip": "Hebt WASD, Sprinten, Schleichen und Springen hervor.",

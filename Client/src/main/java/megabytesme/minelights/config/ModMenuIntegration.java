@@ -804,6 +804,44 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
                 .build());
+
+        //? if >=1.19 {
+        CompassPriority initial = MineLightsClient.CONFIG.compassPriority != null
+                ? MineLightsClient.CONFIG.compassPriority
+                : CompassPriority.PRIORITY;
+
+        playerStatus.addEntry(entryBuilder
+                .startEnumSelector(Text.translatable("option.mine-lights.compassPriority"),
+                                CompassPriority.class,
+                                initial)
+                .setDefaultValue(CompassPriority.PRIORITY)
+                .setEnumNameProvider((value) -> Text.translatable("enum.mine-lights.compassPriority." + value.toString().toLowerCase()))
+                .setTooltip(Text.translatable("option.mine-lights.compassPriority.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassPriority = newValue)
+                .build());
+        //?} else if >=1.16 {
+        /*
+        CompassPriority initial = MineLightsClient.CONFIG.compassPriority != null
+                ? MineLightsClient.CONFIG.compassPriority
+                : CompassPriority.PRIORITY;
+        playerStatus.addEntry(entryBuilder
+                .startEnumSelector(
+                        new TranslatableText("option.mine-lights.compassPriority"),
+                        CompassPriority.class,
+                        initial)
+                        .setDefaultValue(CompassPriority.PRIORITY)                
+                        .setEnumNameProvider((value) -> {
+                String key = "enum.mine-lights.compassPriority." + value.toString().toLowerCase();
+                return new TranslatableText(key);
+                })
+                .setTooltip(
+                new TranslatableText("option.mine-lights.compassPriority.tooltip")
+                )
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.compassPriority = newValue)
+                .build());
+         */
+        //?}
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {

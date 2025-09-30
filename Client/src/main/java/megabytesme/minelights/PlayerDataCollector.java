@@ -130,52 +130,91 @@ public class PlayerDataCollector {
     }
 
     private static CompassFindResult findCompass(PlayerEntity player) {
-        List<ItemStack> stacksToCheck = new ArrayList<>();
-        stacksToCheck.add(player.getMainHandStack());
-        stacksToCheck.add(player.getOffHandStack());
+        //? if >=1.16 {
+        List<CompassFindResult> foundCompasses = new ArrayList<>();
+        List<ItemStack> inventory = new ArrayList<>();
+        inventory.add(player.getMainHandStack());
+        inventory.add(player.getOffHandStack());
         for (int i = 0; i < 36; i++) {
-        //? if >=1.17 {
-        stacksToCheck.add(player.getInventory().getStack(i));
-        //?} else if >=1.16 {
-        /* stacksToCheck.add(player.inventory.getStack(i));
-        *///?} else {
-        /* stacksToCheck.add(player.inventory.getInvStack(i));
-        *///?}
+            //? if >=1.17 {
+            inventory.add(player.getInventory().getStack(i));
+            //?} else {
+            /* inventory.add(player.inventory.getStack(i));
+            *///?}
         }
 
-        for (ItemStack stack : stacksToCheck) {
+        for (ItemStack stack : inventory) {
+            if (stack.isEmpty()) continue;
+
             //? if >=1.19 {
             if (stack.getItem() == Items.RECOVERY_COMPASS) {
-                return new CompassFindResult(stack, CompassType.RECOVERY);
+                foundCompasses.add(new CompassFindResult(stack, CompassType.RECOVERY));
+                continue;
             }
             //?}
+
             if (stack.getItem() == Items.COMPASS) {
+                boolean isLodestone = false;
                 //? if >= 1.18 {
                 if (stack.hasNbt()) {
                     NbtCompound tag = stack.getNbt();
-                    if (tag != null && tag.contains("LodestonePos")) {
-                        return new CompassFindResult(stack, CompassType.LODESTONE);
-                    }
+                    if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
                 }
                 //?} else if >= 1.17 {
                 /* if (stack.hasTag()) {
                     NbtCompound tag = stack.getTag();
-                    if (tag != null && tag.contains("LodestonePos")) {
-                        return new CompassFindResult(stack, CompassType.LODESTONE);
-                    }
+                    if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
                 }
-                *///?} else if >= 1.16 {
+                *///?} else {
                 /* if (stack.hasTag()) {
                     CompoundTag tag = stack.getTag();
-                    if (tag != null && tag.contains("LodestonePos")) {
-                        return new CompassFindResult(stack, CompassType.LODESTONE);
-                    }
+                    if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
                 }
                 *///?}
+                
+                if (isLodestone) {
+                    foundCompasses.add(new CompassFindResult(stack, CompassType.LODESTONE));
+                } else {
+                    foundCompasses.add(new CompassFindResult(stack, CompassType.STANDARD));
+                }
+            }
+        }
+
+        if (foundCompasses.isEmpty()) {
+            return null;
+        }
+        if (foundCompasses.size() == 1) {
+            return foundCompasses.get(0);
+        }
+
+        switch (MineLightsClient.CONFIG.compassPriority) {
+            case STANDARD_FIRST:
+                return foundCompasses.stream().filter(r -> r.type == CompassType.STANDARD).findFirst().orElse(foundCompasses.get(0));
+            case LODESTONE_FIRST:
+                return foundCompasses.stream().filter(r -> r.type == CompassType.LODESTONE).findFirst().orElse(foundCompasses.get(0));
+            //? if >=1.19 {
+            case RECOVERY_FIRST:
+                return foundCompasses.stream().filter(r -> r.type == CompassType.RECOVERY).findFirst().orElse(foundCompasses.get(0));
+            //?}
+            case PRIORITY:
+            default:
+                return foundCompasses.get(0);
+        }
+        //?} else {
+        /*
+        List<ItemStack> stacksToCheck = new ArrayList<>();
+        stacksToCheck.add(player.getMainHandStack());
+        stacksToCheck.add(player.getOffHandStack());
+        for (int i = 0; i < 36; i++) {
+            stacksToCheck.add(player.inventory.getInvStack(i));
+        }
+        for (ItemStack stack : stacksToCheck) {
+            if (stack.getItem() == Items.COMPASS) {
                 return new CompassFindResult(stack, CompassType.STANDARD);
             }
         }
         return null;
+        *///?}
     }
 
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
