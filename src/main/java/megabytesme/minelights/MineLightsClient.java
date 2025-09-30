@@ -13,10 +13,12 @@ import net.minecraft.client.gui.screen.TitleScreen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
@@ -24,6 +26,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
+    public static final List<String> serverLogLines = Collections.synchronizedList(new ArrayList<>());
     public static MineLightsConfig CONFIG;
     private static SimpleJsonConfig CONFIG_MANAGER;
     private static LightingManager lightingManager;
@@ -380,11 +385,32 @@ public class MineLightsClient implements ClientModInitializer {
 
         try {
             LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
+            serverLogLines.clear();
+
             ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString());
             pb.directory(serverExePath.getParent().toFile());
-            pb.inheritIO();
-            
+            pb.redirectErrorStream(true);
             serverProcess = pb.start();
+            DateTimeFormatter tsFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(serverProcess.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String ts = LocalTime.now().format(tsFormat);
+                        String stamped = "[" + ts + "] " + line;
+
+                        LOGGER.info("[MineLights.exe] {}", stamped);
+
+                        synchronized (serverLogLines) {
+                            serverLogLines.add(0, stamped);
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Error reading server log", e);
+                }
+            }, "MineLights-Server-Log-Reader").start();
         } catch (IOException e) {
             LOGGER.warn("Failed to start MineLights.exe process: {}", e.getMessage());
             serverProcess = null;
