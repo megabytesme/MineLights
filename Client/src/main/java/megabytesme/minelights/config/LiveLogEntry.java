@@ -73,7 +73,7 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
     }
     //?}
 
-    //? if >=1.15 {
+    //? if >=1.16 {
     @Override
     public void render(MatrixStack matrices, int index, int y, int x,
                        int entryWidth, int entryHeight,
@@ -83,7 +83,7 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
     }
     //?}
 
-    //? if <1.15 {
+    //? if <=1.15 {
     /*
     @Override
     public void render(int index, int y, int x,
@@ -132,11 +132,11 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
             int thumbHeight = Math.max(10, (int) ((scrollbarHeight / (float) (wrappedLinesCache.size() * 10)) * scrollbarHeight));
             int thumbY = y + (int) (((float) scrollY / maxScroll) * (scrollbarHeight - thumbHeight));
 
-            //? if >=1.15 {
+            //? if >=1.16 {
             DrawableHelper.fill((MatrixStack) matrices, scrollbarX, y, scrollbarX + 5, y + scrollbarHeight, 0xFF000000);
             DrawableHelper.fill((MatrixStack) matrices, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight, 0xFF888888);
             //?}
-            //? if <1.15 {
+            //? if <=1.15 {
             /*
             DrawableHelper.fill(scrollbarX, y, scrollbarX + 5, y + scrollbarHeight, 0xFF000000);
             DrawableHelper.fill(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight, 0xFF888888);
