@@ -9,7 +9,9 @@ import net.minecraft.client.gui.Selectable;
 //? if >=1.16 {
 import net.minecraft.client.util.math.MatrixStack;
 //?}
-import net.minecraft.text.LiteralText;
+//? if <1.19 {
+/*import net.minecraft.text.LiteralText;
+*///?}
 import net.minecraft.text.Text;
 
 import java.util.Collections;
@@ -21,9 +23,12 @@ public class LiveStatusEntry extends AbstractConfigListEntry<Text> {
     private final Supplier<Text> supplier;
 
     public LiveStatusEntry(String fieldName, Supplier<Text> supplier) {
-        //? if >=1.16 {
-        super(new LiteralText(fieldName), false);
+        //? if >=1.19 {
+        super(Text.literal(fieldName), false);
         //?}
+        //? if >=1.16 {
+        /*super(new LiteralText(fieldName), false);
+        *///?}
         //? if <1.16 {
         /*
         super(fieldName, false);
