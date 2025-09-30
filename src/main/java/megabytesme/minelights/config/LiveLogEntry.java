@@ -3,15 +3,16 @@ package megabytesme.minelights.config;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 //? if >=1.16.3 {
 import net.minecraft.client.gui.Selectable;
 //?}
-//? if >=1.16 {
+//? if >=1.15 {
 import net.minecraft.client.util.math.MatrixStack;
 //?}
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +21,9 @@ import java.util.Optional;
 
 public class LiveLogEntry extends AbstractConfigListEntry<String> {
     private final List<String> logLines;
+    private int scrollY = 0;
+    private int lastEntryWidth = 0;
+    private List<String> wrappedLinesCache = new ArrayList<>();
 
     public LiveLogEntry(String fieldName, List<String> logLines) {
         //? if >=1.16 {
@@ -31,6 +35,14 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
         */
         //?}
         this.logLines = logLines;
+    }
+    
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        int maxScroll = Math.max(0, (wrappedLinesCache.size() * 10) - getItemHeight());
+        scrollY -= (int) (amount * 10);
+        scrollY = MathHelper.clamp(scrollY, 0, maxScroll);
+        return true;
     }
 
     @Override
@@ -61,54 +73,75 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
     }
     //?}
 
-    //? if >=1.16 {
+    //? if >=1.15 {
     @Override
     public void render(MatrixStack matrices, int index, int y, int x,
                        int entryWidth, int entryHeight,
                        int mouseX, int mouseY,
                        boolean isHovered, float delta) {
-        renderLog(matrices, x, y, entryWidth);
+        renderLog(matrices, x, y, entryWidth, entryHeight);
     }
     //?}
 
-    //? if <1.16 {
+    //? if <1.15 {
     /*
     @Override
     public void render(int index, int y, int x,
                        int entryWidth, int entryHeight,
                        int mouseX, int mouseY,
                        boolean isHovered, float delta) {
-        renderLog(null, x, y, entryWidth);
+        renderLog(null, x, y, entryWidth, entryHeight);
     }
     */
     //?}
 
-    private void renderLog(Object matrices, int x, int y, int entryWidth) {
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-        int maxLines = 50;
-        int startX = x + 2;
-        int startY = y + 2;
-
-        synchronized (logLines) {
-            int lineCount = 0;
-            for (int i = logLines.size() - 1; i >= 0 && lineCount < maxLines; i--) {
-                String raw = logLines.get(i);
-                List<String> wrapped = wrapString(raw, entryWidth - 10);
-
-                for (int j = 0; j < wrapped.size() && lineCount < maxLines; j++) {
-                    String part = wrapped.get(j);
-                    int currentY = startY + (lineCount * 10);
-                    //? if >=1.16 {
-                    textRenderer.draw((MatrixStack) matrices, part, startX, currentY, 0xFFFFFF);
-                    //? }
-                    //? if <1.16 {
-                    /*
-                    textRenderer.draw(part, (float) startX, (float) currentY, 0xFFFFFF);
-                    */
-                    //? }
-                    lineCount++;
+    private void renderLog(Object matrices, int x, int y, int entryWidth, int entryHeight) {
+        if (entryWidth != lastEntryWidth) {
+            lastEntryWidth = entryWidth;
+            wrappedLinesCache.clear();
+            synchronized (logLines) {
+                for (String raw : logLines) {
+                    wrappedLinesCache.addAll(wrapString(raw, entryWidth - 15));
                 }
             }
+        }
+
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        int maxScroll = Math.max(0, (wrappedLinesCache.size() * 10) - entryHeight);
+        scrollY = MathHelper.clamp(scrollY, 0, maxScroll);
+
+        int startX = x + 2;
+        for (int i = 0; i < wrappedLinesCache.size(); i++) {
+            int lineY = y + 2 + (i * 10) - scrollY;
+            if (lineY >= y && lineY < y + entryHeight - 5) {
+                String part = wrappedLinesCache.get(i);
+                //? if >=1.16 {
+                textRenderer.draw((MatrixStack) matrices, part, startX, lineY, 0xFFFFFF);
+                //?}
+                //? if <1.16 {
+                /*
+                textRenderer.draw(part, (float) startX, (float) lineY, 0xFFFFFF);
+                */
+                //?}
+            }
+        }
+
+        if (maxScroll > 0) {
+            int scrollbarX = x + entryWidth - 6;
+            int scrollbarHeight = entryHeight;
+            int thumbHeight = Math.max(10, (int) ((scrollbarHeight / (float) (wrappedLinesCache.size() * 10)) * scrollbarHeight));
+            int thumbY = y + (int) (((float) scrollY / maxScroll) * (scrollbarHeight - thumbHeight));
+
+            //? if >=1.15 {
+            DrawableHelper.fill((MatrixStack) matrices, scrollbarX, y, scrollbarX + 5, y + scrollbarHeight, 0xFF000000);
+            DrawableHelper.fill((MatrixStack) matrices, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight, 0xFF888888);
+            //?}
+            //? if <1.15 {
+            /*
+            DrawableHelper.fill(scrollbarX, y, scrollbarX + 5, y + scrollbarHeight, 0xFF000000);
+            DrawableHelper.fill(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight, 0xFF888888);
+            */
+            //?}
         }
     }
 
