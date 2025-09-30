@@ -18,4 +18,4 @@ stonecutter {
     }
 }
 
-rootProject.name = "Template"
+rootProject.name = "MineLights"
