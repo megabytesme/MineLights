@@ -25,6 +25,9 @@ import net.minecraft.world.dimension.DimensionType;
 
 import java.util.ArrayList;
 import java.util.List;
+//? if >=1.19 {
+import java.util.Optional;
+//?}
 
 public class PlayerDataCollector {
     public static PlayerDto getCurrentState(MinecraftClient client) {
@@ -57,8 +60,8 @@ public class PlayerDataCollector {
         *///?} else if <1.16 {
         /* playerDto.setCurrentWorld(Registry.DIMENSION.getId(world.getDimension().getType()).toString());
         *///?} else {
-        /* playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
-        *///?}
+        playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
+        //?}
         playerDto.setIsOnFire(player.isOnFire());
         playerDto.setIsPoisoned(player.hasStatusEffect(StatusEffects.POISON));
         playerDto.setIsWithering(player.hasStatusEffect(StatusEffects.WITHER));
@@ -143,16 +146,34 @@ public class PlayerDataCollector {
             if (stack.getItem() == Items.COMPASS) {
                 return new CompassFindResult(stack, CompassType.STANDARD);
             }
+            //? if >=1.19 {
+            if (stack.getItem() == Items.RECOVERY_COMPASS) {
+                return new CompassFindResult(stack, CompassType.RECOVERY);
+            }
+            //?}
         }
         return null;
     }
 
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
-            //? if <=1.18.2 {
-            /* if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
-            *///?} else {
-            if (stack.getItem() == Items.COMPASS && stack.hasNbt()) {
-            //?}            
+        //? if >=1.19 {
+        if (stack.getItem() == Items.RECOVERY_COMPASS) {
+            Optional<net.minecraft.util.math.GlobalPos> lastDeathPos = holder.getLastDeathPos();
+            if (lastDeathPos.isPresent()) {
+                net.minecraft.util.math.GlobalPos pos = lastDeathPos.get();
+                if (pos.getDimension().equals(world.getRegistryKey())) {
+                    return pos.getPos();
+                }
+            }
+            return null;
+        }
+        //?}
+
+        //? if <=1.18.2 {
+        /* if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
+        *///?} else {
+        if (stack.getItem() == Items.COMPASS && stack.hasNbt()) {
+        //?}
             //? if <=1.16.5 {
             /* CompoundTag tag = stack.getTag();
             *///?} else if <1.18 {
@@ -190,12 +211,14 @@ public class PlayerDataCollector {
 
         double targetYaw = Math.toDegrees(Math.atan2(-deltaX, deltaZ));
 
-        double relativeYaw = 0;
+        double playerYaw;
         //? if <=1.16.5 {
-        /* relativeYaw = (targetYaw - player.yaw);
+        /* playerYaw = player.yaw;
         *///?} else {
-        /* relativeYaw = (targetYaw - player.getYaw());
-        *///?}
+        playerYaw = player.getYaw();
+        //?}
+
+        double relativeYaw = targetYaw - playerYaw;
         while (relativeYaw <= -180.0D)
             relativeYaw += 360.0D;
         while (relativeYaw > 180.0D)
