@@ -19,9 +19,11 @@ import megabytesme.minelights.config.LiveLogEntry;
 import megabytesme.minelights.config.LiveStatusEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+//? if <1.19 {
+/*import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
+*///?}
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.util.Comparator;
@@ -53,10 +55,15 @@ public class ModMenuIntegration implements ModMenuApi {
     private Screen buildConfigScreen(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(new TranslatableText("title.mine-lights.config")
-                    //? if <1.16 {
-                    /* .getString()
-                    *///? }
+                .setTitle(
+                //? if >=1.19 {
+                Text.translatable("title.mine-lights.config")
+                //?} else if <1.19 {
+                /*new TranslatableText("title.mine-lights.config")
+                *///?}
+                //? if <1.16 {
+                /* .getString()
+                *///? }
                 );
 
         builder.setSavingRunnable(() -> {
@@ -100,7 +107,14 @@ public class ModMenuIntegration implements ModMenuApi {
                     try {
                         Thread.sleep(1000);
                         MinecraftClient.getInstance().execute(() -> {
+                            //? if >=1.19 {
+                            MinecraftClient.getInstance().setScreen(buildConfigScreen(parent));
+                            //?}
+                            //? if <1.19 {
+                            /*
                             MinecraftClient.getInstance().openScreen(buildConfigScreen(parent));
+                            */
+                            //?}
                         });
                     } catch (InterruptedException ignored) { }
                 }).start();
@@ -111,7 +125,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(
-                    new TranslatableText("category.mine-lights.server_management")
+                    //? if >=1.19 {
+                    Text.translatable("category.mine-lights.server_management")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("category.mine-lights.server_management")
+                    *///?}
                     //? if <1.16 {
                     /* .getString()
                     *///? }
@@ -125,26 +143,44 @@ public class ModMenuIntegration implements ModMenuApi {
                         long totalMB = MineLightsClient.downloadTotalBytes.get() / (1024 * 1024);
                         String eta = MineLightsClient.downloadEta.get();
                         String speed = MineLightsClient.downloadSpeedMBps.get();
-                        return new TranslatableText(
+                        //? if >=1.19 {
+                        return Text.translatable(
                                 "minelights.status.downloading",
-                                soFarMB,
-                                totalMB,
-                                MineLightsClient.downloadProgress.get(),
-                                eta,
-                                speed
-                        );
+                                soFarMB, totalMB, MineLightsClient.downloadProgress.get(), eta, speed);
+                        //?} else if <1.19 {
+                        /*return new TranslatableText(
+                                "minelights.status.downloading",
+                                soFarMB, totalMB, MineLightsClient.downloadProgress.get(), eta, speed);
+                        *///?}
                     case VERIFYING:
-                        return new TranslatableText("minelights.status.verifying");
+                        //? if >=1.19 {
+                        return Text.translatable("minelights.status.verifying");
+                        //?} else if <1.19 {
+                        /*return new TranslatableText("minelights.status.verifying");
+                        *///?}
                     case SUCCESS:
-                        return new TranslatableText("minelights.status.success");
+                        //? if >=1.19 {
+                        return Text.translatable("minelights.status.success");
+                        //?} else if <1.19 {
+                        /*return new TranslatableText("minelights.status.success");
+                        *///?}
                     case FAILED:
-                        return new TranslatableText("minelights.status.failed",
-                                MineLightsClient.downloadError.get());
+                        //? if >=1.19 {
+                        return Text.translatable("minelights.status.failed", MineLightsClient.downloadError.get());
+                        //?} else if <1.19 {
+                        /*return new TranslatableText("minelights.status.failed", MineLightsClient.downloadError.get());
+                        *///?}
                     case IDLE:
                     default:
+                        //? if >=1.19 {
                         return MineLightsClient.isServerRunning()
+                                ? Text.translatable("minelights.status.running")
+                                : Text.translatable("minelights.status.not_running");
+                        //?} else if <1.19 {
+                        /*return MineLightsClient.isServerRunning()
                                 ? new TranslatableText("minelights.status.running")
                                 : new TranslatableText("minelights.status.not_running");
+                        *///?}
                 }
             };
 
@@ -152,7 +188,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
             serverManagement.addEntry(entryBuilder
                     .startBooleanToggle(
-                            new TranslatableText("option.mine-lights.force_update.label")
+                            //? if >=1.19 {
+                            Text.translatable("option.mine-lights.force_update.label")
+                            //?} else if <1.19 {
+                            /*new TranslatableText("option.mine-lights.force_update.label")
+                            *///?}
                             //? if <1.16 {
                             /* .getString()
                             *///? }
@@ -161,7 +201,13 @@ public class ModMenuIntegration implements ModMenuApi {
                     )
                     .setDefaultValue(false)
                     //? if >=1.16 {
-                    .setTooltip(new TranslatableText("option.mine-lights.force_update.tooltip"))
+                    .setTooltip(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.force_update.tooltip")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.force_update.tooltip")
+                        *///?}
+                    )
                     //?}
                     //? if <1.16 {
                     /* .setTooltip(new TranslatableText("option.mine-lights.force_update.tooltip").getString()) */
@@ -173,7 +219,11 @@ public class ModMenuIntegration implements ModMenuApi {
             if (MineLightsClient.IS_WINDOWS) {
                 serverManagement.addEntry(entryBuilder
                         .startBooleanToggle(
-                                new TranslatableText("option.mine-lights.autoStartServer")
+                                //? if >=1.19 {
+                                Text.translatable("option.mine-lights.autoStartServer")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.autoStartServer")
+                                *///?}
                                 //? if <1.16 {
                                 /* .getString()
                                 *///? }
@@ -181,7 +231,13 @@ public class ModMenuIntegration implements ModMenuApi {
                                 MineLightsClient.CONFIG.autoStartServer)
                         .setDefaultValue(true)
                         //? if >=1.16 {
-                        .setTooltip(new TranslatableText("option.mine-lights.autoStartServer.tooltip"))
+                        .setTooltip(
+                            //? if >=1.19 {
+                            Text.translatable("option.mine-lights.autoStartServer.tooltip")
+                            //?} else if <1.19 {
+                            /*new TranslatableText("option.mine-lights.autoStartServer.tooltip")
+                            *///?}
+                        )
                         //?}
                         //? if <1.16 {
                         /* .setTooltip(new TranslatableText("option.mine-lights.autoStartServer.tooltip").getString()) */
@@ -192,14 +248,22 @@ public class ModMenuIntegration implements ModMenuApi {
             }
 
             serverManagement.addEntry(entryBuilder.startTextDescription(
-                    new LiteralText("")
+                    //? if >=1.19 {
+                    Text.literal("")
+                    //?} else if <1.19 {
+                    /*new LiteralText("")
+                    *///?}
                     //? if <1.16 {
                     /* .getString()
                     *///? }
             ).build());
             serverManagement.addEntry(entryBuilder
                     .startBooleanToggle(
-                            new TranslatableText("option.mine-lights.restart.label")
+                            //? if >=1.19 {
+                            Text.translatable("option.mine-lights.restart.label")
+                            //?} else if <1.19 {
+                            /*new TranslatableText("option.mine-lights.restart.label")
+                            *///?}
                             //? if <1.16 {
                             /* .getString()
                             *///? }
@@ -207,7 +271,13 @@ public class ModMenuIntegration implements ModMenuApi {
                             MineLightsClient.CONFIG.restartProxy)
                     .setDefaultValue(false)
                     //? if >=1.16 {
-                    .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip"))
+                    .setTooltip(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.restart.tooltip")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.restart.tooltip")
+                        *///?}
+                    )
                     //?}
                     //? if <1.16 {
                     /* .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip").getString()) */
@@ -216,7 +286,11 @@ public class ModMenuIntegration implements ModMenuApi {
                     .build());
             serverManagement.addEntry(entryBuilder
                     .startBooleanToggle(
-                            new TranslatableText("option.mine-lights.restart_admin.label")
+                            //? if >=1.19 {
+                            Text.translatable("option.mine-lights.restart_admin.label")
+                            //?} else if <1.19 {
+                            /*new TranslatableText("option.mine-lights.restart_admin.label")
+                            *///?}
                             //? if <1.16 {
                             /* .getString()
                             *///? }
@@ -224,7 +298,13 @@ public class ModMenuIntegration implements ModMenuApi {
                             MineLightsClient.CONFIG.restartProxyAsAdmin)
                     .setDefaultValue(false)
                     //? if >=1.16 {
-                    .setTooltip(new TranslatableText("option.mine-lights.restart_admin.tooltip"))
+                    .setTooltip(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.restart_admin.tooltip")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.restart_admin.tooltip")
+                        *///?}
+                    )
                     //?}
                     //? if <1.16 {
                     /* .setTooltip(new TranslatableText("option.mine-lights.restart_admin.tooltip").getString()) */
@@ -237,7 +317,11 @@ public class ModMenuIntegration implements ModMenuApi {
         }
         
         ConfigCategory general = builder.getOrCreateCategory(
-                new TranslatableText("category.mine-lights.general")
+                //? if >=1.19 {
+                Text.translatable("category.mine-lights.general")
+                //?} else if <1.19 {
+                /*new TranslatableText("category.mine-lights.general")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -245,7 +329,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         general.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableMod")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableMod")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableMod")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -253,7 +341,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableMod)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableMod.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableMod.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableMod.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableMod.tooltip").getString()) */
@@ -263,7 +357,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         general.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.refresh_devices.label")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.refresh_devices.label")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.refresh_devices.label")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -271,7 +369,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.refreshDevices)
                 .setDefaultValue(false)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.refresh_devices.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.refresh_devices.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.refresh_devices.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.refresh_devices.tooltip").getString()) */
@@ -280,7 +384,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory integrations = builder.getOrCreateCategory(
-                new TranslatableText("category.mine-lights.integrations")
+                //? if >=1.19 {
+                Text.translatable("category.mine-lights.integrations")
+                //?} else if <1.19 {
+                /*new TranslatableText("category.mine-lights.integrations")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -288,7 +396,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.corsair")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.corsair")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.corsair")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -299,7 +411,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.asus")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.asus")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.asus")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -310,7 +426,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.logitech")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.logitech")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.logitech")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -321,7 +441,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.razer")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.razer")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.razer")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -332,7 +456,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.wooting")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.wooting")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.wooting")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -343,7 +471,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.steelseries")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.steelseries")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.steelseries")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -355,7 +487,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.msi")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.msi")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.msi")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -366,7 +502,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.novation")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.novation")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.novation")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -377,7 +517,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.picopi")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.picopi")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.picopi")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -388,7 +532,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.openrgb")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.openrgb")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.openrgb")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -399,7 +547,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         integrations.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("integration.mine-lights.yeelight")
+                        //? if >=1.19 {
+                        Text.translatable("integration.mine-lights.yeelight")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("integration.mine-lights.yeelight")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -410,13 +562,21 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory devices = builder.getOrCreateCategory(
-                new TranslatableText("category.mine-lights.devices")
+                //? if >=1.19 {
+                Text.translatable("category.mine-lights.devices")
+                //?} else if <1.19 {
+                /*new TranslatableText("category.mine-lights.devices")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         );
         devices.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("option.mine-lights.device.header")
+                //? if >=1.19 {
+                Text.translatable("option.mine-lights.device.header")
+                //?} else if <1.19 {
+                /*new TranslatableText("option.mine-lights.device.header")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -429,9 +589,17 @@ public class ModMenuIntegration implements ModMenuApi {
                     String[] parts = uniqueId.split("\\|", 2);
                     String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
                     String deviceName = parts.length > 1 ? parts[1] : uniqueId;
-                    Text label = new LiteralText(deviceName)
+                    
+                    //? if >=1.19 {
+                    Text label = Text.literal(deviceName)
+                            .append(Text.literal(" (" + deviceSdk + ")")
+                                    .formatted(Formatting.GRAY));
+                    //?} else if <1.19 {
+                    /*Text label = new LiteralText(deviceName)
                             .append(new LiteralText(" (" + deviceSdk + ")")
                                     .formatted(Formatting.GRAY));
+                    *///?}
+                                    
                     devices.addEntry(entryBuilder
                             .startBooleanToggle(label
                             //? if <1.16 {
@@ -455,23 +623,37 @@ public class ModMenuIntegration implements ModMenuApi {
 
         if (!MineLightsClient.CONFIG.disabledDevices.isEmpty()) {
             devices.addEntry(entryBuilder.startTextDescription(
-                    new LiteralText("")
+                    //? if >=1.19 {
+                    Text.literal("")
+                    //?} else if <1.19 {
+                    /*new LiteralText("")
+                    *///?}
                     //? if <1.16 {
                     /* .getString()
                     *///? }
             ).build());
 
             devices.addEntry(entryBuilder
-                    .startBooleanToggle(new TranslatableText(
-                            "option.mine-lights.clear_disabled.label")
-                            //? if <1.16 {
-                            /* .getString()
-                            *///? }
-                            ,
-                            MineLightsClient.CONFIG.clearDisabledDevices)
+                    .startBooleanToggle(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.clear_disabled.label")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.clear_disabled.label")
+                        *///?}
+                        //? if <1.16 {
+                        /* .getString()
+                        *///? }
+                        ,
+                        MineLightsClient.CONFIG.clearDisabledDevices)
                     .setDefaultValue(false)
                     //? if >=1.16 {
-                    .setTooltip(new TranslatableText("option.mine-lights.clear_disabled.tooltip"))
+                    .setTooltip(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.clear_disabled.tooltip")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.clear_disabled.tooltip")
+                        *///?}
+                    )
                     //?}
                     //? if <1.16 {
                     /* .setTooltip(new TranslatableText("option.mine-lights.clear_disabled.tooltip").getString()) */
@@ -482,7 +664,11 @@ public class ModMenuIntegration implements ModMenuApi {
         }
 
         ConfigCategory playerStatus = builder.getOrCreateCategory(
-                new TranslatableText("category.mine-lights.player_status")
+                //? if >=1.19 {
+                Text.translatable("category.mine-lights.player_status")
+                //?} else if <1.19 {
+                /*new TranslatableText("category.mine-lights.player_status")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -490,7 +676,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableHealthBar")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableHealthBar")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableHealthBar")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -501,7 +691,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableHungerBar")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableHungerBar")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableHungerBar")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -512,7 +706,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableSaturationBar")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableSaturationBar")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableSaturationBar")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -520,7 +718,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableSaturationBar)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableSaturationBar.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableSaturationBar.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableSaturationBar.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableSaturationBar.tooltip").getString()) */
@@ -530,7 +734,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableExperienceBar")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableExperienceBar")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableExperienceBar")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -538,7 +746,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableExperienceBar)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableExperienceBar.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableExperienceBar.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableExperienceBar.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableExperienceBar.tooltip").getString()) */
@@ -548,7 +762,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableCompassEffect")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableCompassEffect")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableCompassEffect")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -560,7 +778,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.alwaysShowCompass")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.alwaysShowCompass")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.alwaysShowCompass")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -568,7 +790,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.alwaysShowCompass)
                 .setDefaultValue(false)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.alwaysShowCompass.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.alwaysShowCompass.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.alwaysShowCompass.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.alwaysShowCompass.tooltip").getString()) */
@@ -578,8 +806,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText(
-                                "option.mine-lights.enableLowHealthWarning")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableLowHealthWarning")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableLowHealthWarning")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -591,7 +822,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.highlightMovementKeys")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.highlightMovementKeys")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.highlightMovementKeys")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -599,7 +834,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.highlightMovementKeys)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.highlightMovementKeys.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.highlightMovementKeys.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.highlightMovementKeys.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.highlightMovementKeys.tooltip").getString()) */
@@ -609,7 +850,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory environment = builder.getOrCreateCategory(
-                new TranslatableText("category.mine-lights.environment")
+                //? if >=1.19 {
+                Text.translatable("category.mine-lights.environment")
+                //?} else if <1.19 {
+                /*new TranslatableText("category.mine-lights.environment")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -617,7 +862,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableBiomeEffects")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableBiomeEffects")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableBiomeEffects")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -625,7 +874,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableBiomeEffects)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableBiomeEffects.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableBiomeEffects.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableBiomeEffects.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableBiomeEffects.tooltip").getString()) */
@@ -635,7 +890,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableWeatherEffects")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableWeatherEffects")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableWeatherEffects")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -643,7 +902,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableWeatherEffects)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableWeatherEffects.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableWeatherEffects.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableWeatherEffects.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableWeatherEffects.tooltip").getString()) */
@@ -653,7 +918,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableOnFireEffect")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableOnFireEffect")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableOnFireEffect")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -665,7 +934,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enableInWaterEffect")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enableInWaterEffect")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enableInWaterEffect")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -673,7 +946,13 @@ public class ModMenuIntegration implements ModMenuApi {
                         MineLightsClient.CONFIG.enableInWaterEffect)
                 .setDefaultValue(true)
                 //? if >=1.16 {
-                .setTooltip(new TranslatableText("option.mine-lights.enableInWaterEffect.tooltip"))
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.enableInWaterEffect.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.enableInWaterEffect.tooltip")
+                    *///?}
+                )
                 //?}
                 //? if <1.16 {
                 /* .setTooltip(new TranslatableText("option.mine-lights.enableInWaterEffect.tooltip").getString()) */
@@ -683,7 +962,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
-                        new TranslatableText("option.mine-lights.enablePortalEffects")
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.enablePortalEffects")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.enablePortalEffects")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
@@ -696,42 +979,66 @@ public class ModMenuIntegration implements ModMenuApi {
 
         ConfigCategory aboutCategory = builder
                 .getOrCreateCategory(
-                        new TranslatableText("category.mine-lights.about")
+                        //? if >=1.19 {
+                        Text.translatable("category.mine-lights.about")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("category.mine-lights.about")
+                        *///?}
                         //? if <1.16 {
                         /* .getString()
                         *///? }
                 );
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("text.mine-lights.about.title")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.title")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.title")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("text.mine-lights.about.version", "2.2.1")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.version", "2.2.1")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.version", "2.2.1")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("text.mine-lights.about.copyright")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.copyright")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.copyright")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new LiteralText("")
+                //? if >=1.19 {
+                Text.literal("")
+                //?} else if <1.19 {
+                /*new LiteralText("")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextField(
-                new TranslatableText("text.mine-lights.about.source_code")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.source_code")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.source_code")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -739,7 +1046,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 "https://github.com/megabytesme/MineLights").build());
 
         aboutCategory.addEntry(entryBuilder.startTextField(
-                new TranslatableText("text.mine-lights.about.issues")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.issues")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.issues")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -747,21 +1058,33 @@ public class ModMenuIntegration implements ModMenuApi {
                 "https://github.com/megabytesme/MineLights/issues").build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new LiteralText("")
+                //? if >=1.19 {
+                Text.literal("")
+                //?} else if <1.19 {
+                /*new LiteralText("")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("text.mine-lights.about.support_intro")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.support_intro")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.support_intro")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextField(
-                new TranslatableText("text.mine-lights.about.kofi")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.kofi")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.kofi")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
@@ -769,14 +1092,22 @@ public class ModMenuIntegration implements ModMenuApi {
                 "https://ko-fi.com/megabytesme").build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new LiteralText("")
+                //? if >=1.19 {
+                Text.literal("")
+                //?} else if <1.19 {
+                /*new LiteralText("")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }
         ).build());
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
-                new TranslatableText("text.mine-lights.about.description")
+                //? if >=1.19 {
+                Text.translatable("text.mine-lights.about.description")
+                //?} else if <1.19 {
+                /*new TranslatableText("text.mine-lights.about.description")
+                *///?}
                 //? if <1.16 {
                 /* .getString()
                 *///? }

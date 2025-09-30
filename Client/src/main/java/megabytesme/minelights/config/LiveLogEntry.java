@@ -10,8 +10,11 @@ import net.minecraft.client.gui.Selectable;
 //?}
 //? if >=1.15 {
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.Text;
 //?}
-import net.minecraft.text.LiteralText;
+//? if <1.19 {
+/*import net.minecraft.text.LiteralText;
+*///?}
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
@@ -26,9 +29,12 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
     private List<String> wrappedLinesCache = new ArrayList<>();
 
     public LiveLogEntry(String fieldName, List<String> logLines) {
-        //? if >=1.16 {
-        super(new LiteralText(fieldName), false);
+        //? if >=1.19 {
+        super(Text.literal(fieldName), false);
         //?}
+        //? if >=1.16 {
+        /*super(new LiteralText(fieldName), false);
+        *///?}
         //? if <1.16 {
         /*
         super(fieldName, false);
