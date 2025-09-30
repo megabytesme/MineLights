@@ -5,7 +5,12 @@ import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.GameOptions;
+
+//? if >=1.17 {
+/*import net.minecraft.client.option.GameOptions;
+*///?} else {
+/* import net.minecraft.client.options.GameOptions;
+*///?}
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -440,10 +445,11 @@ public class EffectPainter {
 
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
-        GameOptions options = MinecraftClient.getInstance().options;
         List<String> keybindsToFetch = new ArrayList<>();
         //? if >=1.16 {
-        /* keybindsToFetch = Arrays.asList(
+        /* 
+         GameOptions options = MinecraftClient.getInstance().options;
+         keybindsToFetch = Arrays.asList(
          options.keyForward.getBoundKeyTranslationKey(),
          options.keyBack.getBoundKeyTranslationKey(),
          options.keyLeft.getBoundKeyTranslationKey(),
@@ -452,7 +458,9 @@ public class EffectPainter {
          options.keySneak.getBoundKeyTranslationKey(),
          options.keySprint.getBoundKeyTranslationKey());
         *///?} else {
-        /* keybindsToFetch = Arrays.asList(
+        /*
+         GameOptions options = MinecraftClient.getInstance().options; 
+         keybindsToFetch = Arrays.asList(
          options.keyForward.getDefaultKeyCode().toString(),
          options.keyBack.getDefaultKeyCode().toString(),
          options.keyLeft.getDefaultKeyCode().toString(),

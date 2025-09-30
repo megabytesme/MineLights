@@ -7,7 +7,11 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundTag;
+//? if <=1.16.5 {
+/* import net.minecraft.nbt.CompoundTag;
+*///?} else {
+/* import net.minecraft.nbt.NbtCompound;
+*///?}
 //? if >=1.16 {
 /* import net.minecraft.util.dynamic.GlobalPos;
 *///?}
@@ -143,7 +147,11 @@ public class PlayerDataCollector {
 
     private static BlockPos getCompassTargetPos(ItemStack stack, PlayerEntity holder, ClientWorld world) {
         if (stack.getItem() == Items.COMPASS && stack.hasTag()) {
-            CompoundTag tag = stack.getTag();
+            //? if <=1.16.5 {
+            /* CompoundTag tag = stack.getTag();
+            *///?} else {
+            /* NbtCompound tag = stack.getTag();
+            *///?}
             //? if <=1.14.3 {
             /* if (tag != null && tag.containsKey("LodestoneDimension")) {
                 CompoundTag posTag = tag.getCompound("LodestonePos");
@@ -173,7 +181,13 @@ public class PlayerDataCollector {
 
         double targetYaw = Math.toDegrees(Math.atan2(-deltaX, deltaZ));
 
-        double relativeYaw = (targetYaw - player.yaw);
+        double relativeYaw = 0;
+        //? if <=1.16.5 {
+        /* relativeYaw = (targetYaw - player.yaw);
+        *///?} else {
+        /* relativeYaw = (targetYaw - player.getYaw());
+            CompoundTag tag = stack.getTag();
+        *///?}
         while (relativeYaw <= -180.0D)
             relativeYaw += 360.0D;
         while (relativeYaw > 180.0D)
