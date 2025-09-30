@@ -144,14 +144,36 @@ public class PlayerDataCollector {
         }
 
         for (ItemStack stack : stacksToCheck) {
-            if (stack.getItem() == Items.COMPASS) {
-                return new CompassFindResult(stack, CompassType.STANDARD);
-            }
             //? if >=1.19 {
             if (stack.getItem() == Items.RECOVERY_COMPASS) {
                 return new CompassFindResult(stack, CompassType.RECOVERY);
             }
             //?}
+            if (stack.getItem() == Items.COMPASS) {
+                //? if >= 1.18 {
+                if (stack.hasNbt()) {
+                    NbtCompound tag = stack.getNbt();
+                    if (tag != null && tag.contains("LodestonePos")) {
+                        return new CompassFindResult(stack, CompassType.LODESTONE);
+                    }
+                }
+                //?} else if >= 1.17 {
+                /* if (stack.hasTag()) {
+                    NbtCompound tag = stack.getTag();
+                    if (tag != null && tag.contains("LodestonePos")) {
+                        return new CompassFindResult(stack, CompassType.LODESTONE);
+                    }
+                }
+                *///?} else if >= 1.16 {
+                /* if (stack.hasTag()) {
+                    CompoundTag tag = stack.getTag();
+                    if (tag != null && tag.contains("LodestonePos")) {
+                        return new CompassFindResult(stack, CompassType.LODESTONE);
+                    }
+                }
+                *///?}
+                return new CompassFindResult(stack, CompassType.STANDARD);
+            }
         }
         return null;
     }

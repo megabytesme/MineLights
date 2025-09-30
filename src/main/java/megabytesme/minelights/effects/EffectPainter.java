@@ -52,6 +52,20 @@ public class EffectPainter {
 
     private long lastCompassSpinTime = 0;
     private int compassSpinIndex = 0;
+    private static long lastSheenTime = 0;
+    private static int sheenIndex = 0;
+
+    private static RGBColorDto blend(RGBColorDto base, RGBColorDto overlay, double overlayOpacity) {
+        if (base == null) return overlay;
+        if (overlay == null) return base;
+
+        double baseOpacity = 1.0 - overlayOpacity;
+        int r = (int) (base.r * baseOpacity + overlay.r * overlayOpacity);
+        int g = (int) (base.g * baseOpacity + overlay.g * overlayOpacity);
+        int b = (int) (base.b * baseOpacity + overlay.b * overlayOpacity);
+
+        return new RGBColorDto(r, g, b);
+    }
 
     public EffectPainter(List<Integer> allLedIds, Map<String, Integer> namedKeyMap) {
         this.allLedIds = allLedIds;
@@ -347,6 +361,10 @@ public class EffectPainter {
                 compassColor = new RGBColorDto(0, 191, 255);
                 backgroundColor = new RGBColorDto(0, 20, 35);
                 break;
+            case LODESTONE:
+                compassColor = new RGBColorDto(238, 130, 238);
+                backgroundColor = new RGBColorDto(25, 0, 25);
+                break;
             default:
                 compassColor = new RGBColorDto(255, 0, 0);
                 backgroundColor = new RGBColorDto(35, 0, 0);
@@ -365,8 +383,7 @@ public class EffectPainter {
             state.keys.put(centerLedId, compassColor);
         }
 
-        if (player.getCompassState() == CompassState.SPINNING || player.getCurrentWorld().equals("the_nether")
-                || player.getCurrentWorld().equals("the_end")) {
+        if (player.getCompassState() == CompassState.SPINNING) {
             long now = System.currentTimeMillis();
             if (now - lastCompassSpinTime > 75) {
                 compassSpinIndex = (compassSpinIndex + 1) % KeyMap.getNumpadDirectional().size();
@@ -416,6 +433,32 @@ public class EffectPainter {
                 Integer ledId = getMappedId(keyToLight);
                 if (ledId != null) {
                     state.keys.put(ledId, compassColor);
+                }
+            }
+        }
+
+        if (player.getCompassType() == CompassType.LODESTONE) {
+            long now = System.currentTimeMillis();
+            if (now - lastSheenTime > 60) {
+                sheenIndex = (sheenIndex + 1) % KeyMap.getNumpadDirectional().size();
+                lastSheenTime = now;
+            }
+
+            List<String> directionalKeys = KeyMap.getNumpadDirectional();
+            int keyCount = directionalKeys.size();
+            
+            RGBColorDto sheenTintColor = new RGBColorDto(120, 0, 255);
+            double[] opacities = {0.6, 0.4, 0.2};
+
+            for (int i = 0; i < opacities.length; i++) {
+                int keyIndex = (sheenIndex - i + keyCount) % keyCount;
+                String keyName = directionalKeys.get(keyIndex);
+                Integer ledId = getMappedId(keyName);
+
+                if (ledId != null) {
+                    RGBColorDto baseColor = state.keys.get(ledId);
+                    RGBColorDto finalColor = blend(baseColor, sheenTintColor, opacities[i]);
+                    state.keys.put(ledId, finalColor);
                 }
             }
         }
