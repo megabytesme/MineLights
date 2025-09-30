@@ -14,6 +14,7 @@ import net.minecraft.util.Formatting;
 
 import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ModMenuIntegration implements ModMenuApi {
 
@@ -27,15 +28,17 @@ public class ModMenuIntegration implements ModMenuApi {
                 return parent -> {
                         ConfigBuilder builder = ConfigBuilder.create()
                                         .setParentScreen(parent)
-                                        .setTitle(new TranslatableText("title.mine-lights.config")
-                        // ? if <1.16 {
-                        .getString()
-                        // ?}
-                        );
+                                        .setTitle(new TranslatableText("title.mine-lights.config"));
 
                         builder.setSavingRunnable(() -> {
                                 MineLightsClient.saveConfig();
                                 boolean needsRefresh = false;
+
+                                if (MineLightsClient.CONFIG.forceServerUpdate) {
+                                        new Thread(MineLightsClient::checkForServerUpdate,
+                                                        "MineLights-Manual-Update-Check").start();
+                                        MineLightsClient.CONFIG.forceServerUpdate = false;
+                                }
                                 if (MineLightsClient.CONFIG.refreshDevices) {
                                         MineLightsClient.CONFIG.refreshDevices = false;
                                         needsRefresh = true;
@@ -65,28 +68,77 @@ public class ModMenuIntegration implements ModMenuApi {
                                 }
                         });
 
-                        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+                                ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+
+                                if (MineLightsClient.IS_WINDOWS) {
+                                ConfigCategory serverManagement = builder.getOrCreateCategory(
+                                        new TranslatableText("category.mine-lights.server_management")
+                                );
+
+                                Supplier<Text> statusTextSupplier = () -> {
+                                        MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
+                                        switch (status) {
+                                        case DOWNLOADING:
+                                                return new TranslatableText("minelights.status.downloading",
+                                                        MineLightsClient.downloadProgress.get());
+                                        case VERIFYING:
+                                                return new TranslatableText("minelights.status.verifying");
+                                        case SUCCESS:
+                                                return new TranslatableText("minelights.status.success");
+                                        case FAILED:
+                                                return new TranslatableText("minelights.status.failed",
+                                                        MineLightsClient.downloadError.get());
+                                        case IDLE:
+                                        default:
+                                                if (MineLightsClient.isServerRunning()) {
+                                                return new TranslatableText("minelights.status.running");
+                                                } else {
+                                                return new TranslatableText("minelights.status.not_running");
+                                                }
+                                        }
+                                };
+
+
+
+                                serverManagement.addEntry(new LiveStatusEntry("minelights.status", statusTextSupplier));
+
+
+                                serverManagement.addEntry(
+                                                entryBuilder.startTextDescription(new LiteralText(" ")).build()); // Spacer
+
+                                serverManagement.addEntry(entryBuilder
+                                                .startBooleanToggle(
+                                                                new TranslatableText(
+                                                                                "option.mine-lights.force_update.label"),
+                                                                MineLightsClient.CONFIG.forceServerUpdate)
+                                                .setDefaultValue(false)
+                                                .setTooltip(new TranslatableText(
+                                                                "option.mine-lights.force_update.tooltip"))
+                                                .setSaveConsumer(
+                                                                newValue -> MineLightsClient.CONFIG.forceServerUpdate = newValue)
+                                                .build());
+                        }
 
                         ConfigCategory general = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.general")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
 
                         general.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableMod")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableMod)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText("option.mine-lights.enableMod.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
                                         .build());
@@ -97,8 +149,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                                                 new TranslatableText(
                                                                                 "option.mine-lights.autoStartServer")
                                 // ? if <1.16 {
-                                .getString()
-                                // ?}
+                                /* .getString()
+                                */// ?}
                                                                 ,
                                                                 MineLightsClient.CONFIG.autoStartServer)
                                                 .setDefaultValue(true)
@@ -106,8 +158,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                                                 new TranslatableText(
                                                                                 "option.mine-lights.autoStartServer.tooltip")
                                 // ? if <1.16 {
-                                .getString()
-                                // ?}
+                                /* .getString()
+                                */// ?}
                                 )
                                                 .setSaveConsumer(
                                                                 newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
@@ -117,23 +169,23 @@ public class ModMenuIntegration implements ModMenuApi {
                         general.addEntry(entryBuilder.startTextDescription(
                                         new LiteralText("")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         general.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.refresh_devices.label")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.refreshDevices)
                                         .setDefaultValue(false)
                                         .setTooltip(new TranslatableText("option.mine-lights.refresh_devices.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.refreshDevices = newValue)
                                         .build());
@@ -141,15 +193,15 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.restart.label")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.restartProxy)
                                         .setDefaultValue(false)
                                         .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
                                         .build());
@@ -157,16 +209,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.restart_admin.label")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.restartProxyAsAdmin)
                                         .setDefaultValue(false)
                                         .setTooltip(
                                                         new TranslatableText("option.mine-lights.restart_admin.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
@@ -175,16 +227,16 @@ public class ModMenuIntegration implements ModMenuApi {
                         ConfigCategory integrations = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.integrations")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
 
                         integrations.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.corsair")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableCorsair)
                                         .setDefaultValue(true)
@@ -194,8 +246,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.asus")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableAsus)
                                         .setDefaultValue(true)
@@ -205,8 +257,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.logitech")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableLogitech)
                                         .setDefaultValue(true)
@@ -216,8 +268,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.razer")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableRazer)
                                         .setDefaultValue(true)
@@ -227,8 +279,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.wooting")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableWooting)
                                         .setDefaultValue(true)
@@ -238,8 +290,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.steelseries")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableSteelSeries)
                                         .setDefaultValue(true)
@@ -250,8 +302,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.msi")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableMsi)
                                         .setDefaultValue(true)
@@ -261,8 +313,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.novation")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableNovation)
                                         .setDefaultValue(true)
@@ -272,8 +324,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.picopi")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enablePicoPi)
                                         .setDefaultValue(true)
@@ -283,8 +335,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.openrgb")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableOpenRgb)
                                         .setDefaultValue(true)
@@ -294,8 +346,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("integration.mine-lights.yeelight")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableYeelight)
                                         .setDefaultValue(true)
@@ -305,14 +357,14 @@ public class ModMenuIntegration implements ModMenuApi {
                         ConfigCategory devices = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.devices")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
                         devices.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("option.mine-lights.device.header")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         MineLightsClient.discoveredDevices.stream().sorted(Comparator.naturalOrder())
@@ -328,8 +380,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                                 devices.addEntry(entryBuilder
                                                                 .startBooleanToggle(label
                                                 // ? if <1.16 {
-                                                .getString()
-                                                // ?}
+                                                /* .getString()
+                                                */// ?}
                                                                                 , isEnabled)
                                                                 .setDefaultValue(true)
                                                                 .setSaveConsumer(newValue -> {
@@ -350,24 +402,24 @@ public class ModMenuIntegration implements ModMenuApi {
                                 devices.addEntry(entryBuilder.startTextDescription(
                                                 new LiteralText("")
                                 // ? if <1.16 {
-                                .getString()
-                                // ?}
+                        /* .getString()
+                        */// ?}
                                 ).build());
 
                                 devices.addEntry(entryBuilder
                                                 .startBooleanToggle(new TranslatableText(
                                                                 "option.mine-lights.clear_disabled.label")
                                 // ? if <1.16 {
-                                .getString()
-                                // ?}
+                        /* .getString()
+                        */// ?}
                                                                 ,
                                                                 MineLightsClient.CONFIG.clearDisabledDevices)
                                                 .setDefaultValue(false)
                                                 .setTooltip(new TranslatableText(
                                                                 "option.mine-lights.clear_disabled.tooltip")
                                 // ? if <1.16 {
-                                .getString()
-                                // ?}
+                        /* .getString()
+                        */// ?}
                                 )
                                                 .setSaveConsumer(
                                                                 newValue -> MineLightsClient.CONFIG.clearDisabledDevices = newValue)
@@ -377,16 +429,16 @@ public class ModMenuIntegration implements ModMenuApi {
                         ConfigCategory playerStatus = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.player_status")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
 
                         playerStatus.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableHealthBar")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableHealthBar)
                                         .setDefaultValue(true)
@@ -396,8 +448,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableHungerBar")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableHungerBar)
                                         .setDefaultValue(true)
@@ -407,16 +459,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableSaturationBar")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableSaturationBar)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.enableSaturationBar.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableSaturationBar = newValue)
@@ -425,16 +477,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableExperienceBar")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableExperienceBar)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.enableExperienceBar.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
@@ -443,8 +495,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableCompassEffect")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableCompassEffect)
                                         .setDefaultValue(true)
@@ -455,16 +507,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.alwaysShowCompass")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.alwaysShowCompass)
                                         .setDefaultValue(false)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.alwaysShowCompass.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
@@ -474,8 +526,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         new TranslatableText(
                                                                         "option.mine-lights.enableLowHealthWarning")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableLowHealthWarning)
                                         .setDefaultValue(true)
@@ -486,16 +538,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.highlightMovementKeys")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.highlightMovementKeys)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.highlightMovementKeys.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.highlightMovementKeys = newValue)
@@ -504,24 +556,24 @@ public class ModMenuIntegration implements ModMenuApi {
                         ConfigCategory environment = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.environment")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
 
                         environment.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableBiomeEffects")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableBiomeEffects)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.enableBiomeEffects.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableBiomeEffects = newValue)
@@ -530,16 +582,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableWeatherEffects")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableWeatherEffects)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.enableWeatherEffects.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
@@ -548,8 +600,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableOnFireEffect")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableOnFireEffect)
                                         .setDefaultValue(true)
@@ -560,16 +612,16 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enableInWaterEffect")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enableInWaterEffect)
                                         .setDefaultValue(true)
                                         .setTooltip(new TranslatableText(
                                                         "option.mine-lights.enableInWaterEffect.tooltip")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         )
                                         .setSaveConsumer(
                                                         newValue -> MineLightsClient.CONFIG.enableInWaterEffect = newValue)
@@ -578,8 +630,8 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.enablePortalEffects")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                                         ,
                                                         MineLightsClient.CONFIG.enablePortalEffects)
                                         .setDefaultValue(true)
@@ -591,88 +643,88 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .getOrCreateCategory(
                                                         new TranslatableText("category.mine-lights.about")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         );
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("text.mine-lights.about.title")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("text.mine-lights.about.version", "2.2.1")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("text.mine-lights.about.copyright")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new LiteralText("")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextField(
                                         new TranslatableText("text.mine-lights.about.source_code")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                         ,
                                         "https://github.com/megabytesme/MineLights").build());
 
                         aboutCategory.addEntry(entryBuilder.startTextField(
                                         new TranslatableText("text.mine-lights.about.issues")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                         ,
                                         "https://github.com/megabytesme/MineLights/issues").build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new LiteralText("")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("text.mine-lights.about.support_intro")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextField(
                                         new TranslatableText("text.mine-lights.about.kofi")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                                         ,
                                         "https://ko-fi.com/megabytesme").build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new LiteralText("")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         aboutCategory.addEntry(entryBuilder.startTextDescription(
                                         new TranslatableText("text.mine-lights.about.description")
                         // ? if <1.16 {
-                        .getString()
-                        // ?}
+                        /* .getString()
+                        */// ?}
                         ).build());
 
                         return builder.build();
