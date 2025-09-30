@@ -75,7 +75,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                         new TranslatableText("category.mine-lights.server_management")
                                 );
 
-                                Supplier<Text> statusTextSupplier = () -> {
+                                                                Supplier<Text> statusTextSupplier = () -> {
                                         MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
                                         switch (status) {
                                         case DOWNLOADING:
@@ -84,12 +84,12 @@ public class ModMenuIntegration implements ModMenuApi {
                                                 String eta = MineLightsClient.downloadEta.get();
                                                 String speed = MineLightsClient.downloadSpeedMBps.get();
                                                 return new TranslatableText(
-                                                        "minelights.status.downloading",
-                                                        soFarMB,
-                                                        totalMB,
-                                                        MineLightsClient.downloadProgress.get(),
-                                                        eta,
-                                                        speed
+                                                "minelights.status.downloading",
+                                                soFarMB,
+                                                totalMB,
+                                                MineLightsClient.downloadProgress.get(),
+                                                eta,
+                                                speed
                                                 );
                                         case VERIFYING:
                                                 return new TranslatableText("minelights.status.verifying");
@@ -100,34 +100,92 @@ public class ModMenuIntegration implements ModMenuApi {
                                                         MineLightsClient.downloadError.get());
                                         case IDLE:
                                         default:
-                                                if (MineLightsClient.isServerRunning()) {
-                                                return new TranslatableText("minelights.status.running");
-                                                } else {
-                                                return new TranslatableText("minelights.status.not_running");
-                                                }
+                                                return MineLightsClient.isServerRunning()
+                                                ? new TranslatableText("minelights.status.running")
+                                                : new TranslatableText("minelights.status.not_running");
                                         }
                                 };
-
-
 
                                 serverManagement.addEntry(new LiveStatusEntry("minelights.status", statusTextSupplier));
 
 
-                                serverManagement.addEntry(
-                                                entryBuilder.startTextDescription(new LiteralText(" ")).build()); // Spacer
+                                serverManagement.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                        new TranslatableText("option.mine-lights.force_update.label"),
+                                        MineLightsClient.CONFIG.forceServerUpdate
+                                        )
+                                        .setDefaultValue(false)
+                                        .setTooltip(new TranslatableText("option.mine-lights.force_update.tooltip"))
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.forceServerUpdate = newValue)
+                                        .build()
+                                );
 
+                       if (MineLightsClient.IS_WINDOWS) {
                                 serverManagement.addEntry(entryBuilder
                                                 .startBooleanToggle(
                                                                 new TranslatableText(
-                                                                                "option.mine-lights.force_update.label"),
-                                                                MineLightsClient.CONFIG.forceServerUpdate)
-                                                .setDefaultValue(false)
-                                                .setTooltip(new TranslatableText(
-                                                                "option.mine-lights.force_update.tooltip"))
+                                                                                "option.mine-lights.autoStartServer")
+                                // ? if <1.16 {
+                                /* .getString()
+                                */// ?}
+                                                                ,
+                                                                MineLightsClient.CONFIG.autoStartServer)
+                                                .setDefaultValue(true)
+                                                .setTooltip(
+                                                                new TranslatableText(
+                                                                                "option.mine-lights.autoStartServer.tooltip")
+                                // ? if <1.16 {
+                                /* .getString()
+                                */// ?}
+                                )
                                                 .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.forceServerUpdate = newValue)
+                                                                newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
                                                 .build());
                         }
+
+                        serverManagement.addEntry(entryBuilder.startTextDescription(
+                                        new LiteralText("")
+                        // ? if <1.16 {
+                        /* .getString()
+                        */// ?}
+                        ).build());
+                        serverManagement.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                                        new TranslatableText("option.mine-lights.restart.label")
+                        // ? if <1.16 {
+                        /* .getString()
+                        */// ?}
+                                                        ,
+                                                        MineLightsClient.CONFIG.restartProxy)
+                                        .setDefaultValue(false)
+                                        .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip")
+                        // ? if <1.16 {
+                        /* .getString()
+                        */// ?}
+                        )
+                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
+                                        .build());
+                        serverManagement.addEntry(entryBuilder
+                                        .startBooleanToggle(
+                                                        new TranslatableText("option.mine-lights.restart_admin.label")
+                        // ? if <1.16 {
+                        /* .getString()
+                        */// ?}
+                                                        ,
+                                                        MineLightsClient.CONFIG.restartProxyAsAdmin)
+                                        .setDefaultValue(false)
+                                        .setTooltip(
+                                                        new TranslatableText("option.mine-lights.restart_admin.tooltip")
+                        // ? if <1.16 {
+                        /* .getString()
+                        */// ?}
+                        )
+                                        .setSaveConsumer(
+                                                        newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
+                                        .build());
+
+                                serverManagement.addEntry(new LiveLogEntry("Server Log", MineLightsClient.serverLogLines));
+                                }
 
                         ConfigCategory general = builder.getOrCreateCategory(
                                         new TranslatableText("category.mine-lights.general")
@@ -153,36 +211,6 @@ public class ModMenuIntegration implements ModMenuApi {
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableMod = newValue)
                                         .build());
 
-                        if (MineLightsClient.IS_WINDOWS) {
-                                general.addEntry(entryBuilder
-                                                .startBooleanToggle(
-                                                                new TranslatableText(
-                                                                                "option.mine-lights.autoStartServer")
-                                // ? if <1.16 {
-                                /* .getString()
-                                */// ?}
-                                                                ,
-                                                                MineLightsClient.CONFIG.autoStartServer)
-                                                .setDefaultValue(true)
-                                                .setTooltip(
-                                                                new TranslatableText(
-                                                                                "option.mine-lights.autoStartServer.tooltip")
-                                // ? if <1.16 {
-                                /* .getString()
-                                */// ?}
-                                )
-                                                .setSaveConsumer(
-                                                                newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
-                                                .build());
-                        }
-
-                        general.addEntry(entryBuilder.startTextDescription(
-                                        new LiteralText("")
-                        // ? if <1.16 {
-                        /* .getString()
-                        */// ?}
-                        ).build());
-
                         general.addEntry(entryBuilder
                                         .startBooleanToggle(
                                                         new TranslatableText("option.mine-lights.refresh_devices.label")
@@ -198,40 +226,6 @@ public class ModMenuIntegration implements ModMenuApi {
                         */// ?}
                         )
                                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.refreshDevices = newValue)
-                                        .build());
-                        general.addEntry(entryBuilder
-                                        .startBooleanToggle(
-                                                        new TranslatableText("option.mine-lights.restart.label")
-                        // ? if <1.16 {
-                        /* .getString()
-                        */// ?}
-                                                        ,
-                                                        MineLightsClient.CONFIG.restartProxy)
-                                        .setDefaultValue(false)
-                                        .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip")
-                        // ? if <1.16 {
-                        /* .getString()
-                        */// ?}
-                        )
-                                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
-                                        .build());
-                        general.addEntry(entryBuilder
-                                        .startBooleanToggle(
-                                                        new TranslatableText("option.mine-lights.restart_admin.label")
-                        // ? if <1.16 {
-                        /* .getString()
-                        */// ?}
-                                                        ,
-                                                        MineLightsClient.CONFIG.restartProxyAsAdmin)
-                                        .setDefaultValue(false)
-                                        .setTooltip(
-                                                        new TranslatableText("option.mine-lights.restart_admin.tooltip")
-                        // ? if <1.16 {
-                        /* .getString()
-                        */// ?}
-                        )
-                                        .setSaveConsumer(
-                                                        newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
                                         .build());
 
                         ConfigCategory integrations = builder.getOrCreateCategory(
