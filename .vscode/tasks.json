@@ -189,6 +189,27 @@
           "endsPattern": "Listening for transport dt_socket at address: 5005"
         }
       }
+    },
+    {
+      "label": "Run 1.21.2 Client (Debug)",
+      "type": "shell",
+      "command": "./gradlew :1.21.2:runClient --debug-jvm",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "Listening for transport dt_socket at address: 5005",
+            "file": 1,
+            "location": 2,
+            "message": 0
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Listening for transport dt_socket at address: 5005",
+          "endsPattern": "Listening for transport dt_socket at address: 5005"
+        }
+      }
     }
   ]
 }
