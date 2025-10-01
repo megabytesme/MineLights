@@ -58,8 +58,20 @@ public class PlayerDataCollector {
         playerDto.setExperience(player.experienceProgress);
         playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
 
-        playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).toString());
-        
+        //? if >=1.19 {
+        world.getBiome(player.getBlockPos()).getKey().ifPresent(key -> playerDto.setCurrentBiome(key.getValue().toString()));
+        //?} else if >= 1.16.2 {
+        /*
+        playerDto.setCurrentBiome(world.getRegistryManager().get(Registry.BIOME_KEY).getId(world.getBiome(player.getBlockPos())).toString());
+        *///?} else if >= 1.16 {
+        /*
+        playerDto.setCurrentWorld(world.getRegistryKey().getValue().toString());
+        *///?} else {
+        /*
+        playerDto.setCurrentBiome(Registry.BIOME.getId(world.getBiome(player.getBlockPos())).toString());
+        */
+        //?}
+
         //? if <=1.14.3 {
         /* playerDto.setCurrentWorld(Registry.DIMENSION_TYPE.getId(world.getDimension().getType()).toString());
         *///?} else if <1.16 {
