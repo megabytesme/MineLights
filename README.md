@@ -1,17 +1,11 @@
 # MineLights
 
-| Old logo |   | New logo | Video |
-|----------|---|----------|-------|
-| <img src="https://github.com/user-attachments/assets/d2a078e4-f7f1-43cf-b03e-b1b6142b6fd8" alt="MineLights Icon" height="200"> | ➡️ | <img src="https://github.com/user-attachments/assets/c0d50adb-0242-4603-89a5-074b40903606" alt="MineLights Icon" height="200"> | ![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32) |
-| AI Placeholder Image (during dev) | Now... | Made by me! (I love MS Paint) | <small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small> |
+| Download | New logo | Video |
+|----------|----------|-------|
+| <a href="https://modrinth.com/mod/minelights" aria-label="MineLights on Modrinth"> <picture> <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-dark.svg"> <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-light.svg"> <img alt="MineLights on Modrinth" src="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-dark.svg"> </picture> </a> | <img src="https://github.com/user-attachments/assets/c0d50adb-0242-4603-89a5-074b40903606" alt="MineLights Icon" height="200"> | ![output](https://github.com/user-attachments/assets/fd0adbbf-eaf4-46c1-bcfc-e56b5df13e32) |
+| Download from Modrinth | Made by me! (I love MS Paint) | <small><em>MineLights running on an Asus laptop. Video courtesy of Nukepatrol99.</em></small> |
 
-<a href="https://modrinth.com/mod/minelights" aria-label="MineLights on Modrinth">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-light.svg">
-    <img alt="MineLights on Modrinth" src="https://raw.githubusercontent.com/gabrielvicenteYT/modrinth-icons/refs/heads/main/Branding/Badge/badge-dark.svg">
-  </picture>
-</a>
+
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets a range of Minecraft versions (1.14.3+) and uses a modular design to support a wide range of hardware.
 
@@ -58,7 +52,9 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 ### Installation
 
-- Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
+- Simply place the mod in your mods folder, then start Minecraft. Wait 20+- seconds, and your RGB will be detected! *(112MB+- download for the RGB Server on Windows on first launch).*
+  
+**Installing MineLights version 2.2**: Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
 **Installing MineLights version 2.1 or below**: Follow the guide in the release changelog.
 
