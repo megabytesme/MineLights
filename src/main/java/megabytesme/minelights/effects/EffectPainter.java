@@ -41,6 +41,12 @@ public class EffectPainter {
             this.tailColor2 = new RGBColorDto((int)(color.r * 0.2), (int)(color.g * 0.2), (int)(color.b * 0.2));
         }
     }
+    private final List<Integer> perKeyLedIds = new ArrayList<>();
+    private final List<Integer> fallbackLedIds = new ArrayList<>();
+    private int waveIndex = 0;
+    private long lastWaveStep = 0;
+    private boolean rainPhase = false;
+    private long lastRainPhaseStep = 0;
     private final List<Raindrop> raindrops = new ArrayList<>();
     private long lastRaindropSpawn = 0;
     private static final int RAINDROP_SPAWN_RATE_MS = 120;
@@ -92,6 +98,19 @@ public class EffectPainter {
     public EffectPainter(List<Integer> allLedIds, Map<String, Integer> namedKeyMap) {
         this.allLedIds = allLedIds;
         this.namedKeyMap = namedKeyMap;
+
+        List<String> perKeyNames = KeyMap.getAllPerKeyEffectKeys();
+        for (String keyName : perKeyNames) {
+            Integer ledId = getMappedId(keyName);
+            if (ledId != null) {
+                this.perKeyLedIds.add(ledId);
+            }
+        }
+        for (Integer ledId : allLedIds) {
+            if (!this.perKeyLedIds.contains(ledId)) {
+                this.fallbackLedIds.add(ledId);
+            }
+        }
     }
 
     private Integer getMappedId(String keyName) {
@@ -225,43 +244,42 @@ public class EffectPainter {
             return;
         }
 
-        if (now - lastRaindropSpawn > RAINDROP_SPAWN_RATE_MS) {
-            RGBColorDto rainColor = BiomeData.getBiomeRainColor(player.getCurrentBiome());
+        RGBColorDto rainColor = BiomeData.getBiomeRainColor(player.getCurrentBiome());
 
+        if (now - lastRainPhaseStep > 500) {
+            rainPhase = !rainPhase;
+            lastRainPhaseStep = now;
+        }
+        for (int i = 0; i < fallbackLedIds.size(); i++) {
+            if (i % 2 == (rainPhase ? 0 : 1)) {
+                Integer ledId = fallbackLedIds.get(i);
+                RGBColorDto baseColor = state.keys.get(ledId);
+                state.keys.put(ledId, blend(baseColor, rainColor, 0.7));
+            }
+        }
+
+        if (now - lastRaindropSpawn > RAINDROP_SPAWN_RATE_MS) {
             if (random.nextInt(100) < 75) {
                 int startRow = random.nextInt(2);
                 List<String> rowKeys = KeyMap.KEYBOARD_ROWS.get(startRow);
                 int randomColumn = random.nextInt(rowKeys.size());
-                Raindrop newDrop = new Raindrop(randomColumn, false, rainColor, now);
-                newDrop.row = startRow;
-                raindrops.add(newDrop);
+                raindrops.add(new Raindrop(randomColumn, false, rainColor, now));
             } else {
                 int randomColumnIndex = random.nextInt(KeyMap.KEYBOARD_COLUMNS.size());
-                Raindrop newDrop = new Raindrop(randomColumnIndex, true, rainColor, now);
-                raindrops.add(newDrop);
+                raindrops.add(new Raindrop(randomColumnIndex, true, rainColor, now));
             }
-            
             lastRaindropSpawn = now;
         }
 
         Iterator<Raindrop> iterator = raindrops.iterator();
         while (iterator.hasNext()) {
             Raindrop drop = iterator.next();
-
             if (now - drop.lastFallTime > RAINDROP_FALL_SPEED_MS) {
                 drop.row++;
                 drop.lastFallTime = now;
             }
-            
-            int pathLength = drop.isVertical 
-                ? KeyMap.KEYBOARD_COLUMNS.get(drop.column).size()
-                : KeyMap.KEYBOARD_ROWS.size();
-
-            if (drop.row >= pathLength + 2) {
-                iterator.remove();
-                continue;
-            }
-
+            int pathLength = drop.isVertical ? KeyMap.KEYBOARD_COLUMNS.get(drop.column).size() : KeyMap.KEYBOARD_ROWS.size();
+            if (drop.row >= pathLength + 2) { iterator.remove(); continue; }
             if (drop.isVertical) {
                 drawVerticalRaindropSegment(state, drop, 0, drop.color);
                 drawVerticalRaindropSegment(state, drop, -1, drop.tailColor);
@@ -270,6 +288,35 @@ public class EffectPainter {
                 drawHorizontalRaindropSegment(state, drop, 0, drop.color);
                 drawHorizontalRaindropSegment(state, drop, -1, drop.tailColor);
                 drawHorizontalRaindropSegment(state, drop, -2, drop.tailColor2);
+            }
+        }
+
+        if (now - lastWaveStep > 40) {
+            waveIndex++;
+            lastWaveStep = now;
+        }
+        applyWaveEffect(state, KeyMap.getUnderglowKeys(), rainColor, waveIndex, 8);
+        applyWaveEffect(state, KeyMap.getRamKeys(), rainColor, waveIndex, 4);
+    }
+
+    private void applyWaveEffect(FrameStateDto state, List<String> keyNames, RGBColorDto color, int headIndex, int tailLength) {
+        if (keyNames.isEmpty()) return;
+
+        for (int i = 0; i < keyNames.size(); i++) {
+            Integer ledId = getMappedId(keyNames.get(i));
+            if (ledId == null) continue;
+
+            int distance = (i - (headIndex % keyNames.size()) + keyNames.size()) % keyNames.size();
+            
+            if (distance < tailLength) {
+                float brightness = 1.0f - ((float) distance / tailLength);
+                RGBColorDto waveColor = new RGBColorDto(
+                    (int)(color.r * brightness),
+                    (int)(color.g * brightness),
+                    (int)(color.b * brightness)
+                );
+                RGBColorDto baseColor = state.keys.get(ledId);
+                state.keys.put(ledId, blend(baseColor, waveColor, 0.8));
             }
         }
     }
