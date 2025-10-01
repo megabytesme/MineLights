@@ -58,6 +58,8 @@ public class MineLightsClient implements ClientModInitializer {
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights/releases/tags/v2-server";
     private boolean titleScreenHooked = false;
 
+    private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
+
     public enum DownloadStatus {
         IDLE,
         DOWNLOADING,
@@ -100,7 +102,7 @@ public class MineLightsClient implements ClientModInitializer {
                 } else if (!IS_WINDOWS) {
                     LOGGER.warn("MineLights Server not discovered via broadcast on non-Windows OS.");
                 }
-                refreshLightingManager();
+                triggerLightingInitialization();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -129,7 +131,7 @@ public class MineLightsClient implements ClientModInitializer {
         }
         return new String(buffer.toByteArray());
     }
-    
+
     public static void checkForServerUpdate() {
         if (downloadStatus.get() == DownloadStatus.DOWNLOADING) {
             return;
@@ -151,7 +153,8 @@ public class MineLightsClient implements ClientModInitializer {
 
             JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.size() == 0) return;
+            if (assets.size() == 0)
+                return;
 
             JsonObject asset = assets.get(0).getAsJsonObject();
             String expectedHash = asset.has("digest") ? asset.get("digest").getAsString().replace("sha256:", "") : "";
@@ -204,14 +207,14 @@ public class MineLightsClient implements ClientModInitializer {
         }
         return bytesToHex(digest.digest());
     }
-    
+
     private static boolean performServerDownload(Path destination) {
         if (!downloadStatus.compareAndSet(DownloadStatus.IDLE, DownloadStatus.DOWNLOADING) &&
-            !downloadStatus.compareAndSet(DownloadStatus.FAILED, DownloadStatus.DOWNLOADING) &&
-            !downloadStatus.compareAndSet(DownloadStatus.SUCCESS, DownloadStatus.DOWNLOADING)) {
+                !downloadStatus.compareAndSet(DownloadStatus.FAILED, DownloadStatus.DOWNLOADING) &&
+                !downloadStatus.compareAndSet(DownloadStatus.SUCCESS, DownloadStatus.DOWNLOADING)) {
             return false;
         }
-        
+
         downloadProgress.set(0);
         downloadError.set("");
 
@@ -227,7 +230,8 @@ public class MineLightsClient implements ClientModInitializer {
 
             JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.size() == 0) throw new IOException("No assets found in release");
+            if (assets.size() == 0)
+                throw new IOException("No assets found in release");
 
             JsonObject asset = assets.get(0).getAsJsonObject();
             String downloadUrl = asset.get("browser_download_url").getAsString();
@@ -313,10 +317,10 @@ public class MineLightsClient implements ClientModInitializer {
             serverMonitorThread.setDaemon(true);
             serverMonitorThread.start();
         } else {
-             new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Initial-Check").start();
+            new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Initial-Check").start();
         }
     }
-    
+
     private static void serverMonitorLoop() {
         LOGGER.info("Starting MineLights Server monitor.");
         boolean hasConnected = false;
@@ -327,7 +331,7 @@ public class MineLightsClient implements ClientModInitializer {
                 if (isServerRunning()) {
                     if (!hasConnected) {
                         LOGGER.info("Server is running. Establishing connection...");
-                        refreshLightingManager();
+                        triggerLightingInitialization();
                         hasConnected = true;
                     }
                     Thread.sleep(10000);
@@ -335,7 +339,8 @@ public class MineLightsClient implements ClientModInitializer {
                 }
 
                 hasConnected = false;
-                Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+                Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
+                        .resolve("MineLights").resolve("MineLights.exe");
 
                 if (!Files.exists(serverExePath)) {
                     if (downloadStatus.get() != DownloadStatus.DOWNLOADING) {
@@ -359,7 +364,7 @@ public class MineLightsClient implements ClientModInitializer {
                 } else {
                     LOGGER.info("Waiting for running server process to become responsive...");
                 }
-                
+
                 Thread.sleep(5000);
 
             } catch (InterruptedException e) {
@@ -368,7 +373,7 @@ public class MineLightsClient implements ClientModInitializer {
             }
         }
     }
-    
+
     public static boolean isServerRunning() {
         try (Socket ignored = new Socket("127.0.0.1", 63213)) {
             return true;
@@ -381,7 +386,9 @@ public class MineLightsClient implements ClientModInitializer {
         Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights")
                 .resolve("MineLights.exe");
 
-        if (!Files.exists(serverExePath)) { return; }
+        if (!Files.exists(serverExePath)) {
+            return;
+        }
 
         try {
             LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
@@ -417,9 +424,18 @@ public class MineLightsClient implements ClientModInitializer {
         }
     }
 
-    public static void refreshLightingManager() {
-        LOGGER.info("Attempting to establish lighting connections...");
-        isProxyConnected = false;
+    public static synchronized void triggerLightingInitialization() {
+        if (lightingInitialized.compareAndSet(false, true)) {
+            LOGGER.info("Primary initialization trigger. Starting lighting systems...");
+            refreshLightingManager();
+        } else {
+            LOGGER.info("Initialization already in progress or complete. Skipping redundant start.");
+        }
+    }
+
+    public static synchronized void refreshLightingManager() {
+        LOGGER.info("Refreshing lighting manager...");
+
         if (lightingManagerThread != null && lightingManagerThread.isAlive()) {
             lightingManagerThread.interrupt();
             try {
@@ -428,11 +444,14 @@ public class MineLightsClient implements ClientModInitializer {
                 Thread.currentThread().interrupt();
             }
         }
+
         discoveredDevices.clear();
         proxyDiscoveredLatch = new CountDownLatch(1);
         lightingManager = new LightingManager();
-        lightingManagerThread = new Thread(lightingManager, "MineLights-LightingManager");
+        lightingManagerThread = new Thread(lightingManager, "MineLights-MainLoop");
         lightingManagerThread.start();
+
+        lightingInitialized.set(true);
     }
 
     public static void saveConfig() {

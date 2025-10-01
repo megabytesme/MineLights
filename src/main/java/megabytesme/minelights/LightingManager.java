@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import megabytesme.minelights.effects.DeviceLayout;
 import megabytesme.minelights.effects.EffectPainter;
 import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
@@ -26,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LightingManager implements Runnable {
     public static final Logger LOGGER = LogManager.getLogger("MineLights-LightingManager");
@@ -43,17 +43,14 @@ public class LightingManager implements Runnable {
     private final YeelightController yeelightController = new YeelightController();
     private final Map<Integer, Integer> yeelightLedToDeviceMap = new HashMap<>();
 
-    private final List<Integer> masterLedList = Collections.synchronizedList(new ArrayList<>());
-    private final Map<String, Integer> masterKeyMap = Collections.synchronizedMap(new HashMap<>());
-    private final AtomicInteger proxyLedCount = new AtomicInteger(0);
-    private final AtomicInteger openRgbLedCount = new AtomicInteger(0);
-    private final AtomicInteger yeelightLedCount = new AtomicInteger(0);
+    private final List<DeviceLayout> deviceLayouts = Collections.synchronizedList(new ArrayList<>());
 
     public LightingManager() {
-        performHandshakes();
     }
 
     private void performHandshakes() {
+        final JsonObject[] serverDataContainer = new JsonObject[1];
+
         Thread serverHandshakeThread = new Thread(() -> {
             try (Socket clientSocket = new Socket()) {
                 clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
@@ -95,14 +92,8 @@ public class LightingManager implements Runnable {
                 if (length > 0) {
                     byte[] jsonBytes = new byte[length];
                     dis.readFully(jsonBytes);
-
                     String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
-                    LOGGER.info("Successfully received handshake data of length: {}", jsonString.length());
-                    JsonObject handshakeData = new JsonParser().parse(jsonString).getAsJsonObject();
-
-                    parseHandshakeData(handshakeData);
-                } else {
-                    LOGGER.warn("Server sent a handshake with zero length. No devices loaded from proxy.");
+                    serverDataContainer[0] = new JsonParser().parse(jsonString).getAsJsonObject();
                 }
             } catch (Exception e) {
                 LOGGER.error("Failed during handshake with MineLights Server. Is it running? Details: {}",
@@ -115,24 +106,7 @@ public class LightingManager implements Runnable {
         Thread openRgbThread = new Thread(() -> {
             if (!MineLightsClient.CONFIG.enableOpenRgb)
                 return;
-            if (openRgbController.connect()) {
-                List<OpenRGBController.OpenRGBDevice> devices = openRgbController.getDevices();
-                int openRgbLedOffset = 2000;
-                for (int i = 0; i < devices.size(); i++) {
-                    OpenRGBController.OpenRGBDevice device = devices.get(i);
-                    String uniqueId = "OpenRGB|" + device.name;
-                    if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId))
-                        continue;
-                    MineLightsClient.discoveredDevices.add(uniqueId);
-                    openRgbLedCount.addAndGet(device.ledCount);
-                    for (int j = 0; j < device.ledCount; j++) {
-                        int globalLedId = openRgbLedOffset + j;
-                        masterLedList.add(globalLedId);
-                        openRgbLedToDeviceMap.put(globalLedId, i);
-                    }
-                    openRgbLedOffset += device.ledCount;
-                }
-            }
+            openRgbController.connect();
         });
         openRgbThread.setName("MineLights-OpenRGB-Handshake");
 
@@ -149,75 +123,99 @@ public class LightingManager implements Runnable {
                     if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId))
                         continue;
                     MineLightsClient.discoveredDevices.add(uniqueId);
-
                     int globalLedId = yeelightLedOffset + i;
-                    masterLedList.add(globalLedId);
+
+                    DeviceLayout layout = new DeviceLayout("Yeelight " + i, "YEELIGHT");
+                    layout.addMapping("YEELIGHT_" + i, globalLedId);
+                    deviceLayouts.add(layout);
                     yeelightLedToDeviceMap.put(globalLedId, i);
-                    yeelightLedCount.incrementAndGet();
                 }
             }
         });
         yeelightThread.setName("MineLights-Yeelight-Discovery");
 
-        Thread initializerThread = new Thread(() -> {
-            try {
-                serverHandshakeThread.start();
-                openRgbThread.start();
-                yeelightThread.start();
-                serverHandshakeThread.join(5000);
-                openRgbThread.join(5000);
-                yeelightThread.join(5000);
+        try {
+            serverHandshakeThread.start();
+            openRgbThread.start();
+            yeelightThread.start();
 
-                masterKeyMap.putAll(openRgbController.getGlobalKeyMap());
-                this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
-                this.isInitialized = true;
-                LOGGER.info(
-                        "Initialization complete. Found {} LEDs from MineLights Server, {} from OpenRGB, and {} from Yeelight. Total: {}",
-                        proxyLedCount.get(), openRgbLedCount.get(), yeelightLedCount.get(), masterLedList.size());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            serverHandshakeThread.join(5000);
+            openRgbThread.join(5000);
+            yeelightThread.join(5000);
+
+            if (serverDataContainer[0] != null) {
+                parseServerHandshakeData(serverDataContainer[0]);
             }
-        });
-        initializerThread.setName("MineLights-Initializer");
-        initializerThread.start();
+
+            parseOpenRGBData();
+
+            this.effectPainter = new EffectPainter(deviceLayouts);
+            this.isInitialized = true;
+
+            long totalLeds = deviceLayouts.stream().mapToLong(d -> d.getAllLeds().size()).sum();
+            LOGGER.info("Initialization complete. Found {} devices with a total of {} LEDs.", deviceLayouts.size(),
+                    totalLeds);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    private void parseHandshakeData(JsonObject handshakeData) {
+    private void parseServerHandshakeData(JsonObject handshakeData) {
         LOGGER.info("--- Parsing Handshake Data from MineLights Server ---");
         if (handshakeData.has("devices")) {
-            JsonArray devices = handshakeData.getAsJsonArray("devices");
-            LOGGER.info("Found {} devices from server.", devices.size());
-            for (JsonElement deviceElement : devices) {
+            for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
                 JsonObject deviceObject = deviceElement.getAsJsonObject();
-                String sdk = deviceObject.get("sdk").getAsString();
                 String name = deviceObject.get("name").getAsString();
-                int ledCount = deviceObject.get("ledCount").getAsInt();
+                String sdk = deviceObject.get("sdk").getAsString();
+                String uniqueId = sdk + "|" + name;
 
-                LOGGER.info("> Device [{}]: {} ({} LEDs)", sdk, name, ledCount);
-                
-                if (deviceObject.has("leds")) {
-                    for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
-                        masterLedList.add(id.getAsInt());
-                        proxyLedCount.incrementAndGet();
+                MineLightsClient.discoveredDevices.add(uniqueId);
+                DeviceLayout layout = new DeviceLayout(name, "SERVER");
+
+                if (deviceObject.has("key_map")) {
+                    JsonObject mapObject = deviceObject.getAsJsonObject("key_map");
+                    for (Map.Entry<String, JsonElement> entry : mapObject.entrySet()) {
+                        String standardizedName = KeyNameStandardizer.standardize(entry.getKey());
+                        int ledId = entry.getValue().getAsInt();
+                        layout.addMapping(standardizedName, ledId);
                     }
                 }
+                deviceLayouts.add(layout);
+                LOGGER.info("> Mapped device [{}]: {} ({} LEDs)", sdk, name, layout.getAllLeds().size());
             }
         }
+    }
 
-        if (handshakeData.has("key_map")) {
-            JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
-            LOGGER.info("Mapping {} named keys from server as baseline...", mapObject.size());
-            for (Map.Entry<String, JsonElement> entry : mapObject.entrySet()) {
+    private void parseOpenRGBData() {
+        LOGGER.info("[OpenRGB] Parsing data from OpenRGB...");
+        int openRgbDeviceIndex = 0;
+        for (OpenRGBController.OpenRGBDevice device : openRgbController.getDevices()) {
+            String uniqueId = "OpenRGB|" + device.name;
+            MineLightsClient.discoveredDevices.add(uniqueId);
+
+            DeviceLayout layout = new DeviceLayout(device.name, "OPENRGB");
+            Map<String, Integer> openRgbMap = device.keyMap;
+
+            int openRgbLedOffset = 2000 + (openRgbDeviceIndex * 1000);
+
+            for (Map.Entry<String, Integer> entry : openRgbMap.entrySet()) {
                 String standardizedName = KeyNameStandardizer.standardize(entry.getKey());
-                masterKeyMap.put(standardizedName, entry.getValue().getAsInt());
-            }
-        }
+                int globalLedId = openRgbLedOffset + entry.getValue();
+                layout.addMapping(standardizedName, globalLedId);
 
-        LOGGER.info("--- Finished Parsing Handshake Data ---");
+                openRgbLedToDeviceMap.put(globalLedId, openRgbDeviceIndex);
+            }
+            deviceLayouts.add(layout);
+            LOGGER.info("> Mapped device [OpenRGB]: {} ({} LEDs)", device.name, layout.getAllLeds().size());
+            openRgbDeviceIndex++;
+        }
     }
 
     @Override
     public void run() {
+        performHandshakes();
+
         while (!isInitialized) {
             try {
                 Thread.sleep(100);

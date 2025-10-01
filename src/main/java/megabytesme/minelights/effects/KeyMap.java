@@ -42,7 +42,6 @@ public class KeyMap {
         return Arrays.asList("ISO_BACKSLASH", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH");
     }
 
-
     public static List<String> getAlphabetKeys() {
         return Stream.of(getTopAlphabetRow(), getHomeAlphabetRow(), getBottomAlphabetRow())
                 .flatMap(List::stream)
@@ -50,7 +49,8 @@ public class KeyMap {
     }
 
     public static List<String> getModifierKeys() {
-        return Arrays.asList("LCTRL", "LWIN", "LALT", "RALT", "FN", "MENU", "RCTRL", "LSHIFT", "RSHIFT", "CAPSLOCK", "TAB");
+        return Arrays.asList("LCTRL", "LWIN", "LALT", "RALT", "FN", "MENU", "RCTRL", "LSHIFT", "RSHIFT", "CAPSLOCK",
+                "TAB");
     }
 
     public static List<String> getNavigationBlock() {
@@ -63,14 +63,13 @@ public class KeyMap {
 
     public static List<String> getNumpad() {
         return Arrays.asList(
-            "NUMLOCK", "NUMPAD_DIVIDE", "NUMPAD_MULTIPLY", "NUMPAD_SUBTRACT",
-            "NUMPAD7", "NUMPAD8", "NUMPAD9", "NUMPAD_ADD",
-            "NUMPAD4", "NUMPAD5", "NUMPAD6",
-            "NUMPAD1", "NUMPAD2", "NUMPAD3", "NUMPAD_ENTER",
-            "NUMPAD0", "NUMPAD_DECIMAL"
-        );
+                "NUMLOCK", "NUMPAD_DIVIDE", "NUMPAD_MULTIPLY", "NUMPAD_SUBTRACT",
+                "NUMPAD7", "NUMPAD8", "NUMPAD9", "NUMPAD_ADD",
+                "NUMPAD4", "NUMPAD5", "NUMPAD6",
+                "NUMPAD1", "NUMPAD2", "NUMPAD3", "NUMPAD_ENTER",
+                "NUMPAD0", "NUMPAD_DECIMAL");
     }
-    
+
     public static List<String> getNumpadDirectional() {
         return Arrays.asList("NUMPAD8", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD2", "NUMPAD1", "NUMPAD4", "NUMPAD7");
     }
@@ -100,35 +99,35 @@ public class KeyMap {
                 getNavigationBlock(),
                 getArrowKeys(),
                 getNumpad(),
-                Arrays.asList("ESCAPE", "PRINTSCREEN", "SCROLLLOCK", "PAUSE", "BACKSPACE", "ENTER", "SPACE")
-        ).flatMap(List::stream).distinct().collect(Collectors.toList());
+                Arrays.asList("ESCAPE", "PRINTSCREEN", "SCROLLLOCK", "PAUSE", "BACKSPACE", "ENTER", "SPACE"))
+                .flatMap(List::stream).distinct().collect(Collectors.toList());
     }
 
     public static final List<List<String>> KEYBOARD_ROWS = Arrays.asList(
-        getFunctionKeys(),
-        getNumberRow(),
-        getTopAlphabetRow(),
-        getHomeAlphabetRow(),
-        getBottomAlphabetRow(),
-        Arrays.asList("LCTRL", "LWIN", "LALT", "SPACE", "RALT", "FN", "MENU", "RCTRL")
-    );
+            getFunctionKeys(),
+            getNumberRow(),
+            getTopAlphabetRow(),
+            getHomeAlphabetRow(),
+            getBottomAlphabetRow(),
+            Arrays.asList("LCTRL", "LWIN", "LALT", "SPACE", "RALT", "FN", "MENU", "RCTRL"));
 
     public static final List<String> G_KEYS_COLUMN = Arrays.asList("G1", "G2", "G3", "G4", "G5", "G6");
     public static final List<String> NAV_COLUMN_1 = Arrays.asList("PRINTSCREEN", "DELETE", "LEFT");
     public static final List<String> NAV_COLUMN_2 = Arrays.asList("SCROLLLOCK", "END", "DOWN");
     public static final List<String> NAV_COLUMN_3 = Arrays.asList("PAUSE", "PAGE_DOWN", "RIGHT");
     public static final List<String> NUMPAD_COLUMN_1 = Arrays.asList("NUMLOCK", "NUMPAD7", "NUMPAD4", "NUMPAD1");
-    public static final List<String> NUMPAD_COLUMN_2 = Arrays.asList("NUMPAD_DIVIDE", "NUMPAD8", "NUMPAD5", "NUMPAD2", "NUMPAD0");
-    public static final List<String> NUMPAD_COLUMN_3 = Arrays.asList("NUMPAD_MULTIPLY", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD_DECIMAL");
+    public static final List<String> NUMPAD_COLUMN_2 = Arrays.asList("NUMPAD_DIVIDE", "NUMPAD8", "NUMPAD5", "NUMPAD2",
+            "NUMPAD0");
+    public static final List<String> NUMPAD_COLUMN_3 = Arrays.asList("NUMPAD_MULTIPLY", "NUMPAD9", "NUMPAD6", "NUMPAD3",
+            "NUMPAD_DECIMAL");
     public static final List<String> NUMPAD_COLUMN_4 = Arrays.asList("NUMPAD_SUBTRACT", "NUMPAD_ADD", "NUMPAD_ENTER");
     public static final List<List<String>> KEYBOARD_COLUMNS = Arrays.asList(
-        G_KEYS_COLUMN,
-        NAV_COLUMN_1,
-        NAV_COLUMN_2,
-        NAV_COLUMN_3,
-        NUMPAD_COLUMN_1,
-        NUMPAD_COLUMN_2,
-        NUMPAD_COLUMN_3,
-        NUMPAD_COLUMN_4
-    );
+            G_KEYS_COLUMN,
+            NAV_COLUMN_1,
+            NAV_COLUMN_2,
+            NAV_COLUMN_3,
+            NUMPAD_COLUMN_1,
+            NUMPAD_COLUMN_2,
+            NUMPAD_COLUMN_3,
+            NUMPAD_COLUMN_4);
 }

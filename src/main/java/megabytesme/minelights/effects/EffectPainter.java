@@ -10,27 +10,27 @@ import net.minecraft.client.option.GameOptions;
 //?} else {
 /* import net.minecraft.client.options.GameOptions;
 *///?}
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 public class EffectPainter {
     public static final Logger LOGGER = LogManager.getLogger("MineLights - EffectPainter");
 
     private final Random random = new Random();
-    private final List<Integer> allLedIds;
-    private final Map<String, Integer> namedKeyMap;
-    private final List<String> underglowKeys;
-    private final List<String> ramKeys;
+    private final List<DeviceLayout> deviceLayouts;
+    private final List<DeviceLayout> perKeyDeviceLayouts = new ArrayList<>();
+    private final List<DeviceLayout> fallbackDeviceLayouts = new ArrayList<>();
+    private final List<Integer> perKeyLedIds = new ArrayList<>();
 
     private static class Raindrop {
         int column;
@@ -47,14 +47,11 @@ public class EffectPainter {
             this.isVertical = isVertical;
             this.lastFallTime = now;
             this.color = color;
-            this.tailColor = new RGBColorDto((int)(color.r * 0.5), (int)(color.g * 0.5), (int)(color.b * 0.5));
-            this.tailColor2 = new RGBColorDto((int)(color.r * 0.2), (int)(color.g * 0.2), (int)(color.b * 0.2));
+            this.tailColor = new RGBColorDto((int) (color.r * 0.5), (int) (color.g * 0.5), (int) (color.b * 0.5));
+            this.tailColor2 = new RGBColorDto((int) (color.r * 0.2), (int) (color.g * 0.2), (int) (color.b * 0.2));
         }
     }
-    private final List<Integer> perKeyLedIds = new ArrayList<>();
-    private final List<Integer> fallbackLedIds = new ArrayList<>();
-    private int waveIndex = 0;
-    private long lastWaveStep = 0;
+
     private boolean rainPhase = false;
     private long lastRainPhaseStep = 0;
     private final List<Raindrop> raindrops = new ArrayList<>();
@@ -94,75 +91,60 @@ public class EffectPainter {
     private static int sheenIndex = 0;
 
     private static RGBColorDto blend(RGBColorDto base, RGBColorDto overlay, double overlayOpacity) {
-        if (base == null) return overlay;
-        if (overlay == null) return base;
-
+        if (base == null)
+            return overlay;
+        if (overlay == null)
+            return base;
         double baseOpacity = 1.0 - overlayOpacity;
         int r = (int) (base.r * baseOpacity + overlay.r * overlayOpacity);
         int g = (int) (base.g * baseOpacity + overlay.g * overlayOpacity);
         int b = (int) (base.b * baseOpacity + overlay.b * overlayOpacity);
-
         return new RGBColorDto(r, g, b);
     }
 
-    public EffectPainter(List<Integer> allLedIds, Map<String, Integer> namedKeyMap) {
-        this.allLedIds = allLedIds;
-        this.namedKeyMap = namedKeyMap;
+    public EffectPainter(List<DeviceLayout> deviceLayouts) {
+        this.deviceLayouts = deviceLayouts;
 
-        this.underglowKeys = findAndSortKeysByPrefix("UNDERGLOW_");
-        this.ramKeys = findAndSortKeysByPrefix("RAM_");
-        
-        LOGGER.info("Dynamically found {} underglow keys.", this.underglowKeys.size());
-        LOGGER.info("Dynamically found {} RAM keys.", this.ramKeys.size());
-
-        List<String> perKeyNames = new ArrayList<>();
-        perKeyNames.addAll(KeyMap.getFullKeyboard());
-        perKeyNames.addAll(this.underglowKeys);
-        perKeyNames.addAll(this.ramKeys);
-        
-        Set<Integer> perKeyIdSet = perKeyNames.stream()
-            .map(this::getMappedId)
-            .filter(java.util.Objects::nonNull)
-            .collect(Collectors.toSet());
-
-        for (Integer ledId : allLedIds) {
-            if (perKeyIdSet.contains(ledId)) {
-                this.perKeyLedIds.add(ledId);
+        for (DeviceLayout layout : deviceLayouts) {
+            if (layout.getKeyMap().size() > 20) {
+                perKeyDeviceLayouts.add(layout);
+                perKeyLedIds.addAll(layout.getAllLeds());
+                LOGGER.info("Treating device '{}' as a Per-Key device.", layout.deviceName);
             } else {
-                this.fallbackLedIds.add(ledId);
+                fallbackDeviceLayouts.add(layout);
+                LOGGER.info("Treating device '{}' as a Fallback/Zonal device.", layout.deviceName);
             }
         }
     }
 
-    private List<String> findAndSortKeysByPrefix(String prefix) {
-        return this.namedKeyMap.keySet().stream()
-                .filter(key -> key.startsWith(prefix))
-                .sorted(Comparator.comparingInt(key -> 
-                        Integer.parseInt(key.substring(prefix.length()))
-                ))
-                .collect(Collectors.toList());
-    }
-
-    private Integer getMappedId(String keyName) {
-        return namedKeyMap.get(keyName);
+    private List<Integer> getMappedIds(String keyName) {
+        List<Integer> allIds = new ArrayList<>();
+        for (DeviceLayout layout : perKeyDeviceLayouts) {
+            allIds.addAll(layout.getKeyMap().getOrDefault(keyName, Collections.emptyList()));
+        }
+        return allIds;
     }
 
     public FrameStateDto paint(PlayerDto player) {
         FrameStateDto state = new FrameStateDto();
 
-        if (!MineLightsClient.CONFIG.enableMod || allLedIds.isEmpty()) {
+        if (!MineLightsClient.CONFIG.enableMod) {
             return state;
         }
 
         if (!player.getInGame()) {
-            for (Integer ledId : allLedIds) {
-                state.keys.put(ledId, new RGBColorDto(255, 0, 0));
+            for (DeviceLayout layout : deviceLayouts) {
+                for (Integer ledId : layout.getAllLeds()) {
+                    state.keys.put(ledId, new RGBColorDto(255, 0, 0));
+                }
             }
             return state;
         }
 
-        for (Integer ledId : allLedIds) {
-            state.keys.put(ledId, new RGBColorDto(255, 0, 0));
+        for (DeviceLayout layout : deviceLayouts) {
+            for (Integer ledId : layout.getAllLeds()) {
+                state.keys.put(ledId, new RGBColorDto(0, 0, 0));
+            }
         }
 
         paintEnvironmentalBase(state, player);
@@ -207,8 +189,10 @@ public class EffectPainter {
             baseColor = new RGBColorDto(0, 0, 50);
         }
 
-        for (Integer ledId : allLedIds) {
-            state.keys.put(ledId, baseColor);
+        for (DeviceLayout layout : deviceLayouts) {
+            for (Integer ledId : layout.getAllLeds()) {
+                state.keys.put(ledId, baseColor);
+            }
         }
 
         paintSpecialWorldEffects(state, player, now);
@@ -217,7 +201,8 @@ public class EffectPainter {
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
         paintWeatherEffects(state, player, now);
 
-        if (isFlashing) return;
+        if (isFlashing)
+            return;
 
         if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
             if (now - lastFireCrackleUpdate > 100) {
@@ -256,8 +241,10 @@ public class EffectPainter {
         }
         if (isFlashing) {
             if (now - flashStartTime < 150) {
-                for (Integer ledId : allLedIds) {
-                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
+                for (DeviceLayout layout : deviceLayouts) {
+                    for (Integer ledId : layout.getAllLeds()) {
+                        state.keys.put(ledId, new RGBColorDto(255, 255, 255));
+                    }
                 }
                 return;
             } else {
@@ -280,11 +267,14 @@ public class EffectPainter {
             rainPhase = !rainPhase;
             lastRainPhaseStep = now;
         }
-        for (int i = 0; i < fallbackLedIds.size(); i++) {
-            if (i % 2 == (rainPhase ? 0 : 1)) {
-                Integer ledId = fallbackLedIds.get(i);
-                RGBColorDto baseColor = state.keys.get(ledId);
-                state.keys.put(ledId, blend(baseColor, rainColor, 0.7));
+        for (DeviceLayout layout : fallbackDeviceLayouts) {
+            List<Integer> leds = layout.getAllLeds();
+            for (int i = 0; i < leds.size(); i++) {
+                if (i % 2 == (rainPhase ? 0 : 1)) {
+                    Integer ledId = leds.get(i);
+                    RGBColorDto baseColor = state.keys.get(ledId);
+                    state.keys.put(ledId, blend(baseColor, rainColor, 0.7));
+                }
             }
         }
 
@@ -308,8 +298,12 @@ public class EffectPainter {
                 drop.row++;
                 drop.lastFallTime = now;
             }
-            int pathLength = drop.isVertical ? KeyMap.KEYBOARD_COLUMNS.get(drop.column).size() : KeyMap.KEYBOARD_ROWS.size();
-            if (drop.row >= pathLength + 2) { iterator.remove(); continue; }
+            int pathLength = drop.isVertical ? KeyMap.KEYBOARD_COLUMNS.get(drop.column).size()
+                    : KeyMap.KEYBOARD_ROWS.size();
+            if (drop.row >= pathLength + 2) {
+                iterator.remove();
+                continue;
+            }
             if (drop.isVertical) {
                 drawVerticalRaindropSegment(state, drop, 0, drop.color);
                 drawVerticalRaindropSegment(state, drop, -1, drop.tailColor);
@@ -321,52 +315,79 @@ public class EffectPainter {
             }
         }
 
-        if (now - lastWaveStep > 40) {
-            waveIndex++;
-            lastWaveStep = now;
+        for (DeviceLayout layout : perKeyDeviceLayouts) {
+            applyWaveEffect(layout, state, "UNDERGLOW_", rainColor, now, 40, 8);
+            applyWaveEffect(layout, state, "RAM_", rainColor, now, 40, 4);
+            applyCascadeEffect(layout, state, "PLAYER_", rainColor, now, 150);
         }
-        
-        applyWaveEffect(state, this.underglowKeys, rainColor, waveIndex, 8);
-        applyWaveEffect(state, this.ramKeys, rainColor, waveIndex, 4);
     }
 
-    private void applyWaveEffect(FrameStateDto state, List<String> keyNames, RGBColorDto color, int headIndex, int tailLength) {
-        if (keyNames.isEmpty()) return;
+    private void applyWaveEffect(DeviceLayout layout, FrameStateDto state, String prefix, RGBColorDto color, long now,
+            int speed, int tailLength) {
+        List<String> keyNames = layout.getKeyMap().keySet().stream()
+                .filter(k -> k.startsWith(prefix))
+                .sorted(Comparator.comparingInt(k -> Integer.parseInt(k.substring(prefix.length()))))
+                .collect(Collectors.toList());
+
+        if (keyNames.isEmpty())
+            return;
+
+        int headIndex = (int) ((now / speed) % keyNames.size());
 
         for (int i = 0; i < keyNames.size(); i++) {
-            Integer ledId = getMappedId(keyNames.get(i));
-            if (ledId == null) continue;
+            int distance = (i - headIndex + keyNames.size()) % keyNames.size();
 
-            int distance = (i - (headIndex % keyNames.size()) + keyNames.size()) % keyNames.size();
-            
             if (distance < tailLength) {
                 float brightness = 1.0f - ((float) distance / tailLength);
-                RGBColorDto waveColor = new RGBColorDto(
-                    (int)(color.r * brightness),
-                    (int)(color.g * brightness),
-                    (int)(color.b * brightness)
-                );
+                RGBColorDto waveColor = new RGBColorDto((int) (color.r * brightness), (int) (color.g * brightness),
+                        (int) (color.b * brightness));
+                for (Integer ledId : layout.getKeyMap().get(keyNames.get(i))) {
+                    RGBColorDto baseColor = state.keys.get(ledId);
+                    state.keys.put(ledId, blend(baseColor, waveColor, 0.8));
+                }
+            }
+        }
+    }
+
+    private void applyCascadeEffect(DeviceLayout layout, FrameStateDto state, String prefix, RGBColorDto color,
+            long now, int speed) {
+        List<String> keyNames = layout.getKeyMap().keySet().stream()
+                .filter(k -> k.startsWith(prefix))
+                .sorted(Comparator.comparingInt(k -> Integer.parseInt(k.substring(prefix.length()))))
+                .collect(Collectors.toList());
+
+        if (keyNames.isEmpty())
+            return;
+
+        int headIndex = (int) ((now / speed) % (keyNames.size() + 3));
+
+        for (int i = 0; i < keyNames.size(); i++) {
+            RGBColorDto finalColor = new RGBColorDto(0, 0, 0);
+            if (i == headIndex)
+                finalColor = color;
+            else if (i == headIndex - 1)
+                finalColor = new RGBColorDto((int) (color.r * 0.5), (int) (color.g * 0.5), (int) (color.b * 0.5));
+            else if (i == headIndex - 2)
+                finalColor = new RGBColorDto((int) (color.r * 0.2), (int) (color.g * 0.2), (int) (color.b * 0.2));
+
+            for (Integer ledId : layout.getKeyMap().get(keyNames.get(i))) {
                 RGBColorDto baseColor = state.keys.get(ledId);
-                state.keys.put(ledId, blend(baseColor, waveColor, 0.8));
+                state.keys.put(ledId, blend(baseColor, finalColor, 0.9));
             }
         }
     }
 
     private void drawHorizontalRaindropSegment(FrameStateDto state, Raindrop drop, int rowOffset, RGBColorDto color) {
         int targetRow = drop.row + rowOffset;
-        if (targetRow < 0 || targetRow >= KeyMap.KEYBOARD_ROWS.size()) {
+        if (targetRow < 0 || targetRow >= KeyMap.KEYBOARD_ROWS.size())
             return;
-        }
 
         List<String> rowKeys = KeyMap.KEYBOARD_ROWS.get(targetRow);
-        if (drop.column >= rowKeys.size()) {
+        if (drop.column >= rowKeys.size())
             return;
-        }
 
         String keyName = rowKeys.get(drop.column);
-        Integer ledId = getMappedId(keyName);
-
-        if (ledId != null) {
+        for (Integer ledId : getMappedIds(keyName)) {
             RGBColorDto baseColor = state.keys.get(ledId);
             state.keys.put(ledId, blend(baseColor, color, 0.9));
         }
@@ -376,14 +397,11 @@ public class EffectPainter {
         List<String> columnKeys = KeyMap.KEYBOARD_COLUMNS.get(drop.column);
         int targetRow = drop.row + rowOffset;
 
-        if (targetRow < 0 || targetRow >= columnKeys.size()) {
+        if (targetRow < 0 || targetRow >= columnKeys.size())
             return;
-        }
 
         String keyName = columnKeys.get(targetRow);
-        Integer ledId = getMappedId(keyName);
-        
-        if (ledId != null) {
+        for (Integer ledId : getMappedIds(keyName)) {
             RGBColorDto baseColor = state.keys.get(ledId);
             state.keys.put(ledId, blend(baseColor, color, 0.9));
         }
@@ -393,13 +411,12 @@ public class EffectPainter {
         List<String> logicalKeys = KeyMap.getExperienceBar();
         int ledsToLight = (int) (player.getExperience() * logicalKeys.size());
         for (int i = 0; i < logicalKeys.size(); i++) {
-            Integer ledId = getMappedId(logicalKeys.get(i));
-            if (ledId != null) {
-                if (i < ledsToLight) {
-                    state.keys.put(ledId, new RGBColorDto(0, 255, 0));
-                } else {
-                    state.keys.put(ledId, new RGBColorDto(10, 30, 10));
-                }
+            RGBColorDto color = (i < ledsToLight)
+                    ? new RGBColorDto(0, 255, 0)
+                    : new RGBColorDto(10, 30, 10);
+
+            for (Integer ledId : getMappedIds(logicalKeys.get(i))) {
+                state.keys.put(ledId, color);
             }
         }
     }
@@ -419,10 +436,6 @@ public class EffectPainter {
             RGBColorDto healthFull = new RGBColorDto(255, 0, 0);
             List<String> healthKeys = KeyMap.getHealthBar();
             for (int i = 0; i < healthKeys.size(); i++) {
-                Integer ledId = getMappedId(healthKeys.get(i));
-                if (ledId == null)
-                    continue;
-
                 RGBColorDto finalColor;
                 if (isDamageFlashActive) {
                     finalColor = new RGBColorDto(255, 255, 255);
@@ -434,7 +447,10 @@ public class EffectPainter {
                     float t = (player.getHealth() - (i * 5.0f)) / 5.0f;
                     finalColor = lerpColor(healthDim, healthFull, t);
                 }
-                state.keys.put(ledId, finalColor);
+
+                for (Integer ledId : getMappedIds(healthKeys.get(i))) {
+                    state.keys.put(ledId, finalColor);
+                }
             }
         }
 
@@ -443,12 +459,12 @@ public class EffectPainter {
             RGBColorDto hungerFull = new RGBColorDto(255, 165, 0);
             List<String> hungerKeys = KeyMap.getHungerBar();
             for (int i = 0; i < hungerKeys.size(); i++) {
-                Integer ledId = getMappedId(hungerKeys.get(i));
-                if (ledId == null)
-                    continue;
-
                 float t = (player.getHunger() - (i * 5.0f)) / 5.0f;
-                state.keys.put(ledId, lerpColor(hungerDim, hungerFull, t));
+                RGBColorDto color = lerpColor(hungerDim, hungerFull, t);
+
+                for (Integer ledId : getMappedIds(hungerKeys.get(i))) {
+                    state.keys.put(ledId, color);
+                }
             }
         }
     }
@@ -484,12 +500,12 @@ public class EffectPainter {
         float valuePerKey = maxValue / barKeys.size();
 
         for (int i = 0; i < barKeys.size(); i++) {
-            Integer ledId = getMappedId(barKeys.get(i));
-            if (ledId == null)
-                continue;
-
             float t = (value - (i * valuePerKey)) / valuePerKey;
-            state.keys.put(ledId, lerpColor(dimColor, fullColor, t));
+            RGBColorDto color = lerpColor(dimColor, fullColor, t);
+
+            for (Integer ledId : getMappedIds(barKeys.get(i))) {
+                state.keys.put(ledId, color);
+            }
         }
     }
 
@@ -524,21 +540,20 @@ public class EffectPainter {
 
         int r = (int) (255 * heartbeatBrightness);
         for (String keyName : KeyMap.getHeartbeatRed()) {
-            Integer ledId = getMappedId(keyName);
-            if (ledId != null)
+            for (Integer ledId : getMappedIds(keyName)) {
                 state.keys.put(ledId, new RGBColorDto(r, 0, 0));
+            }
         }
         for (String keyName : KeyMap.getHeartbeatWhite()) {
-            Integer ledId = getMappedId(keyName);
-            if (ledId != null)
+            for (Integer ledId : getMappedIds(keyName)) {
                 state.keys.put(ledId, new RGBColorDto(r, r, r));
+            }
         }
     }
 
     private void paintCompass(FrameStateDto state, PlayerDto player) {
-        if (player.getCompassType() == CompassType.NONE) {
+        if (player.getCompassType() == CompassType.NONE)
             return;
-        }
 
         RGBColorDto compassColor;
         RGBColorDto backgroundColor;
@@ -559,15 +574,13 @@ public class EffectPainter {
         }
 
         for (String keyName : KeyMap.getNumpadDirectional()) {
-            Integer ledId = getMappedId(keyName);
-            if (ledId != null) {
+            for (Integer ledId : getMappedIds(keyName)) {
                 state.keys.put(ledId, backgroundColor);
             }
         }
 
-        Integer centerLedId = getMappedId(KeyMap.getNumpadCenter());
-        if (centerLedId != null) {
-            state.keys.put(centerLedId, compassColor);
+        for (Integer ledId : getMappedIds(KeyMap.getNumpadCenter())) {
+            state.keys.put(ledId, compassColor);
         }
 
         if (player.getCompassState() == CompassState.SPINNING) {
@@ -577,17 +590,15 @@ public class EffectPainter {
                 lastCompassSpinTime = now;
             }
             String keyToLight = KeyMap.getNumpadDirectional().get(compassSpinIndex);
-            Integer ledId = getMappedId(keyToLight);
-            if (ledId != null) {
+            for (Integer ledId : getMappedIds(keyToLight)) {
                 state.keys.put(ledId, compassColor);
             }
         } else if (player.getCompassState() == CompassState.POINTING) {
             if (player.getCompassDistance() != null && player.getCompassDistance() < 8) {
-                if (centerLedId != null) {
+                for (Integer centerLedId : getMappedIds(KeyMap.getNumpadCenter())) {
                     long now = System.currentTimeMillis();
                     double pulseWave = (Math.sin(now / (2000.0 / (2.0 * Math.PI))) + 1.0) / 2.0;
                     float brightness = (float) (0.6 + pulseWave * 0.4);
-
                     RGBColorDto pulsedColor = new RGBColorDto(
                             (int) (compassColor.r * brightness),
                             (int) (compassColor.g * brightness),
@@ -617,8 +628,7 @@ public class EffectPainter {
                 else
                     keyToLight = "NUMPAD7"; // NW
 
-                Integer ledId = getMappedId(keyToLight);
-                if (ledId != null) {
+                for (Integer ledId : getMappedIds(keyToLight)) {
                     state.keys.put(ledId, compassColor);
                 }
             }
@@ -633,16 +643,13 @@ public class EffectPainter {
 
             List<String> directionalKeys = KeyMap.getNumpadDirectional();
             int keyCount = directionalKeys.size();
-            
             RGBColorDto sheenTintColor = new RGBColorDto(120, 0, 255);
-            double[] opacities = {0.6, 0.4, 0.2};
+            double[] opacities = { 0.6, 0.4, 0.2 };
 
             for (int i = 0; i < opacities.length; i++) {
                 int keyIndex = (sheenIndex - i + keyCount) % keyCount;
                 String keyName = directionalKeys.get(keyIndex);
-                Integer ledId = getMappedId(keyName);
-
-                if (ledId != null) {
+                for (Integer ledId : getMappedIds(keyName)) {
                     RGBColorDto baseColor = state.keys.get(ledId);
                     RGBColorDto finalColor = blend(baseColor, sheenTintColor, opacities[i]);
                     state.keys.put(ledId, finalColor);
@@ -666,9 +673,9 @@ public class EffectPainter {
 
         if (keyColor != null) {
             for (String keyName : getMovementKeyNames()) {
-                Integer ledId = getMappedId(keyName);
-                if (ledId != null)
+                for (Integer ledId : getMappedIds(keyName)) {
                     state.keys.put(ledId, keyColor);
+                }
             }
         }
     }
@@ -677,18 +684,17 @@ public class EffectPainter {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
         GameOptions options = MinecraftClient.getInstance().options;
-        //? if >= 1.19 {
+        // ? if >= 1.19 {
         keybindsToFetch = Arrays.asList(
-            options.forwardKey.getBoundKeyTranslationKey(),
-            options.backKey.getBoundKeyTranslationKey(),
-            options.leftKey.getBoundKeyTranslationKey(),
-            options.rightKey.getBoundKeyTranslationKey(),
-            options.jumpKey.getBoundKeyTranslationKey(),
-            options.sneakKey.getBoundKeyTranslationKey(),
-            options.sprintKey.getBoundKeyTranslationKey()
-        );
-        //?} else if >=1.16 {
-        /* 
+                options.forwardKey.getBoundKeyTranslationKey(),
+                options.backKey.getBoundKeyTranslationKey(),
+                options.leftKey.getBoundKeyTranslationKey(),
+                options.rightKey.getBoundKeyTranslationKey(),
+                options.jumpKey.getBoundKeyTranslationKey(),
+                options.sneakKey.getBoundKeyTranslationKey(),
+                options.sprintKey.getBoundKeyTranslationKey());
+        // ?} else if >=1.16 {
+        /*
          keybindsToFetch = Arrays.asList(
          options.keyForward.getBoundKeyTranslationKey(),
          options.keyBack.getBoundKeyTranslationKey(),
@@ -697,18 +703,18 @@ public class EffectPainter {
          options.keyJump.getBoundKeyTranslationKey(),
          options.keySneak.getBoundKeyTranslationKey(),
          options.keySprint.getBoundKeyTranslationKey());
-        *///?} else {
+         */// ?} else {
         /*
-        keybindsToFetch = Arrays.asList(
-            options.keyForward.getDefaultKeyCode().toString(),
-            options.keyBack.getDefaultKeyCode().toString(),
-            options.keyLeft.getDefaultKeyCode().toString(),
-            options.keyRight.getDefaultKeyCode().toString(),
-            options.keyJump.getDefaultKeyCode().toString(),
-            options.keySneak.getDefaultKeyCode().toString(),
-            options.keySprint.getDefaultKeyCode().toString()
-        );
-        *///?}
+         keybindsToFetch = Arrays.asList(
+         options.keyForward.getDefaultKeyCode().toString(),
+         options.keyBack.getDefaultKeyCode().toString(),
+         options.keyLeft.getDefaultKeyCode().toString(),
+         options.keyRight.getDefaultKeyCode().toString(),
+         options.keyJump.getDefaultKeyCode().toString(),
+         options.keySneak.getDefaultKeyCode().toString(),
+         options.keySprint.getDefaultKeyCode().toString()
+         );
+         */// ?}
 
         for (String key : keybindsToFetch) {
             if (key == null || !key.startsWith("key.keyboard.")) {
@@ -724,6 +730,7 @@ public class EffectPainter {
             }
 
             if (!friendlyName.isEmpty()) {
+                friendlyName = friendlyName.replace("CONTROL", "CTRL");
                 friendlyNames.add(friendlyName);
             }
         }
@@ -732,11 +739,11 @@ public class EffectPainter {
 
     private void updateRandomKeys(List<Integer> keyList, float density) {
         keyList.clear();
-        if (allLedIds.isEmpty())
+        if (perKeyLedIds.isEmpty())
             return;
-        int count = (int) (allLedIds.size() * density);
+        int count = (int) (perKeyLedIds.size() * density);
         for (int i = 0; i < count; i++) {
-            keyList.add(allLedIds.get(random.nextInt(allLedIds.size())));
+            keyList.add(perKeyLedIds.get(random.nextInt(perKeyLedIds.size())));
         }
     }
 
