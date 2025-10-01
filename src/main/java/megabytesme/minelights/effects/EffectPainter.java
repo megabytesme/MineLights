@@ -12,6 +12,7 @@ import net.minecraft.client.option.GameOptions;
 *///?}
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -21,10 +22,32 @@ public class EffectPainter {
     private final List<Integer> allLedIds;
     private final Map<String, Integer> namedKeyMap;
 
-    private boolean rainPhase = false;
-    private long lastRainStep = 0;
+    private static class Raindrop {
+        int column;
+        int row;
+        long lastFallTime;
+        final boolean isVertical;
+        final RGBColorDto color;
+        final RGBColorDto tailColor;
+        final RGBColorDto tailColor2;
+
+        Raindrop(int column, boolean isVertical, RGBColorDto color, long now) {
+            this.column = column;
+            this.row = 0;
+            this.isVertical = isVertical;
+            this.lastFallTime = now;
+            this.color = color;
+            this.tailColor = new RGBColorDto((int)(color.r * 0.5), (int)(color.g * 0.5), (int)(color.b * 0.5));
+            this.tailColor2 = new RGBColorDto((int)(color.r * 0.2), (int)(color.g * 0.2), (int)(color.b * 0.2));
+        }
+    }
+    private final List<Raindrop> raindrops = new ArrayList<>();
+    private long lastRaindropSpawn = 0;
+    private static final int RAINDROP_SPAWN_RATE_MS = 120;
+    private static final int RAINDROP_FALL_SPEED_MS = 90;
     private boolean isFlashing = false;
     private long flashStartTime = 0;
+
     private long lastFireCrackleUpdate = 0;
     private final List<Integer> cracklingKeys = new ArrayList<>();
     private long lastPortalTwinkleUpdate = 0;
@@ -143,21 +166,9 @@ public class EffectPainter {
     }
 
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
-        if (MineLightsClient.CONFIG.enableWeatherEffects && player.getWeather().equals("Thunderstorm") && !isFlashing
-                && random.nextInt(200) < 1) {
-            isFlashing = true;
-            flashStartTime = now;
-        }
-        if (isFlashing) {
-            if (now - flashStartTime < 150) {
-                for (Integer ledId : allLedIds) {
-                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
-                }
-                return;
-            } else {
-                isFlashing = false;
-            }
-        }
+        paintWeatherEffects(state, player, now);
+
+        if (isFlashing) return;
 
         if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
             if (now - lastFireCrackleUpdate > 100) {
@@ -185,19 +196,118 @@ public class EffectPainter {
             for (Integer keyId : twinklingKeys) {
                 state.keys.put(keyId, new RGBColorDto(50, 50, 50));
             }
-        } else if (MineLightsClient.CONFIG.enableWeatherEffects
-                && (player.getWeather().equals("Rain") || player.getWeather().equals("Thunderstorm"))
-                && BiomeData.isBiomeRainy(player.getCurrentBiome())) {
-            if (now - lastRainStep > 500) {
-                rainPhase = !rainPhase;
-                lastRainStep = now;
-            }
-            RGBColorDto rainColor = BiomeData.getBiomeRainColor(player.getCurrentBiome());
-            for (int i = 0; i < allLedIds.size(); i++) {
-                if (i % 2 == (rainPhase ? 0 : 1)) {
-                    state.keys.put(allLedIds.get(i), rainColor);
+        }
+    }
+
+    private void paintWeatherEffects(FrameStateDto state, PlayerDto player, long now) {
+        if (MineLightsClient.CONFIG.enableWeatherEffects && player.getWeather().equals("Thunderstorm") && !isFlashing
+                && random.nextInt(350) < 1) {
+            isFlashing = true;
+            flashStartTime = now;
+        }
+        if (isFlashing) {
+            if (now - flashStartTime < 150) {
+                for (Integer ledId : allLedIds) {
+                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
                 }
+                return;
+            } else {
+                isFlashing = false;
             }
+        }
+
+        boolean isRaining = MineLightsClient.CONFIG.enableWeatherEffects
+                && (player.getWeather().equals("Rain") || player.getWeather().equals("Thunderstorm"))
+                && BiomeData.isBiomeRainy(player.getCurrentBiome());
+
+        if (!isRaining) {
+            raindrops.clear();
+            return;
+        }
+
+        if (now - lastRaindropSpawn > RAINDROP_SPAWN_RATE_MS) {
+            RGBColorDto rainColor = BiomeData.getBiomeRainColor(player.getCurrentBiome());
+
+            if (random.nextInt(100) < 75) {
+                int startRow = random.nextInt(2);
+                List<String> rowKeys = KeyMap.KEYBOARD_ROWS.get(startRow);
+                int randomColumn = random.nextInt(rowKeys.size());
+                Raindrop newDrop = new Raindrop(randomColumn, false, rainColor, now);
+                newDrop.row = startRow;
+                raindrops.add(newDrop);
+            } else {
+                int randomColumnIndex = random.nextInt(KeyMap.KEYBOARD_COLUMNS.size());
+                Raindrop newDrop = new Raindrop(randomColumnIndex, true, rainColor, now);
+                raindrops.add(newDrop);
+            }
+            
+            lastRaindropSpawn = now;
+        }
+
+        Iterator<Raindrop> iterator = raindrops.iterator();
+        while (iterator.hasNext()) {
+            Raindrop drop = iterator.next();
+
+            if (now - drop.lastFallTime > RAINDROP_FALL_SPEED_MS) {
+                drop.row++;
+                drop.lastFallTime = now;
+            }
+            
+            int pathLength = drop.isVertical 
+                ? KeyMap.KEYBOARD_COLUMNS.get(drop.column).size()
+                : KeyMap.KEYBOARD_ROWS.size();
+
+            if (drop.row >= pathLength + 2) {
+                iterator.remove();
+                continue;
+            }
+
+            if (drop.isVertical) {
+                drawVerticalRaindropSegment(state, drop, 0, drop.color);
+                drawVerticalRaindropSegment(state, drop, -1, drop.tailColor);
+                drawVerticalRaindropSegment(state, drop, -2, drop.tailColor2);
+            } else {
+                drawHorizontalRaindropSegment(state, drop, 0, drop.color);
+                drawHorizontalRaindropSegment(state, drop, -1, drop.tailColor);
+                drawHorizontalRaindropSegment(state, drop, -2, drop.tailColor2);
+            }
+        }
+    }
+
+    private void drawHorizontalRaindropSegment(FrameStateDto state, Raindrop drop, int rowOffset, RGBColorDto color) {
+        int targetRow = drop.row + rowOffset;
+        if (targetRow < 0 || targetRow >= KeyMap.KEYBOARD_ROWS.size()) {
+            return;
+        }
+
+        List<String> rowKeys = KeyMap.KEYBOARD_ROWS.get(targetRow);
+        if (drop.column >= rowKeys.size()) {
+            return;
+        }
+
+        String keyName = rowKeys.get(drop.column);
+        Integer ledId = getMappedId(keyName);
+
+        if (ledId != null) {
+            RGBColorDto baseColor = state.keys.get(ledId);
+            state.keys.put(ledId, blend(baseColor, color, 0.9));
+        }
+    }
+
+    private void drawVerticalRaindropSegment(FrameStateDto state, Raindrop drop, int rowOffset, RGBColorDto color) {
+        List<String> columnKeys = KeyMap.KEYBOARD_COLUMNS.get(drop.column);
+        int targetRow = drop.row + rowOffset;
+
+        if (targetRow < 0 || targetRow >= columnKeys.size()) {
+            return;
+        }
+
+        String keyName = columnKeys.get(targetRow);
+        Integer ledId = getMappedId(keyName);
+        
+        if (ledId != null) {
+            RGBColorDto baseColor = state.keys.get(ledId);
+            state.keys.put(ledId, blend(baseColor, color, 0.9));
         }
     }
 

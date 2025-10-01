@@ -112,4 +112,23 @@ public class KeyMap {
         getBottomAlphabetRow(),
         Arrays.asList("LCTRL", "LWIN", "LALT", "SPACE", "RALT", "FN", "MENU", "RCTRL")
     );
+
+    public static final List<String> G_KEYS_COLUMN = Arrays.asList("G1", "G2", "G3", "G4", "G5", "G6");
+    public static final List<String> NAV_COLUMN_1 = Arrays.asList("PRINTSCREEN", "DELETE", "LEFT");
+    public static final List<String> NAV_COLUMN_2 = Arrays.asList("SCROLLLOCK", "END", "DOWN");
+    public static final List<String> NAV_COLUMN_3 = Arrays.asList("PAUSE", "PAGE_DOWN", "RIGHT");
+    public static final List<String> NUMPAD_COLUMN_1 = Arrays.asList("NUMLOCK", "NUMPAD7", "NUMPAD4", "NUMPAD1");
+    public static final List<String> NUMPAD_COLUMN_2 = Arrays.asList("NUMPAD_DIVIDE", "NUMPAD8", "NUMPAD5", "NUMPAD2", "NUMPAD0");
+    public static final List<String> NUMPAD_COLUMN_3 = Arrays.asList("NUMPAD_MULTIPLY", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD_DECIMAL");
+    public static final List<String> NUMPAD_COLUMN_4 = Arrays.asList("NUMPAD_SUBTRACT", "NUMPAD_ADD", "NUMPAD_ENTER");
+    public static final List<List<String>> KEYBOARD_COLUMNS = Arrays.asList(
+        G_KEYS_COLUMN,
+        NAV_COLUMN_1,
+        NAV_COLUMN_2,
+        NAV_COLUMN_3,
+        NUMPAD_COLUMN_1,
+        NUMPAD_COLUMN_2,
+        NUMPAD_COLUMN_3,
+        NUMPAD_COLUMN_4
+    );
 }
