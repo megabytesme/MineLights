@@ -80,14 +80,16 @@ public class ModMenuIntegration implements ModMenuApi {
                 needsRefresh = true;
             }
             if (MineLightsClient.CONFIG.restartProxy) {
+                MineLightsClient.isManualRestart = true;
                 CommandClient.sendCommand("restart");
                 MineLightsClient.CONFIG.restartProxy = false;
-                needsRefresh = true;
+                needsRefresh = false;
             }
             if (MineLightsClient.CONFIG.restartProxyAsAdmin) {
+                MineLightsClient.isManualRestart = true;
                 CommandClient.sendCommand("restart_admin");
                 MineLightsClient.CONFIG.restartProxyAsAdmin = false;
-                needsRefresh = true;
+                needsRefresh = false;
             }
             if (MineLightsClient.CONFIG.clearDisabledDevices) {
                 MineLightsClient.CONFIG.disabledDevices.clear();

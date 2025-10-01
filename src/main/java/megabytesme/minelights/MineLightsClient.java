@@ -47,6 +47,7 @@ public class MineLightsClient implements ClientModInitializer {
     private static Thread lightingManagerThread;
     private static Thread discoveryThread;
     public static Thread serverMonitorThread;
+    public static volatile boolean isManualRestart = false;
 
     public static final List<String> discoveredDevices = Collections.synchronizedList(new ArrayList<>());
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
@@ -329,18 +330,33 @@ public class MineLightsClient implements ClientModInitializer {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 if (isServerRunning()) {
+                    if (isManualRestart) {
+                        LOGGER.info("New server process detected after manual restart. Forcing re-initialization...");
+                        lightingInitialized.set(false);
+                        isManualRestart = false;
+                        hasConnected = false;
+                    }
+
                     if (!hasConnected) {
-                        LOGGER.info("Server is running. Establishing connection...");
                         triggerLightingInitialization();
                         hasConnected = true;
                     }
+
                     Thread.sleep(10000);
                     continue;
                 }
 
+                lightingInitialized.set(false);
                 hasConnected = false;
-                Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
-                        .resolve("MineLights").resolve("MineLights.exe");
+
+                if (isManualRestart) {
+                    LOGGER.info("Manual restart initiated. Waiting for new server process to start...");
+                    Thread.sleep(8000);
+                    continue;
+                }
+
+                Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath()
+                    .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
 
                 if (!Files.exists(serverExePath)) {
                     if (downloadStatus.get() != DownloadStatus.DOWNLOADING) {
