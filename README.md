@@ -13,7 +13,9 @@
   </picture>
 </a>
 
-MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets the latest version of Minecraft (1.21+) and uses a modular design to support a wide range of hardware.
+MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets a range of Minecraft versions (1.14.3+) and uses a modular design to support a wide range of hardware.
+
+###### Currently supported: MInecraft 1.14.3 - 1.21.9 (Fabric)
 
 ## Features
 
@@ -55,6 +57,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
 ### Installation
+
 - Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
 **Installing MineLights version 2.1 or below**: Follow the guide in the release changelog.
@@ -76,6 +79,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 - **Windows Dynamic Lighting**: Integration with Windows Dynamic Lighting is planned for the future.
 - **Improve Device Compatibility**: Continuously working to improve support for more devices across all SDKs.
 - **Community Testing**: Ideally have testers, well test!
+- **Resolve Issues:** I aim to resolve problems either within the [issues page](https://github.com/megabytesme/MineLights/issues) or issues I personally find and [log](https://github.com/megabytesme/MineLights/blob/master/ISSUES.md).
 
 ## Contributing
 

@@ -13,9 +13,9 @@ plugins {
 
 stonecutter {
     create(rootProject) {
-        versions("1.14.3", "1.14.4")
-        vcsVersion = "1.14.4"
+        versions("1.14.3", "1.14.4", "1.15", "1.16", "1.16.2", "1.17", "1.19", "1.20", "1.20.5", "1.21.2", "1.21.6")
+        vcsVersion = "1.21.6"
     }
 }
 
-rootProject.name = "Template"
+rootProject.name = "MineLights"

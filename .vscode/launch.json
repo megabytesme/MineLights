@@ -14,6 +14,69 @@
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.15 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.16 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.16.2 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.17 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.19 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.20 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.20.5 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.21.2 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.21.6 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
     }
   ],
   "compounds": [
@@ -26,6 +89,51 @@
       "name": "Debug 1.14.4 Client",
       "configurations": ["Attach to 1.14.4 Client"],
       "preLaunchTask": "Run 1.14.4 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.15 Client",
+      "configurations": ["Attach to 1.15 Client"],
+      "preLaunchTask": "Run 1.15 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.16 Client",
+      "configurations": ["Attach to 1.16 Client"],
+      "preLaunchTask": "Run 1.16 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.16.2 Client",
+      "configurations": ["Attach to 1.16.2 Client"],
+      "preLaunchTask": "Run 1.16.2 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.17 Client",
+      "configurations": ["Attach to 1.17 Client"],
+      "preLaunchTask": "Run 1.17 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.19 Client",
+      "configurations": ["Attach to 1.19 Client"],
+      "preLaunchTask": "Run 1.19 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.20 Client",
+      "configurations": ["Attach to 1.20 Client"],
+      "preLaunchTask": "Run 1.20 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.20.5 Client",
+      "configurations": ["Attach to 1.20.5 Client"],
+      "preLaunchTask": "Run 1.20.5 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.21.2 Client",
+      "configurations": ["Attach to 1.21.2 Client"],
+      "preLaunchTask": "Run 1.21.2 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.21.6 Client",
+      "configurations": ["Attach to 1.21.6 Client"],
+      "preLaunchTask": "Run 1.21.6 Client (Debug)"
     }
   ]
 }

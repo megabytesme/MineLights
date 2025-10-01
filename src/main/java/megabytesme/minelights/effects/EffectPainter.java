@@ -5,7 +5,11 @@ import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.GameOptions;
+//? if >=1.17 {
+import net.minecraft.client.option.GameOptions;
+//?} else {
+/* import net.minecraft.client.options.GameOptions;
+*///?}
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +51,20 @@ public class EffectPainter {
 
     private long lastCompassSpinTime = 0;
     private int compassSpinIndex = 0;
+    private static long lastSheenTime = 0;
+    private static int sheenIndex = 0;
+
+    private static RGBColorDto blend(RGBColorDto base, RGBColorDto overlay, double overlayOpacity) {
+        if (base == null) return overlay;
+        if (overlay == null) return base;
+
+        double baseOpacity = 1.0 - overlayOpacity;
+        int r = (int) (base.r * baseOpacity + overlay.r * overlayOpacity);
+        int g = (int) (base.g * baseOpacity + overlay.g * overlayOpacity);
+        int b = (int) (base.b * baseOpacity + overlay.b * overlayOpacity);
+
+        return new RGBColorDto(r, g, b);
+    }
 
     public EffectPainter(List<Integer> allLedIds, Map<String, Integer> namedKeyMap) {
         this.allLedIds = allLedIds;
@@ -342,6 +360,10 @@ public class EffectPainter {
                 compassColor = new RGBColorDto(0, 191, 255);
                 backgroundColor = new RGBColorDto(0, 20, 35);
                 break;
+            case LODESTONE:
+                compassColor = new RGBColorDto(238, 130, 238);
+                backgroundColor = new RGBColorDto(25, 0, 25);
+                break;
             default:
                 compassColor = new RGBColorDto(255, 0, 0);
                 backgroundColor = new RGBColorDto(35, 0, 0);
@@ -360,8 +382,7 @@ public class EffectPainter {
             state.keys.put(centerLedId, compassColor);
         }
 
-        if (player.getCompassState() == CompassState.SPINNING || player.getCurrentWorld().equals("the_nether")
-                || player.getCurrentWorld().equals("the_end")) {
+        if (player.getCompassState() == CompassState.SPINNING) {
             long now = System.currentTimeMillis();
             if (now - lastCompassSpinTime > 75) {
                 compassSpinIndex = (compassSpinIndex + 1) % KeyMap.getNumpadDirectional().size();
@@ -414,6 +435,32 @@ public class EffectPainter {
                 }
             }
         }
+
+        if (player.getCompassType() == CompassType.LODESTONE) {
+            long now = System.currentTimeMillis();
+            if (now - lastSheenTime > 60) {
+                sheenIndex = (sheenIndex + 1) % KeyMap.getNumpadDirectional().size();
+                lastSheenTime = now;
+            }
+
+            List<String> directionalKeys = KeyMap.getNumpadDirectional();
+            int keyCount = directionalKeys.size();
+            
+            RGBColorDto sheenTintColor = new RGBColorDto(120, 0, 255);
+            double[] opacities = {0.6, 0.4, 0.2};
+
+            for (int i = 0; i < opacities.length; i++) {
+                int keyIndex = (sheenIndex - i + keyCount) % keyCount;
+                String keyName = directionalKeys.get(keyIndex);
+                Integer ledId = getMappedId(keyName);
+
+                if (ledId != null) {
+                    RGBColorDto baseColor = state.keys.get(ledId);
+                    RGBColorDto finalColor = blend(baseColor, sheenTintColor, opacities[i]);
+                    state.keys.put(ledId, finalColor);
+                }
+            }
+        }
     }
 
     private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
@@ -440,16 +487,40 @@ public class EffectPainter {
 
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
+        List<String> keybindsToFetch = new ArrayList<>();
         GameOptions options = MinecraftClient.getInstance().options;
-
-        List<String> keybindsToFetch = Arrays.asList(
-                options.keyForward.getDefaultKeyCode().toString(),
-                options.keyBack.getDefaultKeyCode().toString(),
-                options.keyLeft.getDefaultKeyCode().toString(),
-                options.keyRight.getDefaultKeyCode().toString(),
-                options.keyJump.getDefaultKeyCode().toString(),
-                options.keySneak.getDefaultKeyCode().toString(),
-                options.keySprint.getDefaultKeyCode().toString());
+        //? if >= 1.19 {
+        keybindsToFetch = Arrays.asList(
+            options.forwardKey.getBoundKeyTranslationKey(),
+            options.backKey.getBoundKeyTranslationKey(),
+            options.leftKey.getBoundKeyTranslationKey(),
+            options.rightKey.getBoundKeyTranslationKey(),
+            options.jumpKey.getBoundKeyTranslationKey(),
+            options.sneakKey.getBoundKeyTranslationKey(),
+            options.sprintKey.getBoundKeyTranslationKey()
+        );
+        //?} else if >=1.16 {
+        /* 
+         keybindsToFetch = Arrays.asList(
+         options.keyForward.getBoundKeyTranslationKey(),
+         options.keyBack.getBoundKeyTranslationKey(),
+         options.keyLeft.getBoundKeyTranslationKey(),
+         options.keyRight.getBoundKeyTranslationKey(),
+         options.keyJump.getBoundKeyTranslationKey(),
+         options.keySneak.getBoundKeyTranslationKey(),
+         options.keySprint.getBoundKeyTranslationKey());
+        *///?} else {
+        /*
+        keybindsToFetch = Arrays.asList(
+            options.keyForward.getDefaultKeyCode().toString(),
+            options.keyBack.getDefaultKeyCode().toString(),
+            options.keyLeft.getDefaultKeyCode().toString(),
+            options.keyRight.getDefaultKeyCode().toString(),
+            options.keyJump.getDefaultKeyCode().toString(),
+            options.keySneak.getDefaultKeyCode().toString(),
+            options.keySprint.getDefaultKeyCode().toString()
+        );
+        *///?}
 
         for (String key : keybindsToFetch) {
             if (key == null || !key.startsWith("key.keyboard.")) {
