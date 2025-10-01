@@ -7,6 +7,12 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LightningEntity;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 //? if <=1.16.5 {
 /* import net.minecraft.nbt.CompoundTag;
 *///?} else {
@@ -26,6 +32,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.world.World;
 //?}
 import net.minecraft.world.dimension.DimensionType;
+import megabytesme.minelights.mixin.LightningAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +46,8 @@ import net.minecraft.component.type.LodestoneTrackerComponent;
 //?}
 
 public class PlayerDataCollector {
+    public static final Logger LOGGER = LogManager.getLogger("MineLights-PlayerDataCollector");
+
     public static PlayerDto getCurrentState(MinecraftClient client) {
         PlayerDto playerDto = new PlayerDto();
 
@@ -95,6 +104,17 @@ public class PlayerDataCollector {
             playerDto.setWeather("Rain");
         } else {
             playerDto.setWeather("Clear");
+        }
+
+        for (Entity entity : world.getEntities()) {
+            if (entity instanceof LightningEntity lightning) {
+                LightningAccessor acc = (LightningAccessor) lightning;
+
+                int ambientTick = acc.getAmbientTick();
+                int remainingActions = acc.getRemainingActions();
+
+                playerDto.setIsLightningFlashing((ambientTick % 3) < 2 && remainingActions > 0);
+            }
         }
 
         return playerDto;

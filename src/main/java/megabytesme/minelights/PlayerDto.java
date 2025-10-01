@@ -13,6 +13,7 @@ public class PlayerDto {
     private String currentBiome;
     private String currentWorld;
     private String weather;
+    private boolean isLightningFlashing;
     private boolean isOnFire;
     private boolean isPoisoned;
     private boolean isWithering;
@@ -57,6 +58,10 @@ public class PlayerDto {
 
     public String getWeather() {
         return weather;
+    }
+
+    public boolean getIsLightningFlashing() {
+        return isLightningFlashing;
     }
 
     public boolean getIsOnFire() {
@@ -109,6 +114,10 @@ public class PlayerDto {
 
     public void setWeather(String weather) {
         this.weather = weather;
+    }
+
+    public void setIsLightningFlashing(boolean isLightningFlashing) {
+        this.isLightningFlashing = isLightningFlashing;
     }
 
     public void setIsOnFire(boolean isOnFire) {
