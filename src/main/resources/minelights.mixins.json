@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "megabytesme.minelights.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "client": ["LightningAccessor"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

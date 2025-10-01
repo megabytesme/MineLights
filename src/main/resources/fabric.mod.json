@@ -17,7 +17,7 @@
     "client": ["megabytesme.minelights.MineLightsClient"],
     "modmenu": ["megabytesme.minelights.config.ModMenuIntegration"]
   },
-  "mixins": [],
+  "mixins": ["minelights.mixins.json"],
   "depends": {
     "minecraft": "${minecraft}"
   },
