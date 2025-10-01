@@ -13,7 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class OpenRGBController {
+    public static final Logger LOGGER = LogManager.getLogger("MineLights - OpenRGBController");
 
     private Socket socket;
     private DataOutputStream out;
@@ -53,11 +57,22 @@ public class OpenRGBController {
                 ByteBuffer response = readResponse();
                 OpenRGBDevice device = parseDeviceData(response);
                 devices.add(device);
+
+                LOGGER.info("Discovered device #" + i + ": " + device.name);
+                LOGGER.info("LED count: " + device.ledCount);
+                if (device.keyMap.isEmpty()) {
+                    LOGGER.info("No key mappings reported.");
+                } else {
+                    device.keyMap.forEach((key, index) ->
+                        LOGGER.info("  LED " + index + " → \"" + key + "\"")
+                    );
+                }
+
                 sendPacket(1100, i, new byte[0]);
             }
             return true;
         } catch (IOException e) {
-            System.err.println("Could not connect to OpenRGB server. Is it running?");
+            LOGGER.warn("Could not connect to OpenRGB server. Is it running?");
             e.printStackTrace();
             return false;
         }
@@ -78,6 +93,7 @@ public class OpenRGBController {
         readString(data);
 
         int numModes = Short.toUnsignedInt(data.getShort());
+        LOGGER.info("Modes: " + numModes);
         data.getInt();
 
         for (int i = 0; i < numModes; i++) {
@@ -110,6 +126,7 @@ public class OpenRGBController {
         }
 
         int numZones = Short.toUnsignedInt(data.getShort());
+        LOGGER.info("Zones: " + numZones);
         int totalLeds = 0;
         for (int i = 0; i < numZones; i++) {
             readString(data);
@@ -138,10 +155,12 @@ public class OpenRGBController {
         }
 
         int numLeds = Short.toUnsignedInt(data.getShort());
+        LOGGER.info("[OpenRGB] LEDs reported: " + numLeds);
         for (int i = 0; i < numLeds; i++) {
             String ledName = readString(data);
             if (!ledName.isEmpty()) {
                 device.keyMap.put(ledName, i);
+                LOGGER.info("  LED " + i + " name: \"" + ledName + "\"");
             }
             data.getInt();
         }
