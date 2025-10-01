@@ -56,7 +56,7 @@ public class MineLightsClient implements ClientModInitializer {
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights/releases/tags/v2-server";
+    private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
     private boolean titleScreenHooked = false;
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
