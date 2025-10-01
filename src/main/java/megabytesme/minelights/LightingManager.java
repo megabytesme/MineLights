@@ -167,6 +167,7 @@ public class LightingManager implements Runnable {
                 openRgbThread.join(5000);
                 yeelightThread.join(5000);
 
+                masterKeyMap.putAll(openRgbController.getGlobalKeyMap());
                 this.effectPainter = new EffectPainter(masterLedList, masterKeyMap);
                 this.isInitialized = true;
                 LOGGER.info(
