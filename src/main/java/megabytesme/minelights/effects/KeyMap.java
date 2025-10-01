@@ -1,6 +1,5 @@
 package megabytesme.minelights.effects;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -132,29 +131,4 @@ public class KeyMap {
         NUMPAD_COLUMN_3,
         NUMPAD_COLUMN_4
     );
-
-    public static List<String> getRamKeys() {
-        List<String> keys = new ArrayList<>();
-        for (int i = 0; i <= 9; i++) {
-            keys.add("CORSAIR_PRO_LED_" + i);
-        }
-        return keys;
-    }
-
-    public static List<String> getUnderglowKeys() {
-        List<String> keys = new ArrayList<>();
-        for (int i = 1; i <= 44; i++) {
-            keys.add("UNDERGLOW_" + i);
-        }
-        return keys;
-    }
-
-    public static List<String> getAllPerKeyEffectKeys() {
-        return Stream.of(
-                KEYBOARD_ROWS.stream().flatMap(List::stream),
-                KEYBOARD_COLUMNS.stream().flatMap(List::stream),
-                getUnderglowKeys().stream(),
-                getRamKeys().stream()
-        ).flatMap(s -> s).distinct().collect(Collectors.toList());
-    }
 }

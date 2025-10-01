@@ -12,15 +12,25 @@ import net.minecraft.client.option.GameOptions;
 *///?}
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EffectPainter {
+    public static final Logger LOGGER = LogManager.getLogger("MineLights - EffectPainter");
+
     private final Random random = new Random();
     private final List<Integer> allLedIds;
     private final Map<String, Integer> namedKeyMap;
+    private final List<String> underglowKeys;
+    private final List<String> ramKeys;
 
     private static class Raindrop {
         int column;
@@ -99,18 +109,38 @@ public class EffectPainter {
         this.allLedIds = allLedIds;
         this.namedKeyMap = namedKeyMap;
 
-        List<String> perKeyNames = KeyMap.getAllPerKeyEffectKeys();
-        for (String keyName : perKeyNames) {
-            Integer ledId = getMappedId(keyName);
-            if (ledId != null) {
-                this.perKeyLedIds.add(ledId);
-            }
-        }
+        this.underglowKeys = findAndSortKeysByPrefix("UNDERGLOW_");
+        this.ramKeys = findAndSortKeysByPrefix("RAM_");
+        
+        LOGGER.info("Dynamically found {} underglow keys.", this.underglowKeys.size());
+        LOGGER.info("Dynamically found {} RAM keys.", this.ramKeys.size());
+
+        List<String> perKeyNames = new ArrayList<>();
+        perKeyNames.addAll(KeyMap.getFullKeyboard());
+        perKeyNames.addAll(this.underglowKeys);
+        perKeyNames.addAll(this.ramKeys);
+        
+        Set<Integer> perKeyIdSet = perKeyNames.stream()
+            .map(this::getMappedId)
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
+
         for (Integer ledId : allLedIds) {
-            if (!this.perKeyLedIds.contains(ledId)) {
+            if (perKeyIdSet.contains(ledId)) {
+                this.perKeyLedIds.add(ledId);
+            } else {
                 this.fallbackLedIds.add(ledId);
             }
         }
+    }
+
+    private List<String> findAndSortKeysByPrefix(String prefix) {
+        return this.namedKeyMap.keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .sorted(Comparator.comparingInt(key -> 
+                        Integer.parseInt(key.substring(prefix.length()))
+                ))
+                .collect(Collectors.toList());
     }
 
     private Integer getMappedId(String keyName) {
@@ -295,8 +325,9 @@ public class EffectPainter {
             waveIndex++;
             lastWaveStep = now;
         }
-        applyWaveEffect(state, KeyMap.getUnderglowKeys(), rainColor, waveIndex, 8);
-        applyWaveEffect(state, KeyMap.getRamKeys(), rainColor, waveIndex, 4);
+        
+        applyWaveEffect(state, this.underglowKeys, rainColor, waveIndex, 8);
+        applyWaveEffect(state, this.ramKeys, rainColor, waveIndex, 4);
     }
 
     private void applyWaveEffect(FrameStateDto state, List<String> keyNames, RGBColorDto color, int headIndex, int tailLength) {

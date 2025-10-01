@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import megabytesme.minelights.effects.EffectPainter;
 import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
+import megabytesme.minelights.effects.KeyNameStandardizer;
 import megabytesme.minelights.effects.RGBColorDto;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.YeelightController;
@@ -182,11 +183,18 @@ public class LightingManager implements Runnable {
     }
 
     private void parseHandshakeData(JsonObject handshakeData) {
+        LOGGER.info("--- Parsing Handshake Data from MineLights Server ---");
         if (handshakeData.has("devices")) {
-            for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
+            JsonArray devices = handshakeData.getAsJsonArray("devices");
+            LOGGER.info("Found {} devices from server.", devices.size());
+            for (JsonElement deviceElement : devices) {
                 JsonObject deviceObject = deviceElement.getAsJsonObject();
-                String uniqueId = deviceObject.get("sdk").getAsString() + "|" + deviceObject.get("name").getAsString();
-                MineLightsClient.discoveredDevices.add(uniqueId);
+                String sdk = deviceObject.get("sdk").getAsString();
+                String name = deviceObject.get("name").getAsString();
+                int ledCount = deviceObject.get("ledCount").getAsInt();
+
+                LOGGER.info("> Device [{}]: {} ({} LEDs)", sdk, name, ledCount);
+                
                 if (deviceObject.has("leds")) {
                     for (JsonElement id : deviceObject.getAsJsonArray("leds")) {
                         masterLedList.add(id.getAsInt());
@@ -195,12 +203,17 @@ public class LightingManager implements Runnable {
                 }
             }
         }
+
         if (handshakeData.has("key_map")) {
             JsonObject mapObject = handshakeData.getAsJsonObject("key_map");
+            LOGGER.info("Mapping {} named keys from server as baseline...", mapObject.size());
             for (Map.Entry<String, JsonElement> entry : mapObject.entrySet()) {
-                masterKeyMap.put(entry.getKey(), entry.getValue().getAsInt());
+                String standardizedName = KeyNameStandardizer.standardize(entry.getKey());
+                masterKeyMap.put(standardizedName, entry.getValue().getAsInt());
             }
         }
+
+        LOGGER.info("--- Finished Parsing Handshake Data ---");
     }
 
     @Override

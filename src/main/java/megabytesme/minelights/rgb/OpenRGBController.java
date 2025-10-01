@@ -1,6 +1,8 @@
 package megabytesme.minelights.rgb;
 
 import megabytesme.minelights.effects.KeyColorDto;
+import megabytesme.minelights.effects.KeyNameStandardizer;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -19,66 +21,8 @@ import org.apache.logging.log4j.Logger;
 public class OpenRGBController {
     public static final Logger LOGGER = LogManager.getLogger("MineLights - OpenRGBController");
 
-    private static final Map<String, String> KEY_NAME_MAP = new HashMap<>();
-    static {
-        KEY_NAME_MAP.put("`", "BACKTICK");
-        KEY_NAME_MAP.put("-", "MINUS");
-        KEY_NAME_MAP.put("=", "EQUALS");
-        KEY_NAME_MAP.put("[", "LEFT_BRACKET");
-        KEY_NAME_MAP.put("]", "RIGHT_BRACKET");
-        KEY_NAME_MAP.put(";", "SEMICOLON");
-        KEY_NAME_MAP.put("'", "APOSTROPHE");
-        KEY_NAME_MAP.put("#", "HASH");
-        KEY_NAME_MAP.put(",", "COMMA");
-        KEY_NAME_MAP.put(".", "PERIOD");
-        KEY_NAME_MAP.put("/", "SLASH");
-        KEY_NAME_MAP.put("\\ (ISO)", "ISO_BACKSLASH");
-        KEY_NAME_MAP.put("Space", "SPACE");
-
-        KEY_NAME_MAP.put("Left Shift", "LSHIFT");
-        KEY_NAME_MAP.put("Right Shift", "RSHIFT");
-        KEY_NAME_MAP.put("Left Control", "LCTRL");
-        KEY_NAME_MAP.put("Right Control", "RCTRL");
-        KEY_NAME_MAP.put("Left Windows", "LWIN");
-        KEY_NAME_MAP.put("Left Alt", "LALT");
-        KEY_NAME_MAP.put("Right Alt", "RALT");
-        KEY_NAME_MAP.put("Right Fn", "FN");
-        KEY_NAME_MAP.put("Caps Lock", "CAPSLOCK");
-        KEY_NAME_MAP.put("Num Lock", "NUMLOCK");
-        KEY_NAME_MAP.put("Scroll Lock", "SCROLLLOCK");
-        KEY_NAME_MAP.put("Print Screen", "PRINTSCREEN");
-        KEY_NAME_MAP.put("Pause/Break", "PAUSE");
-
-        KEY_NAME_MAP.put("Media Mute", "MEDIA_MUTE");
-        KEY_NAME_MAP.put("Media Stop", "MEDIA_STOP");
-        KEY_NAME_MAP.put("Media Previous", "MEDIA_PREVIOUS");
-        KEY_NAME_MAP.put("Media Play/Pause", "MEDIA_PLAY_PAUSE");
-        KEY_NAME_MAP.put("Media Next", "MEDIA_NEXT");
-
-        KEY_NAME_MAP.put("Number Pad /", "NUMPAD_DIVIDE");
-        KEY_NAME_MAP.put("Number Pad *", "NUMPAD_MULTIPLY");
-        KEY_NAME_MAP.put("Number Pad -", "NUMPAD_SUBTRACT");
-        KEY_NAME_MAP.put("Number Pad +", "NUMPAD_ADD");
-        KEY_NAME_MAP.put("Number Pad Enter", "NUMPAD_ENTER");
-        KEY_NAME_MAP.put("Number Pad .", "NUMPAD_DECIMAL");
-        for (int i = 0; i <= 9; i++) {
-            KEY_NAME_MAP.put("Number Pad " + i, "NUMPAD" + i);
-        }
-        
-        KEY_NAME_MAP.put("Up Arrow", "UP");
-        KEY_NAME_MAP.put("Down Arrow", "DOWN");
-        KEY_NAME_MAP.put("Left Arrow", "LEFT");
-        KEY_NAME_MAP.put("Right Arrow", "RIGHT");
-    }
-
     private String processKeyName(String name) {
-        if (name.startsWith("Key: ")) {
-            name = name.substring(5);
-        }
-        if (KEY_NAME_MAP.containsKey(name)) {
-            return KEY_NAME_MAP.get(name);
-        }
-        return name.toUpperCase().replaceAll("\\s+", "_");
+        return KeyNameStandardizer.standardize(name);
     }
 
     private Socket socket;
