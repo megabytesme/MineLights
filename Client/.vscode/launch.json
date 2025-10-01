@@ -49,6 +49,13 @@
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
+    },
+    {
+      "type": "java",
+      "name": "Attach to 1.20 Client",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
     }
   ],
   "compounds": [
@@ -86,6 +93,11 @@
       "name": "Debug 1.19 Client",
       "configurations": ["Attach to 1.19 Client"],
       "preLaunchTask": "Run 1.19 Client (Debug)"
+    },
+    {
+      "name": "Debug 1.20 Client",
+      "configurations": ["Attach to 1.20 Client"],
+      "preLaunchTask": "Run 1.20 Client (Debug)"
     }
   ]
 }
