@@ -107,7 +107,8 @@ public class PlayerDataCollector {
         }
 
         for (Entity entity : world.getEntities()) {
-            if (entity instanceof LightningEntity lightning) {
+            if (entity instanceof LightningEntity) {
+                LightningEntity lightning = (LightningEntity) entity;
                 LightningAccessor acc = (LightningAccessor) lightning;
 
                 int ambientTick = acc.getAmbientTick();
