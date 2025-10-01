@@ -80,8 +80,6 @@ public class EffectPainter {
     private long lastRaindropSpawn = 0;
     private static final int RAINDROP_SPAWN_RATE_MS = 120;
     private static final int RAINDROP_FALL_SPEED_MS = 90;
-    private boolean isFlashing = false;
-    private long flashStartTime = 0;
 
     private long lastFireCrackleUpdate = 0;
     private final List<Integer> cracklingKeys = new ArrayList<>();
@@ -210,7 +208,7 @@ public class EffectPainter {
 
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
         paintWeatherEffects(state, player, now);
-        if (isFlashing)
+        if (player.getIsLightningFlashing())
             return;
 
         List<Integer> perKeyLeds = deviceLayouts.stream()
@@ -245,21 +243,12 @@ public class EffectPainter {
     }
 
     private void paintWeatherEffects(FrameStateDto state, PlayerDto player, long now) {
-        if (MineLightsClient.CONFIG.enableWeatherEffects && player.getWeather().equals("Thunderstorm") && !isFlashing
-                && random.nextInt(350) < 1) {
-            isFlashing = true;
-            flashStartTime = now;
-        }
-        if (isFlashing) {
-            if (now - flashStartTime < 150) {
-                for (DeviceLayout layout : deviceLayouts) {
-                    for (Integer ledId : layout.getAllLeds())
-                        state.keys.put(ledId, new RGBColorDto(255, 255, 255));
-                }
-                return;
-            } else {
-                isFlashing = false;
+        if (player.getIsLightningFlashing()) {
+            for (DeviceLayout layout : deviceLayouts) {
+                for (Integer ledId : layout.getAllLeds())
+                    state.keys.put(ledId, new RGBColorDto(255, 255, 255));
             }
+            return;
         }
 
         boolean isRaining = MineLightsClient.CONFIG.enableWeatherEffects
