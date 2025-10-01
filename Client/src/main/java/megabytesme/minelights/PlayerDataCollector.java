@@ -33,6 +33,10 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.util.math.GlobalPos;
 //?}
+//? if >=1.20.5 {
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LodestoneTrackerComponent;
+//?}
 
 public class PlayerDataCollector {
     public static PlayerDto getCurrentState(MinecraftClient client) {
@@ -171,12 +175,17 @@ public class PlayerDataCollector {
 
             if (stack.getItem() == Items.COMPASS) {
                 boolean isLodestone = false;
-                //? if >= 1.18 {
-                if (stack.hasNbt()) {
+                //? if >=1.20.5 {
+                LodestoneTrackerComponent lodestoneData = stack.get(DataComponentTypes.LODESTONE_TRACKER);
+                if (lodestoneData != null && lodestoneData.target().isPresent()) {
+                    isLodestone = true;
+                }
+                //?} else if >= 1.18 {
+                /* if (stack.hasNbt()) {
                     NbtCompound tag = stack.getNbt();
                     if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
                 }
-                //?} else if >= 1.17 {
+                *///?} else if >= 1.17 {
                 /* if (stack.hasTag()) {
                     NbtCompound tag = stack.getTag();
                     if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
@@ -239,13 +248,28 @@ public class PlayerDataCollector {
             Optional<GlobalPos> lastDeathPos = holder.getLastDeathPos();
             if (lastDeathPos.isPresent()) {
                 GlobalPos pos = lastDeathPos.get();
-                if (pos.getDimension().equals(world.getRegistryKey())) {
+                //? if >=1.20.5 {
+                if (pos.dimension().equals(world.getRegistryKey())) {
+                    return pos.pos();
+                }
+                //?} else {
+                /* if (pos.getDimension().equals(world.getRegistryKey())) {
                     return pos.getPos();
                 }
+                *///?}
             }
             return null;
         }
-        if (stack.hasNbt()) {
+        //? if >=1.20.5 {
+        LodestoneTrackerComponent lodestoneData = stack.get(DataComponentTypes.LODESTONE_TRACKER);
+        if (lodestoneData != null) {
+            return lodestoneData.target()
+                    .filter(pos -> pos.dimension().equals(world.getRegistryKey()))
+                    .map(GlobalPos::pos)
+                    .orElse(null);
+        }
+        //?} else if >= 1.19 {
+        /* if (stack.hasNbt()) {
             NbtCompound tag = stack.getNbt();
             if (tag != null && tag.contains("LodestonePos") && tag.contains("LodestoneDimension")) {
                 String lodestoneDim = tag.getString("LodestoneDimension");
@@ -256,6 +280,7 @@ public class PlayerDataCollector {
                 return null;
             }
         }
+        *///?}
         if (world.getRegistryKey().equals(World.OVERWORLD)) {
             return world.getSpawnPos();
         }

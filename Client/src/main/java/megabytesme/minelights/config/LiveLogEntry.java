@@ -45,13 +45,23 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
         this.logLines = logLines;
     }
     
+    //? if >=1.20.5 {
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        int maxScroll = Math.max(0, (wrappedLinesCache.size() * 10) - getItemHeight());
+        scrollY -= (int) (verticalAmount * 10);
+        scrollY = MathHelper.clamp(scrollY, 0, maxScroll);
+        return true;
+    }
+    //?} else if <1.20.5 {
+    /* @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         int maxScroll = Math.max(0, (wrappedLinesCache.size() * 10) - getItemHeight());
         scrollY -= (int) (amount * 10);
         scrollY = MathHelper.clamp(scrollY, 0, maxScroll);
         return true;
     }
+    *///?}
 
     @Override
     public String getValue() { return ""; }
