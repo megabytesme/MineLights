@@ -104,7 +104,7 @@ public class PlayerDataCollector {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
-            //? if >=1.16 {
+            //? if >=1.16 && <1.20.5 {
             /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
              world.getRegistryKey().equals(World.OVERWORLD)) {
              dto.setCompassType(CompassType.STANDARD);
@@ -115,7 +115,18 @@ public class PlayerDataCollector {
              dto.setCompassState(megabytesme.minelights.CompassState.NONE);
              dto.setCompassType(CompassType.NONE);
              }
-            *///?} else {
+            *///?} else if >=1.20.5 {
+            if (MineLightsClient.CONFIG.alwaysShowCompass &&
+                world.getRegistryKey().equals(World.OVERWORLD)) {
+                dto.setCompassType(CompassType.STANDARD);
+                GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
+                world.getSpawnPos());
+                setCompassTarget(dto, player, spawnPos.pos());
+            } else {
+                dto.setCompassState(megabytesme.minelights.CompassState.NONE);
+                dto.setCompassType(CompassType.NONE);
+            }
+            //?} else {
             /* if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension.getType() ==
              DimensionType.OVERWORLD) {
              dto.setCompassType(CompassType.STANDARD);
