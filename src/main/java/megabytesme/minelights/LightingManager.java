@@ -157,15 +157,6 @@ public class LightingManager implements Runnable {
             long totalLeds = deviceLayouts.stream().mapToLong(d -> d.getAllLeds().size()).sum();
             LOGGER.info("Initialization complete. Found {} devices with a total of {} LEDs.", deviceLayouts.size(),
                     totalLeds);
-
-            List<String> allKeys = KeyMap.getFullKeyboard()
-                .stream()
-                .map(KeyNameStandardizer::standardize)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-
-            LOGGER.info("Final mapped keybaord keys ({} total): {}", allKeys.size(), allKeys);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
