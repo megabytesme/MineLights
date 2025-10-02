@@ -14,6 +14,8 @@ public class PlayerDto {
     private String currentWorld;
     private String weather;
     private boolean isLightningFlashing;
+    private int skyLightLevel;
+    private float renderedBrightnessLevel;
     private boolean isOnFire;
     private boolean isPoisoned;
     private boolean isWithering;
@@ -62,6 +64,14 @@ public class PlayerDto {
 
     public boolean getIsLightningFlashing() {
         return isLightningFlashing;
+    }
+
+    public int getSkyLightLevel() {
+        return skyLightLevel;
+    }
+
+    public float getRenderedBrightnessLevel() {
+        return renderedBrightnessLevel;
     }
 
     public boolean getIsOnFire() {
@@ -118,6 +128,14 @@ public class PlayerDto {
 
     public void setIsLightningFlashing(boolean isLightningFlashing) {
         this.isLightningFlashing = isLightningFlashing;
+    }
+
+    public void setSkyLightLevel(int skyLightLevel) {
+        this.skyLightLevel = skyLightLevel;
+    }
+
+    public void setRenderedBrightnessLevel(float renderedBrightnessLevel) {
+        this.renderedBrightnessLevel = renderedBrightnessLevel;
     }
 
     public void setIsOnFire(boolean isOnFire) {

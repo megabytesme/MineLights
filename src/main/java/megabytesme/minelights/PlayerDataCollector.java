@@ -33,6 +33,7 @@ import net.minecraft.world.World;
 //?}
 import net.minecraft.world.dimension.DimensionType;
 import megabytesme.minelights.mixin.LightningAccessor;
+import megabytesme.minelights.accessor.PlayerVisualBrightnessAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,6 +118,9 @@ public class PlayerDataCollector {
                 playerDto.setIsLightningFlashing((ambientTick % 3) < 2 && remainingActions > 0);
             }
         }
+
+        playerDto.setSkyLightLevel(((PlayerVisualBrightnessAccessor) player).getSkyLightLevel());
+        playerDto.setRenderedBrightnessLevel(((PlayerVisualBrightnessAccessor) player).getRenderedBrightness());
 
         return playerDto;
     }
