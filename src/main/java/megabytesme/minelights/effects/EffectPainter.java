@@ -97,6 +97,9 @@ public class EffectPainter {
     private static final int TRANSITION_DURATION_MS = 750;
     private float lastBrightnessFactor = 1.0F;
 
+    private long chatPulseStartTime = 0;
+    private boolean chatPulseActive = false;
+
     private long lastInWaterTime = 0;
     private static final int AIR_BAR_VISIBLE_DURATION_MS = 2500;
 
@@ -161,7 +164,8 @@ public class EffectPainter {
             }
         }
 
-        paintEnvironmentalBase(state, player);
+        long now = System.currentTimeMillis();
+        paintEnvironmentalBase(state, player, now);
         if (MineLightsClient.CONFIG.enableExperienceBar)
             paintExperienceBar(state, player);
         //? if >=1.21.8 {
@@ -176,12 +180,23 @@ public class EffectPainter {
             paintCompass(state, player);
         if (MineLightsClient.CONFIG.enableLowHealthWarning)
             paintHealthEffects(state, player);
-        paintPlayerEffects(state, player);
+        paintPlayerEffects(state, player, now);
         return state;
     }
 
-    private void paintEnvironmentalBase(FrameStateDto state, PlayerDto player) {
-        long now = System.currentTimeMillis();
+    private void paintEnvironmentalBase(FrameStateDto state, PlayerDto player, long now) {
+        RGBColorDto baseColor = resolveEnvironmentalBaseColor(player, now);
+
+        for (DeviceLayout layout : deviceLayouts) {
+            for (Integer ledId : layout.getAllLeds()) {
+                state.keys.put(ledId, baseColor);
+            }
+        }
+
+        paintSpecialWorldEffects(state, player, now);
+    }
+
+    private RGBColorDto resolveEnvironmentalBaseColor(PlayerDto player, long now) {
         RGBColorDto baseColor = new RGBColorDto(0, 0, 0);
 
         if (MineLightsClient.CONFIG.enableBiomeEffects) {
@@ -209,12 +224,7 @@ public class EffectPainter {
             baseColor = applyLightDimming(baseColor, player);
         }
 
-        for (DeviceLayout layout : deviceLayouts) {
-            for (Integer ledId : layout.getAllLeds()) {
-                state.keys.put(ledId, baseColor);
-            }
-        }
-        paintSpecialWorldEffects(state, player, now);
+        return baseColor;
     }
 
     private RGBColorDto applyLightDimming(RGBColorDto color, PlayerDto player) {
@@ -779,7 +789,7 @@ public class EffectPainter {
         }
     }
 
-    private void paintPlayerEffects(FrameStateDto state, PlayerDto player) {
+    private void paintPlayerEffects(FrameStateDto state, PlayerDto player, long now) {
         RGBColorDto keyColor = null;
         if (MineLightsClient.CONFIG.enableInWaterEffect && player.getCurrentBlock().equals("block.minecraft.water")) {
             keyColor = new RGBColorDto(0, 100, 255);
@@ -795,6 +805,10 @@ public class EffectPainter {
                 for (Integer ledId : getMappedIds(keyName))
                     state.keys.put(ledId, keyColor);
             }
+        }
+
+        if (MineLightsClient.CONFIG.pulseChatKey) {
+            paintChatPulseEffect(state, player, now);
         }
     }
 
@@ -848,6 +862,67 @@ public class EffectPainter {
                 friendlyNames.add(friendlyName);
             }
         }
+        return friendlyNames;
+    }
+
+    private void paintChatPulseEffect(FrameStateDto state, PlayerDto player, long now) {
+        RGBColorDto baseColor = resolveEnvironmentalBaseColor(player, now);
+        RGBColorDto white = new RGBColorDto(255, 255, 255);
+
+        float pulsePeriod = 0.6f;
+        int pulseCount = 3;
+        float totalPulseDuration = pulsePeriod * pulseCount;
+
+        if (player.getIsChatReceived() && !chatPulseActive) {
+            chatPulseActive = true;
+            chatPulseStartTime = now;
+        }
+
+        if (!chatPulseActive) return;
+
+        float elapsed = (now - chatPulseStartTime) / 1000f;
+        if (elapsed > totalPulseDuration) {
+            chatPulseActive = false;
+            return;
+        }
+
+        float t = (float) ((Math.sin((elapsed / pulsePeriod) * Math.PI * 2) + 1) / 2);
+        RGBColorDto pulseColor = lerpColor(baseColor, white, t);
+
+        for (String keyName : getChatKeyNames()) {
+            for (Integer ledId : getMappedIds(keyName)) {
+                state.keys.put(ledId, pulseColor);
+            }
+        }
+    }
+
+    private List<String> getChatKeyNames() {
+        List<String> friendlyNames = new ArrayList<>();
+        GameOptions options = MinecraftClient.getInstance().options;
+        String keybindToFetch = null;
+
+        //? if >= 1.19 {
+        keybindToFetch = options.chatKey.getBoundKeyTranslationKey();
+        //?} else if >=1.16 {
+        /* keybindToFetch = options.keyChat.getBoundKeyTranslationKey();
+        *///?} else {
+        /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString());
+        *///?}
+
+        if (keybindToFetch != null && keybindToFetch.startsWith("key.keyboard.")) {
+            String[] parts = keybindToFetch.split("\\.");
+            String friendlyName = "";
+            if (parts.length == 4) {
+                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
+            } else if (parts.length == 3) {
+                friendlyName = parts[2].toUpperCase();
+            }
+            if (!friendlyName.isEmpty()) {
+                friendlyName = friendlyName.replace("CONTROL", "CTRL");
+                friendlyNames.add(friendlyName);
+            }
+        }
+
         return friendlyNames;
     }
 
