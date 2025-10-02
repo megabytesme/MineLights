@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "Enable Low Health Warning",
   "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",
   "option.mine-lights.highlightMovementKeys.tooltip": "Highlights WASD, Sprint, Sneak, and Jump keys.",
+  "option.mine-lights.pulseChatKey": "Pulse Chat Key",
+  "option.mine-lights.pulseChatKey.tooltip": "Makes the chat key flash three times when a message is received",
   "option.mine-lights.enableBiomeEffects": "Enable Biome Background Colors",
   "option.mine-lights.enableBiomeEffects.tooltip": "Sets a base keyboard color based on the biome you are in.",
   "option.mine-lights.dimmingMode": "Light Dimming Mode",

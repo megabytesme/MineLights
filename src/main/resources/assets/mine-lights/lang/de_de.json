@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "Warnung bei niedrigem Leben aktivieren",
   "option.mine-lights.highlightMovementKeys": "Bewegungstasten hervorheben",
   "option.mine-lights.highlightMovementKeys.tooltip": "Hebt WASD, Sprinten, Schleichen und Springen hervor.",
+  "option.mine-lights.pulseChatKey": "Chat-Taste pulsieren",
+  "option.mine-lights.pulseChatKey.tooltip": "Lässt die Chat-Taste dreimal blinken, wenn eine Nachricht eingeht",
   "option.mine-lights.enableBiomeEffects": "Biom-Hintergrundfarben aktivieren",
   "option.mine-lights.enableBiomeEffects.tooltip": "Legt eine grundlegende Tastaturfarbe basierend auf dem Biom fest, in dem du dich befindest.",
   "option.mine-lights.dimmingMode": "Lichtdimm-Modus",

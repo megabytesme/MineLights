@@ -901,6 +901,35 @@ public class ModMenuIntegration implements ModMenuApi {
                         newValue -> MineLightsClient.CONFIG.highlightMovementKeys = newValue)
                 .build());
 
+        playerStatus.addEntry(entryBuilder
+                .startBooleanToggle(
+                        //? if >=1.19 {
+                        Text.translatable("option.mine-lights.pulseChatKey")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.pulseChatKey")
+                        *///?}
+                        //? if <1.16 {
+                        /* .getString()
+                        *///? }
+                        ,
+                        MineLightsClient.CONFIG.pulseChatKey)
+                .setDefaultValue(true)
+                //? if >=1.16 {
+                .setTooltip(
+                    //? if >=1.19 {
+                    Text.translatable("option.mine-lights.pulseChatKey.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.pulseChatKey.tooltip")
+                    *///?}
+                )
+                //?}
+                //? if <1.16 {
+                /* .setTooltip(new TranslatableText("option.mine-lights.pulseChatKey.tooltip").getString()) */
+                //?}
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.pulseChatKey = newValue)
+                .build());
+
         ConfigCategory environment = builder.getOrCreateCategory(
                 //? if >=1.19 {
                 Text.translatable("category.mine-lights.environment")

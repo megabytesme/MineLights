@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "ENABL LOW HEALTH WARNIN",
   "option.mine-lights.highlightMovementKeys": "HIGHLIGHT MOVE KEYZ",
   "option.mine-lights.highlightMovementKeys.tooltip": "highlightz WASD, Sprint, Sneak, an Jump keyz.",
+  "option.mine-lights.pulseChatKey": "Chat button go blinky",
+  "option.mine-lights.pulseChatKey.tooltip": "Wen teh meowssage comes, teh chat button blinkz 3 tiemz",
   "option.mine-lights.enableBiomeEffects": "ENABL BIOME BAKGROUND COLORZ",
   "option.mine-lights.enableBiomeEffects.tooltip": "setz a base keyboard color based on teh biome u r in.",
   "option.mine-lights.dimmingMode": "Litez Fader Modez",

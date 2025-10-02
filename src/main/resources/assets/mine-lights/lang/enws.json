@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "Give Warning of Low Health",
   "option.mine-lights.highlightMovementKeys": "Make Bright the Keys of Movement",
   "option.mine-lights.highlightMovementKeys.tooltip": "Maketh bright the keys of WASD, Sprint, Sneak, and Jump.",
+  "option.mine-lights.pulseChatKey": "Let the chat key pulse",
+  "option.mine-lights.pulseChatKey.tooltip": "Upon receipt of a missive, let the chat key thrice gleam",
   "option.mine-lights.enableBiomeEffects": "Showeth the Colours of the Land",
   "option.mine-lights.enableBiomeEffects.tooltip": "Setteth a base keyboard colour from the very land where thou dost stand.",
   "option.mine-lights.dimmingMode": "Mode of Light's Waning",

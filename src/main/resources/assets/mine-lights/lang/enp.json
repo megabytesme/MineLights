@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "Onflow Low Health Warning",
   "option.mine-lights.highlightMovementKeys": "Highlight Fare Keys",
   "option.mine-lights.highlightMovementKeys.tooltip": "Highlights WASD, Sprint, Sneak, and Leap keys.",
+  "option.mine-lights.pulseChatKey": "Blink Talk Key",
+  "option.mine-lights.pulseChatKey.tooltip": "Makes the talk key blink thrice when a word is gotten",
   "option.mine-lights.enableBiomeEffects": "Onflow Land-Hue Backgrounds",
   "option.mine-lights.enableBiomeEffects.tooltip": "Sets a groundwork key-board hue drawn from the land where thou standest.",
   "option.mine-lights.dimmingMode": "Light Fading Way",

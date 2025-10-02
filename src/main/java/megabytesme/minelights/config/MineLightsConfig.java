@@ -43,4 +43,5 @@ public class MineLightsConfig {
     public boolean enableInWaterEffect = true;
     public boolean enablePortalEffects = true;
     public boolean highlightMovementKeys = true;
+    public boolean pulseChatKey = true;
 }

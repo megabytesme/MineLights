@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "启用低生命值警告",
   "option.mine-lights.highlightMovementKeys": "高亮移动键",
   "option.mine-lights.highlightMovementKeys.tooltip": "高亮显示WASD、冲刺、潜行和跳跃键。",
+  "option.mine-lights.pulseChatKey": "聊天键脉冲",
+  "option.mine-lights.pulseChatKey.tooltip": "当收到消息时，让聊天键闪烁三次",
   "option.mine-lights.enableBiomeEffects": "启用生物群系背景颜色",
   "option.mine-lights.enableBiomeEffects.tooltip": "根据你所在的生物群系设置键盘的基础颜色。",
   "option.mine-lights.dimmingMode": "光照调暗模式",

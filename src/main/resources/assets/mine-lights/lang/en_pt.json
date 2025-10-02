@@ -47,6 +47,8 @@
   "option.mine-lights.enableLowHealthWarning": "Warn Me When I'm Scurvy-Ridden",
   "option.mine-lights.highlightMovementKeys": "Highlight Movement Keys",
   "option.mine-lights.highlightMovementKeys.tooltip": "Highlights WASD, Sprint, Sneak, an' Jump keys.",
+  "option.mine-lights.pulseChatKey": "Pulse the chat key, aye",
+  "option.mine-lights.pulseChatKey.tooltip": "When ye spy a missive, the chat key be flashin’ thrice",
   "option.mine-lights.enableBiomeEffects": "Show Island Colours",
   "option.mine-lights.enableBiomeEffects.tooltip": "Sets a base keyboard colour based on th' island ye be standin' on.",
   "option.mine-lights.dimmingMode": "Dimmin' o' the Lanterns",
