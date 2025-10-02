@@ -176,7 +176,31 @@ public class MineLightsClient implements ClientModInitializer {
             }
 
             if (needsDownload) {
-                new Thread(() -> performServerDownload(serverExePath), "MineLights-Background-Downloader").start();
+                Path tempExePath = serverExePath.getParent().resolve("MineLights.exe.new");
+                new Thread(() -> {
+                    if (performServerDownload(tempExePath)) {
+                        LOGGER.info("Shutting down MineLights server for update...");
+                        CommandClient.sendCommand("shutdown");
+                        if (serverProcess != null) {
+                            try {
+                                serverProcess.waitFor(5, TimeUnit.SECONDS);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+
+                        try {
+                            Files.deleteIfExists(serverExePath);
+                            Files.move(tempExePath, serverExePath);
+                            LOGGER.info("MineLights.exe updated successfully.");
+                            lightingInitialized.set(false);
+                            isManualRestart = true;
+                            startServerProcess();
+                        } catch (IOException e) {
+                            LOGGER.error("Failed to replace MineLights.exe", e);
+                        }
+                    }
+                }, "MineLights-Background-Downloader").start();
             }
         } catch (Exception e) {
             LOGGER.error("Failed to check for server update", e);
