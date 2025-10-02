@@ -196,6 +196,31 @@ public class EffectPainter {
         paintSpecialWorldEffects(state, player, now);
     }
 
+    private boolean isPlayerInOrOnBlock(PlayerDto player, String... blockIds) {
+        List<String> relevantBlocks = new ArrayList<>();
+        if (player.getBlockAtFeet() != null) {
+            relevantBlocks.add(player.getBlockAtFeet());
+        }
+        if (player.getBlockOn() != null) {
+            relevantBlocks.add(player.getBlockOn());
+        }
+        if (player.getBlockAtHead() != null) {
+            relevantBlocks.add(player.getBlockAtHead());
+        }
+
+        if (relevantBlocks.isEmpty()) {
+            return false;
+        }
+        
+        for (String blockId : blockIds) {
+            if (relevantBlocks.contains(blockId)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     private RGBColorDto resolveEnvironmentalBaseColor(PlayerDto player, long now) {
         RGBColorDto baseColor = new RGBColorDto(0, 0, 0);
 
@@ -212,13 +237,19 @@ public class EffectPainter {
             baseColor = currentSmoothBiomeColor;
         }
 
-        if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
-            baseColor = new RGBColorDto(255, 69, 0);
+        boolean isSoulFire = false;
+        if (player.getIsOnFire()) {
+            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+        }
+        boolean isRegularFire = isPlayerInOrOnBlock(player, "block.minecraft.fire", "block.minecraft.lava");
+        
+        if (MineLightsClient.CONFIG.enableOnFireEffect && (player.getIsOnFire() || isRegularFire || isSoulFire)) {
+            baseColor = isSoulFire ? new RGBColorDto(0, 100, 255) : new RGBColorDto(255, 69, 0);
         } else if (MineLightsClient.CONFIG.enablePortalEffects
-                && player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
+                && isPlayerInOrOnBlock(player, "block.minecraft.nether_portal")) {
             baseColor = new RGBColorDto(128, 0, 128);
         } else if (MineLightsClient.CONFIG.enablePortalEffects
-                && player.getCurrentBlock().equals("block.minecraft.end_portal")) {
+                && isPlayerInOrOnBlock(player, "block.minecraft.end_portal")) {
             baseColor = new RGBColorDto(0, 0, 50);
         } else {
             baseColor = applyLightDimming(baseColor, player);
@@ -277,30 +308,36 @@ public class EffectPainter {
         if (player.getIsLightningFlashing())
             return;
 
-        List<Integer> perKeyLeds = deviceLayouts.stream()
-                .filter(d -> d.getKeyMap().keySet().stream().anyMatch(k -> k.startsWith("Q")))
+        List<Integer> allDeviceLeds = deviceLayouts.stream()
                 .flatMap(d -> d.getAllLeds().stream())
                 .collect(Collectors.toList());
 
-        if (MineLightsClient.CONFIG.enableOnFireEffect && player.getIsOnFire()) {
+        boolean isSoulFire = false;
+        if (player.getIsOnFire()) {
+            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+        }
+        boolean isRegularFire = isPlayerInOrOnBlock(player, "block.minecraft.fire", "block.minecraft.lava");
+        
+        if (MineLightsClient.CONFIG.enableOnFireEffect && (player.getIsOnFire() || isRegularFire || isSoulFire)) {
             if (now - lastFireCrackleUpdate > 100) {
-                updateRandomKeys(cracklingKeys, perKeyLeds, 0.2f);
+                updateRandomKeys(cracklingKeys, allDeviceLeds, 0.2f);
                 lastFireCrackleUpdate = now;
             }
+            RGBColorDto crackleColor = isSoulFire ? new RGBColorDto(173, 216, 230) : new RGBColorDto(200, 0, 0);
             for (Integer keyId : cracklingKeys)
-                state.keys.put(keyId, new RGBColorDto(200, 0, 0));
+                state.keys.put(keyId, crackleColor);
         } else if (MineLightsClient.CONFIG.enablePortalEffects
-                && player.getCurrentBlock().equals("block.minecraft.nether_portal")) {
+                && isPlayerInOrOnBlock(player, "block.minecraft.nether_portal")) {
             if (now - lastPortalTwinkleUpdate > 500) {
-                updateRandomKeys(twinklingKeys, perKeyLeds, 0.2f);
+                updateRandomKeys(twinklingKeys, allDeviceLeds, 0.2f);
                 lastPortalTwinkleUpdate = now;
             }
             for (Integer keyId : twinklingKeys)
                 state.keys.put(keyId, new RGBColorDto(50, 0, 100));
         } else if (MineLightsClient.CONFIG.enablePortalEffects
-                && player.getCurrentBlock().equals("block.minecraft.end_portal")) {
+                && isPlayerInOrOnBlock(player, "block.minecraft.end_portal")) {
             if (now - lastPortalTwinkleUpdate > 500) {
-                updateRandomKeys(twinklingKeys, perKeyLeds, 0.2f);
+                updateRandomKeys(twinklingKeys, allDeviceLeds, 0.2f);
                 lastPortalTwinkleUpdate = now;
             }
             for (Integer keyId : twinklingKeys)
@@ -627,9 +664,9 @@ public class EffectPainter {
 
     private void paintSaturationAndAirBar(FrameStateDto state, PlayerDto player) {
         List<String> barKeys = KeyMap.getSaturationBar();
-        if (player.getCurrentBlock().equals("block.minecraft.water"))
+        if (isPlayerInOrOnBlock(player, "block.minecraft.water"))
             lastInWaterTime = System.currentTimeMillis();
-        boolean showAirBar = player.getCurrentBlock().equals("block.minecraft.water")
+        boolean showAirBar = isPlayerInOrOnBlock(player, "block.minecraft.water")
                 || (System.currentTimeMillis() - lastInWaterTime < AIR_BAR_VISIBLE_DURATION_MS);
 
         float value, maxValue;
@@ -791,12 +828,15 @@ public class EffectPainter {
 
     private void paintPlayerEffects(FrameStateDto state, PlayerDto player, long now) {
         RGBColorDto keyColor = null;
-        if (MineLightsClient.CONFIG.enableInWaterEffect && player.getCurrentBlock().equals("block.minecraft.water")) {
+        if (MineLightsClient.CONFIG.enableInWaterEffect && isPlayerInOrOnBlock(player, "block.minecraft.water")) {
             keyColor = new RGBColorDto(0, 100, 255);
         } else if (MineLightsClient.CONFIG.enableOnFireEffect
-                && (player.getCurrentBlock().equals("block.minecraft.lava")
-                        || player.getCurrentBlock().equals("block.minecraft.fire"))) {
-            keyColor = new RGBColorDto(255, 0, 0);
+                && (isPlayerInOrOnBlock(player, "block.minecraft.lava", "block.minecraft.fire", "block.minecraft.soul_fire", "block.minecraft.soul_sand"))) {
+                    boolean isSoulFire = false;
+                    if (player.getIsOnFire()) {
+                        isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+                    }        
+            keyColor = isSoulFire ? new RGBColorDto(0, 100, 255) : new RGBColorDto(255, 0, 0);
         } else if (MineLightsClient.CONFIG.highlightMovementKeys) {
             keyColor = new RGBColorDto(255, 255, 255);
         }

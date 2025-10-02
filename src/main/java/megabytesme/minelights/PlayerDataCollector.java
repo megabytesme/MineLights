@@ -75,7 +75,29 @@ public class PlayerDataCollector {
         /* playerDto.setAir(player.getAir());
         *///?}
         playerDto.setExperience(player.experienceProgress);
-        playerDto.setCurrentBlock(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
+
+        playerDto.setBlockAtFeet(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
+        playerDto.setBlockOn(world.getBlockState(player.getBlockPos().down()).getBlock().getTranslationKey());
+        //? if >=1.20 {
+        Vec3d eyePos = player.getEyePos();
+        BlockPos headPos = BlockPos.ofFloored(eyePos.x, eyePos.y, eyePos.z);
+        playerDto.setBlockAtHead(world.getBlockState(headPos).getBlock().getTranslationKey());
+        //?} else if >=1.17 {
+        /* Vec3d eyePos = player.getEyePos();
+        BlockPos headPos = new BlockPos(eyePos.x, eyePos.y, eyePos.z);
+        playerDto.setBlockAtHead(world.getBlockState(headPos).getBlock().getTranslationKey());
+        *///?} else if >=1.15 {
+        /* float eyeHeight = player.getStandingEyeHeight();
+        Vec3d eyePos = player.getPos().add(0.0D, (double)eyeHeight, 0.0D);
+        BlockPos headPos = new BlockPos(eyePos.x, eyePos.y, eyePos.z);
+        playerDto.setBlockAtHead(world.getBlockState(headPos).getBlock().getTranslationKey());
+        *///?} else {
+        /* net.minecraft.entity.EntityPose pose = player.getPose();
+        float eyeHeight = player.getEyeHeight(pose);
+        Vec3d eyePos = player.getPos().add(0.0D, (double)eyeHeight, 0.0D);
+        BlockPos headPos = new BlockPos(eyePos.x, eyePos.y, eyePos.z);
+        playerDto.setBlockAtHead(world.getBlockState(headPos).getBlock().getTranslationKey());
+        *///?}
 
         //? if >=1.19 {
         world.getBiome(player.getBlockPos()).getKey().ifPresent(key -> playerDto.setCurrentBiome(key.getValue().toString()));

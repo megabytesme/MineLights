@@ -9,7 +9,9 @@ public class PlayerDto {
     private float saturation;
     private int air;
     private float experience;
-    private String currentBlock;
+    private String blockAtFeet;
+    private String blockOn;
+    private String blockAtHead;
     private String currentBiome;
     private String currentWorld;
     private String weather;
@@ -51,8 +53,16 @@ public class PlayerDto {
         return experience;
     }
 
-    public String getCurrentBlock() {
-        return currentBlock;
+    public String getBlockAtFeet() {
+        return blockAtFeet;
+    }
+
+    public String getBlockOn() {
+        return blockOn;
+    }
+
+    public String getBlockAtHead() {
+        return blockAtHead;
     }
 
     public String getCurrentBiome() {
@@ -119,8 +129,16 @@ public class PlayerDto {
         this.experience = experience;
     }
 
-    public void setCurrentBlock(String currentBlock) {
-        this.currentBlock = currentBlock;
+    public void setBlockAtFeet(String blockAtFeet) {
+        this.blockAtFeet = blockAtFeet;
+    }
+
+    public void setBlockOn(String blockOn) {
+        this.blockOn = blockOn;
+    }
+
+    public void setBlockAtHead(String blockAtHead) {
+        this.blockAtHead = blockAtHead;
     }
 
     public void setCurrentBiome(String currentBiome) {
