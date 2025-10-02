@@ -1,6 +1,6 @@
 # MineLights 2.3.1
 
-This is a large update which focuses on new visual effects, expanded biome and lighting logic, and per‑device mapping — alongside multiple new Minecraft version targets (1.14.3 - 1.21.9) and optimisations to the server management workflow.
+This is a large update which focuses on new visual effects, expanded biome and lighting logic, and per‑device mapping - alongside multiple new Minecraft version targets (1.14.3 - 1.21.9) and optimisations to the server management workflow.
 Previous server version NOT compatible!
 
 ## Key Features & Major Changes
@@ -12,13 +12,13 @@ Previous server version NOT compatible!
 - Added dimming mode based on local light level or sky light level.
 - Lightning flash effect now uses isLightningFlashing for accurate timing.
 - Biome Colour Improvements:
-- Comprehensive biome list added for 1.14.4 – 1.21.9 based on Yarn mappings, with adjusted colours to match map colours.
+- Comprehensive biome list added for 1.14.4 - 1.21.9 based on Yarn mappings, with adjusted colours to match map colours.
 - Per‑Device LED Mapping:
 - Standardised mapped key names before usage - Fixes OpenRGB integration on keyboards.
 - Rain Effect Upgrade:
 - Improved rain animation on RAM sticks and per‑key‑mapped devices.
 - Server Management Optimisations:
-- Faster update logic — triggers download, sends shutdown, and sets flags before starting server again.
+- Faster update logic - triggers download, sends shutdown, and sets flags before starting server again.
 - Updated URL for latest MineLights Server release.
 - Added soul fire specific effect.
 
@@ -42,7 +42,7 @@ Previous server version NOT compatible!
 - Per‑device mapping refactor; standardised mapped key names.
 - Improved rain effect on RAM sticks and per‑key devices.
 - Integrated OpenRGB key mapping; expanded keymap.
-- Logging improvements — total mapped keyboard keys.
+- Logging improvements - total mapped keyboard keys.
 - Updated server restart handling and release URL.
 - Added new Minecraft targets: 1.21.8 (max 1.21.9), 1.21.6 (max 1.21.7), 1.21.2 (max 1.21.5), 1.20.5 (max 1.21.1), 1.20 (max 1.20.4), 1.19 (max 1.19.4), 1.17 (max 1.18.2), 1.16.2 (max 1.16.5), 1.16 (max 1.16.1), 1.15 (max 1.16), 1.14.4, 1.14.3.
 - Minor fixes: removed unused imports, corrected name/version setting, fixed typos.
