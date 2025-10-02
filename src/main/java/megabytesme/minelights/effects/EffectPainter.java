@@ -906,7 +906,7 @@ public class EffectPainter {
         //?} else if >=1.16 {
         /* keybindToFetch = options.keyChat.getBoundKeyTranslationKey();
         *///?} else {
-        /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString());
+        /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString();
         *///?}
 
         if (keybindToFetch != null && keybindToFetch.startsWith("key.keyboard.")) {
