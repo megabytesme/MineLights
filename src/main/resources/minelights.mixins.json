@@ -2,7 +2,7 @@
   "required": true,
   "package": "megabytesme.minelights.mixin",
   "compatibilityLevel": "JAVA_8",
-  "client": ["LightningAccessor"],
+  "client": ["LightningAccessor", "PlayerVisualBrightnessMixin"],
   "injectors": {
     "defaultRequire": 1
   }
