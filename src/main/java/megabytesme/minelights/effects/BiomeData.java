@@ -1,6 +1,7 @@
 package megabytesme.minelights.effects;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class BiomeData {
@@ -117,17 +118,33 @@ public class BiomeData {
         biomes.put(name, new BiomeInfo(hasRain, isSnowy, new RGBColorDto(r, g, b)));
     }
 
+    private static String normaliseKey(String biomeName) {
+        if (biomeName == null) return "";
+        int colonIndex = biomeName.indexOf(':');
+        if (colonIndex != -1) {
+            biomeName = biomeName.substring(colonIndex + 1);
+        }
+
+        return biomeName.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static BiomeInfo findBiomeInfo(String biomeName) {
+        String key = normaliseKey(biomeName);
+        return biomes.get(key);
+    }
+
     public static RGBColorDto getBiomeColor(String biomeName) {
-        return biomes.getOrDefault(biomeName, new BiomeInfo(true, false, new RGBColorDto(124, 252, 0))).color;
+        BiomeInfo info = findBiomeInfo(biomeName);
+        return info != null ? info.color : new RGBColorDto(124, 252, 0);
     }
 
     public static boolean isBiomeRainy(String biomeName) {
-        BiomeInfo info = biomes.get(biomeName);
+        BiomeInfo info = findBiomeInfo(biomeName);
         return info != null && info.hasRain && !info.isSnowy;
     }
 
     public static RGBColorDto getBiomeRainColor(String biomeName) {
-        BiomeInfo info = biomes.get(biomeName);
+        BiomeInfo info = findBiomeInfo(biomeName);
         if (info != null && info.isSnowy) {
             return new RGBColorDto(200, 200, 255);
         }
