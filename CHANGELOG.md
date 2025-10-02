@@ -20,6 +20,7 @@ Previous server version NOT compatible!
 - Server Management Optimisations:
 - Faster update logic — triggers download, sends shutdown, and sets flags before starting server again.
 - Updated URL for latest MineLights Server release.
+- Added soul fire specific effect.
 
 ## Installation / Upgrade Instructions
 
