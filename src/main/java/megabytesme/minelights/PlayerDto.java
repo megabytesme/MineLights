@@ -25,6 +25,7 @@ public class PlayerDto {
     private Double compassRelativeYaw;
     private Double compassDistance;
     private CompassType compassType = CompassType.NONE;
+    private boolean isChatReceived;
 
     public boolean getInGame() {
         return inGame;
@@ -88,6 +89,10 @@ public class PlayerDto {
 
     public boolean getIsTakingDamage() {
         return isTakingDamage;
+    }
+
+    public boolean getIsChatReceived() {
+        return isChatReceived;
     }
 
     public void setInGame(boolean inGame) {
@@ -200,5 +205,9 @@ public class PlayerDto {
 
     public void setCurrentWorld(String currentWorld) {
         this.currentWorld = currentWorld;
+    }
+
+    public void setIsChatReceived(boolean isChatReceived) {
+        this.isChatReceived = isChatReceived;
     }
 }

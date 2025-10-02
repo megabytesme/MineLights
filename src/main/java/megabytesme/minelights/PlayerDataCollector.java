@@ -1,6 +1,7 @@
 package megabytesme.minelights;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
@@ -33,6 +34,7 @@ import net.minecraft.world.World;
 //?}
 import net.minecraft.world.dimension.DimensionType;
 import megabytesme.minelights.mixin.LightningAccessor;
+import megabytesme.minelights.accessor.ChatReceivedAccessor;
 import megabytesme.minelights.accessor.PlayerVisualBrightnessAccessor;
 
 import java.util.ArrayList;
@@ -146,6 +148,17 @@ public class PlayerDataCollector {
 
         playerDto.setSkyLightLevel(((PlayerVisualBrightnessAccessor) player).getSkyLightLevel());
         playerDto.setRenderedBrightnessLevel(((PlayerVisualBrightnessAccessor) player).getRenderedBrightness());
+
+        ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
+        if (handler instanceof ChatReceivedAccessor) {
+            ChatReceivedAccessor accessor = (ChatReceivedAccessor) handler;
+            if (accessor.wasChatReceivedThisTick()) {
+                playerDto.setIsChatReceived(true);
+                accessor.resetChatReceivedFlag();
+            } else {
+                playerDto.setIsChatReceived(false);
+            }
+        }
 
         return playerDto;
     }
