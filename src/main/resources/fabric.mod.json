@@ -1,33 +1,43 @@
 {
-  "schemaVersion": 1,
-  "id": "${id}",
-  "version": "${version}",
-  "name": "${name}",
-  "description": "${description}",
-  "authors": ["${authors}"],
-  "contact": {
-    "homepage": "${homepage}",
-    "sources": "${sources}",
-    "issues": "${issues}"
-  },
-  "license": "${license}",
-  "icon": "${icon}",
-  "environment": "${environment}",
-  "entrypoints": {
-    "client": ["megabytesme.minelights.MineLightsClient"],
-    "modmenu": ["megabytesme.minelights.config.ModMenuIntegration"]
-  },
-  "mixins": ["minelights.mixins.json"],
-  "depends": {
-    "minecraft": "${minecraft}"
-  },
-  "suggests": {},
-  "custom": {
-    "modmenu": {
-      "modmenu": true,
-      "links": {
-        "Donate": "https://ko-fi.com/megabytesme"
-      }
-    }
-  }
+	"schemaVersion": 1,
+	"id": "${id}",
+	"version": "${version}",
+	"name": "${name}",
+	"description": "${description}",
+	"authors": [
+		"Microcontrollers"
+	],
+	"contributors": [
+	],
+	"contact": {
+		"homepage": "${modrinth}",
+		"sources": "${source}",
+		"issues": "${issues}"
+	},
+	"license": "${license}",
+	"icon": "assets/${id}/icon.png",
+	"environment": "client",
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "${mcdep}",
+		"java": ">=21",
+		"fabric-api": "*",
+		"yet_another_config_lib_v3": ">=${yacl_version}"
+	},
+	"breaks": {
+		"feather": "*",
+		"labymod": "*",
+		"ichor": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.kofi": "${kofi}",
+				"modmenu.discord": "${discord}",
+				"modmenu.modrinth": "${modrinth}",
+				"modmenu.curseforge": "${curseforge}"
+			},
+			"update_checker": true
+		}
+	}
 }

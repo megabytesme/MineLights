@@ -3,84 +3,84 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Attach to 1.14.3 Client",
+      "name": "Attach to 1.14.3-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.14.4 Client",
+      "name": "Attach to 1.14.4-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.15 Client",
+      "name": "Attach to 1.15-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.16 Client",
+      "name": "Attach to 1.16-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.16.2 Client",
+      "name": "Attach to 1.16.2-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.17 Client",
+      "name": "Attach to 1.17-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.19 Client",
+      "name": "Attach to 1.19-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.20 Client",
+      "name": "Attach to 1.20-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.20.5 Client",
+      "name": "Attach to 1.20.5-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.21.2 Client",
+      "name": "Attach to 1.21.2-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.21.6 Client",
+      "name": "Attach to 1.21.6-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
     },
     {
       "type": "java",
-      "name": "Attach to 1.21.8 Client",
+      "name": "Attach to 1.21.8-fabric Client",
       "request": "attach",
       "hostName": "localhost",
       "port": 5005
@@ -88,64 +88,64 @@
   ],
   "compounds": [
     {
-      "name": "Debug 1.14.3 Client",
-      "configurations": ["Attach to 1.14.3 Client"],
-      "preLaunchTask": "Run 1.14.3 Client (Debug)"
+      "name": "Debug 1.14.3-fabric Client",
+      "configurations": ["Attach to 1.14.3-fabric Client"],
+      "preLaunchTask": "Run 1.14.3-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.14.4 Client",
-      "configurations": ["Attach to 1.14.4 Client"],
-      "preLaunchTask": "Run 1.14.4 Client (Debug)"
+      "name": "Debug 1.14.4-fabric Client",
+      "configurations": ["Attach to 1.14.4-fabric Client"],
+      "preLaunchTask": "Run 1.14.4-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.15 Client",
-      "configurations": ["Attach to 1.15 Client"],
-      "preLaunchTask": "Run 1.15 Client (Debug)"
+      "name": "Debug 1.15-fabric Client",
+      "configurations": ["Attach to 1.15-fabric Client"],
+      "preLaunchTask": "Run 1.15-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.16 Client",
-      "configurations": ["Attach to 1.16 Client"],
-      "preLaunchTask": "Run 1.16 Client (Debug)"
+      "name": "Debug 1.16-fabric Client",
+      "configurations": ["Attach to 1.16-fabric Client"],
+      "preLaunchTask": "Run 1.16-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.16.2 Client",
-      "configurations": ["Attach to 1.16.2 Client"],
-      "preLaunchTask": "Run 1.16.2 Client (Debug)"
+      "name": "Debug 1.16.2-fabric Client",
+      "configurations": ["Attach to 1.16.2-fabric Client"],
+      "preLaunchTask": "Run 1.16.2-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.17 Client",
-      "configurations": ["Attach to 1.17 Client"],
-      "preLaunchTask": "Run 1.17 Client (Debug)"
+      "name": "Debug 1.17-fabric Client",
+      "configurations": ["Attach to 1.17-fabric Client"],
+      "preLaunchTask": "Run 1.17-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.19 Client",
-      "configurations": ["Attach to 1.19 Client"],
-      "preLaunchTask": "Run 1.19 Client (Debug)"
+      "name": "Debug 1.19-fabric Client",
+      "configurations": ["Attach to 1.19-fabric Client"],
+      "preLaunchTask": "Run 1.19-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.20 Client",
-      "configurations": ["Attach to 1.20 Client"],
-      "preLaunchTask": "Run 1.20 Client (Debug)"
+      "name": "Debug 1.20-fabric Client",
+      "configurations": ["Attach to 1.20-fabric Client"],
+      "preLaunchTask": "Run 1.20-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.20.5 Client",
-      "configurations": ["Attach to 1.20.5 Client"],
-      "preLaunchTask": "Run 1.20.5 Client (Debug)"
+      "name": "Debug 1.20.5-fabric Client",
+      "configurations": ["Attach to 1.20.5-fabric Client"],
+      "preLaunchTask": "Run 1.20.5-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.21.2 Client",
-      "configurations": ["Attach to 1.21.2 Client"],
-      "preLaunchTask": "Run 1.21.2 Client (Debug)"
+      "name": "Debug 1.21.2-fabric Client",
+      "configurations": ["Attach to 1.21.2-fabric Client"],
+      "preLaunchTask": "Run 1.21.2-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.21.6 Client",
-      "configurations": ["Attach to 1.21.6 Client"],
-      "preLaunchTask": "Run 1.21.6 Client (Debug)"
+      "name": "Debug 1.21.6-fabric Client",
+      "configurations": ["Attach to 1.21.6-fabric Client"],
+      "preLaunchTask": "Run 1.21.6-fabric Client (Debug)"
     },
     {
-      "name": "Debug 1.21.8 Client",
-      "configurations": ["Attach to 1.21.8 Client"],
-      "preLaunchTask": "Run 1.21.8 Client (Debug)"
+      "name": "Debug 1.21.8-fabric Client",
+      "configurations": ["Attach to 1.21.8-fabric Client"],
+      "preLaunchTask": "Run 1.21.8-fabric Client (Debug)"
     }
   ]
 }

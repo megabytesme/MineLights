@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run 1.14.3 Client (Debug)",
+      "label": "Run 1.14.3-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.14.3:runClient --debug-jvm",
+      "command": "./gradlew :1.14.3-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -23,9 +23,9 @@
       }
     },
     {
-      "label": "Run 1.14.4 Client (Debug)",
+      "label": "Run 1.14.4-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.14.4:runClient --debug-jvm",
+      "command": "./gradlew :1.14.4-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -44,9 +44,9 @@
       }
     },
     {
-      "label": "Run 1.15 Client (Debug)",
+      "label": "Run 1.15-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.15:runClient --debug-jvm",
+      "command": "./gradlew :1.15-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -65,9 +65,9 @@
       }
     },
     {
-      "label": "Run 1.16 Client (Debug)",
+      "label": "Run 1.16-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.16:runClient --debug-jvm",
+      "command": "./gradlew :1.16-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -86,9 +86,9 @@
       }
     },
     {
-      "label": "Run 1.16.2 Client (Debug)",
+      "label": "Run 1.16.2-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.16.2:runClient --debug-jvm",
+      "command": "./gradlew :1.16.2-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -107,9 +107,9 @@
       }
     },
     {
-      "label": "Run 1.17 Client (Debug)",
+      "label": "Run 1.17-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.17:runClient --debug-jvm",
+      "command": "./gradlew :1.17-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -128,9 +128,9 @@
       }
     },
     {
-      "label": "Run 1.19 Client (Debug)",
+      "label": "Run 1.19-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.19:runClient --debug-jvm",
+      "command": "./gradlew :1.19-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -149,9 +149,9 @@
       }
     },
     {
-      "label": "Run 1.20 Client (Debug)",
+      "label": "Run 1.20-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.20:runClient --debug-jvm",
+      "command": "./gradlew :1.20-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -170,9 +170,9 @@
       }
     },
     {
-      "label": "Run 1.20.5 Client (Debug)",
+      "label": "Run 1.20.5-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.20.5:runClient --debug-jvm",
+      "command": "./gradlew :1.20.5-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -191,9 +191,9 @@
       }
     },
     {
-      "label": "Run 1.21.2 Client (Debug)",
+      "label": "Run 1.21.2-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.21.2:runClient --debug-jvm",
+      "command": "./gradlew :1.21.2-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -212,9 +212,9 @@
       }
     },
     {
-      "label": "Run 1.21.6 Client (Debug)",
+      "label": "Run 1.21.6-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.21.6:runClient --debug-jvm",
+      "command": "./gradlew :1.21.6-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -233,9 +233,9 @@
       }
     },
     {
-      "label": "Run 1.21.8 Client (Debug)",
+      "label": "Run 1.21.8-fabric Client (Debug)",
       "type": "shell",
-      "command": "./gradlew :1.21.8:runClient --debug-jvm",
+      "command": "./gradlew :1.21.8-fabric:runClient --debug-jvm",
       "isBackground": true,
       "problemMatcher": {
         "pattern": [

@@ -1,22 +1,20 @@
+import dev.kikugie.stonecutter.data.tree.struct.ProjectNode
+
 plugins {
     id("dev.kikugie.stonecutter")
-    id("fabric-loom") version "1.11-SNAPSHOT" apply false
-    id("me.modmuss50.mod-publish-plugin") version "0.8.+" apply false
+    alias(libs.plugins.publishing)
 }
 
-stonecutter active "1.21.8"
+stonecutter active "1.21.8-fabric" /* [SC] DO NOT EDIT */
 
-
-// Make newer versions be published last
 stonecutter tasks {
-    order("publishModrinth")
-    // order("publishCurseforge")
+    val ordering = Comparator
+        .comparing<ProjectNode, _> { stonecutter.parse(it.metadata.version) }
+        .thenComparingInt { if (it.metadata.project.endsWith("fabric")) 1 else 0 }
+
+    order("publishMods", ordering)
 }
 
-// See https://stonecutter.kikugie.dev/wiki/config/params
-stonecutter parameters {
-    swaps["mod_version"] = "\"" + property("mod.version") + "\";"
-    swaps["minecraft"] = "\"" + node.metadata.version + "\";"
-    constants["release"] = property("mod.id") != "template"
-    dependencies["fapi"] = node.project.property("deps.fabric_api") as String
+tasks.named("publishMods") {
+    group = "build"
 }
