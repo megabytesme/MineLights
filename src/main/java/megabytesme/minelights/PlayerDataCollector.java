@@ -72,8 +72,8 @@ public class PlayerDataCollector {
         //? if <=1.14.3 {
         /* playerDto.setAir(player.getBreath());
         *///?} else {
-        /* playerDto.setAir(player.getAir());
-        *///?}
+        playerDto.setAir(player.getAir());
+        //?}
         playerDto.setExperience(player.experienceProgress);
 
         playerDto.setBlockAtFeet(world.getBlockState(player.getBlockPos()).getBlock().getTranslationKey());
