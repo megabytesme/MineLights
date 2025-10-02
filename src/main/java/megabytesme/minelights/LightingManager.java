@@ -11,6 +11,7 @@ import megabytesme.minelights.effects.FrameStateDto;
 import megabytesme.minelights.effects.KeyColorDto;
 import megabytesme.minelights.effects.KeyNameStandardizer;
 import megabytesme.minelights.effects.RGBColorDto;
+import megabytesme.minelights.effects.KeyMap;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.YeelightController;
 import net.minecraft.client.MinecraftClient;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LightingManager implements Runnable {
     public static final Logger LOGGER = LogManager.getLogger("MineLights-LightingManager");
@@ -156,6 +158,14 @@ public class LightingManager implements Runnable {
             LOGGER.info("Initialization complete. Found {} devices with a total of {} LEDs.", deviceLayouts.size(),
                     totalLeds);
 
+            List<String> allKeys = KeyMap.getFullKeyboard()
+                .stream()
+                .map(KeyNameStandardizer::standardize)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+            LOGGER.info("Final mapped keybaord keys ({} total): {}", allKeys.size(), allKeys);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
