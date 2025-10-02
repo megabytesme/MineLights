@@ -92,6 +92,7 @@ public class EffectPainter {
     private String lastKnownBiome = "";
     private long transitionStartTime = 0;
     private static final int TRANSITION_DURATION_MS = 750;
+    private float lastBrightnessFactor = 1.0F;
 
     private long lastInWaterTime = 0;
     private static final int AIR_BAR_VISIBLE_DURATION_MS = 2500;
@@ -196,6 +197,8 @@ public class EffectPainter {
         } else if (MineLightsClient.CONFIG.enablePortalEffects
                 && player.getCurrentBlock().equals("block.minecraft.end_portal")) {
             baseColor = new RGBColorDto(0, 0, 50);
+        } else {
+            baseColor = applyLightDimming(baseColor, player);
         }
 
         for (DeviceLayout layout : deviceLayouts) {
@@ -204,6 +207,51 @@ public class EffectPainter {
             }
         }
         paintSpecialWorldEffects(state, player, now);
+    }
+
+    private RGBColorDto applyLightDimming(RGBColorDto color, PlayerDto player) {
+        float targetFactor = 1.0F;
+
+        switch (MineLightsClient.CONFIG.dimmingMode) {
+            case SKY_LIGHT:
+                int skyLight = player.getSkyLightLevel();
+                if (isNetherOrEnd(player)) {
+                    targetFactor = 1.0F;
+                } else {
+                    targetFactor = skyLight / 15.0F;
+                }
+                break;
+
+            case LOCAL_LIGHT:
+                float rendered = player.getRenderedBrightnessLevel();
+                if (isNetherOrEnd(player)) {
+                    targetFactor = 1.0F;
+                } else {
+                    targetFactor = rendered;
+                }
+                break;
+
+            case NONE:
+            default:
+                return color;
+        }
+
+        targetFactor = Math.max(MineLightsClient.CONFIG.minBrightness, targetFactor);
+
+        float t = 0.1f;
+        float smoothedFactor = lerp(lastBrightnessFactor, targetFactor, t);
+        lastBrightnessFactor = smoothedFactor;
+
+        return new RGBColorDto(
+            (int)(color.r * smoothedFactor),
+            (int)(color.g * smoothedFactor),
+            (int)(color.b * smoothedFactor)
+        );
+    }
+
+    private boolean isNetherOrEnd(PlayerDto player) {
+        String dim = player.getCurrentWorld();
+        return "minecraft:the_nether".equals(dim) || "minecraft:the_end".equals(dim);
     }
 
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
@@ -773,5 +821,10 @@ public class EffectPainter {
     private int lerp(int start, int end, float t) {
         t = Math.max(0.0f, Math.min(1.0f, t));
         return (int) (start + (end - start) * t);
+    }
+
+    private float lerp(float start, float end, float t) {
+        t = Math.max(0.0f, Math.min(1.0f, t));
+        return start + (end - start) * t;
     }
 }

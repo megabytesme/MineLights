@@ -928,6 +928,43 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableBiomeEffects = newValue)
                 .build());
+        
+        //? if >=1.19 {
+        DimmingMode initialDimming = MineLightsClient.CONFIG.dimmingMode != null
+                ? MineLightsClient.CONFIG.dimmingMode
+                : DimmingMode.LOCAL_LIGHT;
+
+        environment.addEntry(entryBuilder
+                .startEnumSelector(Text.translatable("option.mine-lights.dimmingMode"),
+                        DimmingMode.class,
+                        initialDimming)
+                .setDefaultValue(DimmingMode.NONE)
+                .setEnumNameProvider((value) -> Text.translatable("enum.mine-lights.dimmingMode." + value.toString().toLowerCase()))
+                .setTooltip(Text.translatable("option.mine-lights.dimmingMode.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.dimmingMode = newValue)
+                .build());
+        //?} else if >=1.16 {
+        /*
+        DimmingMode initialDimming = MineLightsClient.CONFIG.dimmingMode != null
+                ? MineLightsClient.CONFIG.dimmingMode
+                : DimmingMode.NONE;
+
+        environment.addEntry(entryBuilder
+                .startEnumSelector(
+                        new TranslatableText("option.mine-lights.dimmingMode"),
+                        DimmingMode.class,
+                        initialDimming)
+                .setDefaultValue(DimmingMode.NONE)
+                .setEnumNameProvider((value) -> {
+                String key = "enum.mine-lights.dimmingMode." + value.toString().toLowerCase();
+                return new TranslatableText(key);
+                })
+                .setTooltip(new TranslatableText("option.mine-lights.dimmingMode.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.dimmingMode = newValue)
+                .build());
+        */
+        //?}
+        
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {

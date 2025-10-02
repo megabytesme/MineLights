@@ -35,6 +35,8 @@ public class MineLightsConfig {
     public CompassPriority compassPriority = CompassPriority.PRIORITY;
     public boolean enableLowHealthWarning = true;
     public boolean enableBiomeEffects = true;
+    public DimmingMode dimmingMode = DimmingMode.LOCAL_LIGHT;
+    public float minBrightness = 0.2F;
     public boolean enableWeatherEffects = true;
     public boolean enableOnFireEffect = true;
     public boolean enableInWaterEffect = true;
