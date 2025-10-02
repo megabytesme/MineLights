@@ -4,6 +4,9 @@ import megabytesme.minelights.CompassState;
 import megabytesme.minelights.CompassType;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.PlayerDto;
+//? if >=1.21.8 {
+import megabytesme.minelights.WaypointDto;
+//?}
 import net.minecraft.client.MinecraftClient;
 //? if >=1.17 {
 import net.minecraft.client.option.GameOptions;
@@ -161,6 +164,11 @@ public class EffectPainter {
         paintEnvironmentalBase(state, player);
         if (MineLightsClient.CONFIG.enableExperienceBar)
             paintExperienceBar(state, player);
+        //? if >=1.21.8 {
+        if (MineLightsClient.CONFIG.enableLocatorBar) {
+            paintLocatorBar(state, player);
+        }
+        //?}
         paintPlayerBars(state, player);
         if (MineLightsClient.CONFIG.enableSaturationBar)
             paintSaturationAndAirBar(state, player);
@@ -520,6 +528,48 @@ public class EffectPainter {
                 state.keys.put(ledId, color);
         }
     }
+
+    //? if >=1.21.8 {
+    private void paintLocatorBar(FrameStateDto state, PlayerDto player) {
+        if (player.getWaypoints() == null || player.getWaypoints().isEmpty()) {
+            return;
+        }
+
+        List<String> locatorBarKeys = KeyMap.getExperienceBar();
+        if (locatorBarKeys.isEmpty()) {
+            return;
+        }
+
+        int numKeys = locatorBarKeys.size();
+        float viewAngle = 60.0f;
+
+        for (WaypointDto waypoint : player.getWaypoints()) {
+            double yaw = waypoint.getRelativeYaw();
+
+            if (yaw > -viewAngle && yaw <= viewAngle) {
+                double normalizedPosition = (yaw + viewAngle) / (viewAngle * 2.0);
+                int keyIndex = (int) (normalizedPosition * numKeys);
+                keyIndex = Math.max(0, Math.min(numKeys - 1, keyIndex));
+
+                for (Integer ledId : getMappedIds(locatorBarKeys.get(keyIndex))) {
+                    int packedColor = waypoint.getColor();
+                    int r = (packedColor >> 16) & 0xFF;
+                    int g = (packedColor >> 8) & 0xFF;
+                    int b = packedColor & 0xFF;
+                    RGBColorDto waypointColor = new RGBColorDto(r, g, b);
+
+                    if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.UP) {
+                        waypointColor = lerpColor(waypointColor, new RGBColorDto(255, 255, 255), 0.5f);
+                    } else if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.DOWN) {
+                        waypointColor = lerpColor(waypointColor, new RGBColorDto(0, 0, 0), 0.5f);
+                    }
+
+                    state.keys.put(ledId, waypointColor);
+                }
+            }
+        }
+    }
+    //?}
 
     private void paintPlayerBars(FrameStateDto state, PlayerDto player) {
         if (player.getIsTakingDamage() && !wasTakingDamageLastFrame) {

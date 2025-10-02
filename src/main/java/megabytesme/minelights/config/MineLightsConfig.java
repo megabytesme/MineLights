@@ -30,6 +30,7 @@ public class MineLightsConfig {
     public boolean enableHungerBar = true;
     public boolean enableSaturationBar = true;
     public boolean enableExperienceBar = true;
+    public boolean enableLocatorBar = true;
     public boolean enableCompassEffect = true;
     public boolean alwaysShowCompass = false;
     public CompassPriority compassPriority = CompassPriority.PRIORITY;
