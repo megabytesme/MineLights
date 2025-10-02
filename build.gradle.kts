@@ -1,7 +1,7 @@
 plugins {
     `maven-publish`
     id("fabric-loom")
-    // id("me.modmuss50.mod-publish-plugin")
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${stonecutter.current.version}"
@@ -111,39 +111,41 @@ tasks {
     }
 }
 
-/*
+val mcVersion = stonecutter.current.version
+fun prop(name: String) = project.property(name).toString()
+
 publishMods {
     file = tasks.remapJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.name} ${mod.version} for $mcVersion"
-    version = mod.version
+    displayName = "${prop("mod.name")} ${prop("mod.version")} for $mcVersion"
+    version = prop("mod.version")
     changelog = rootProject.file("CHANGELOG.md").readText()
     type = STABLE
     modLoaders.add("fabric")
 
-    dryRun = providers.environmentVariable("MODRINTH_TOKEN")
-        .getOrNull() == null || providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+    dryRun = true
 
     modrinth {
         projectId = property("publish.modrinth").toString()
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        accessToken = ""
         minecraftVersions.add(mcVersion)
         requires {
             slug = "fabric-api"
+            version = property("deps.fabric_api").toString()
         }
     }
-
+/*
     curseforge {
         projectId = property("publish.curseforge").toString()
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        accessToken = ""
         minecraftVersions.add(mcVersion)
         requires {
             slug = "fabric-api"
         }
     }
+    */
 }
-*/
-/*
+
 publishing {
     repositories {
         maven("...") {
@@ -157,12 +159,11 @@ publishing {
 
     publications {
         create<MavenPublication>("mavenJava") {
-            groupId = "${property("mod.group")}.${mod.id}"
-            artifactId = mod.version
+            groupId = "${prop("mod.group")}.${prop("mod.id")}"
+            artifactId = prop("mod.version")
             version = mcVersion
 
             from(components["java"])
         }
     }
 }
-*/
