@@ -30,7 +30,6 @@ class Dependencies {
     val modmenuVersion = property("deps.modmenu_version")
     val yaclVersion = property("deps.yacl_version")
     val devauthVersion = property("deps.devauth_version")
-    val mixinconstraintsVersion = property("deps.mixinconstraints_version")
     val mixinsquaredVersion = property("deps.mixinsquared_version")
 }
 
@@ -129,7 +128,6 @@ dependencies {
     })
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-${loader.loader}:${deps.devauthVersion}")
-    include(implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}")!!)!!
     include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-${loader.loader}:${deps.mixinsquaredVersion}")!!)!!)
 
     if (loader.isFabric) {
