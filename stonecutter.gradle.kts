@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.publishing)
 }
 
-stonecutter active "1.21.8-fabric" /* [SC] DO NOT EDIT */
+stonecutter active "1.21.8-forge" /* [SC] DO NOT EDIT */
 
 stonecutter tasks {
     val ordering = Comparator

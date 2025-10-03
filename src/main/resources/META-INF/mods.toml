@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[<fml_version>,)"
+license = "${license}"
+issueTrackerURL = "${issues}"
+
+[[mods]]
+modId = "${id}"
+version = "${version}"
+displayName = "${name}"
+authors = "Microcontrollers"
+description = "${description}"
+logoFile = "assets/${id}/icon.png"
+
+[[dependencies.${id}]]
+modId = "forge"
+mandatory = true
+versionRange = "[${forge_version},)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${mcdep}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${id}]]
+modId = "cloth_config"
+mandatory = false
+versionRange = "[${cloth_config_version},)"
+ordering = "BEFORE"
+side = "CLIENT"

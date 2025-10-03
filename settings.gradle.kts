@@ -26,20 +26,16 @@ stonecutter {
 			}
 		}
 
-        mc("1.14.3", listOf("fabric"))
-        mc("1.14.4", listOf("fabric"))
-        mc("1.15", listOf("fabric"))
-        mc("1.16", listOf("fabric"))
-        mc("1.16.2", listOf("fabric"))
-        mc("1.17", listOf("fabric"))
-        mc("1.19", listOf("fabric"))
-        mc("1.20", listOf("fabric"))
-        mc("1.20.5", listOf("fabric"))
-        mc("1.21.2", listOf("fabric"))
-        mc("1.21.6", listOf("fabric"))
-        mc("1.21.8", listOf("fabric"))
+        mc("1.16.5", listOf("forge"))
+        mc("1.17", listOf("forge"))
+        mc("1.19", listOf("forge"))
+        mc("1.20", listOf("forge"))
+        mc("1.20.5", listOf("forge"))
+        mc("1.21.2", listOf("forge"))
+        mc("1.21.6", listOf("forge"))
+        mc("1.21.8", listOf("forge"))
 
-		vcsVersion = "1.21.8-fabric"
+		vcsVersion = "1.21.8-forge"
 	}
 }
 
