@@ -134,17 +134,40 @@ public class PlayerDataCollector {
             playerDto.setWeather("Clear");
         }
 
-        //? if >=1.21.8 {
+        //? if =1.21.8 {
+        /*
         List<WaypointDto> waypoints = new ArrayList<>();
-        client.player.networkHandler.getWaypointHandler().forEachWaypoint(client.cameraEntity, (waypoint) -> {
-            if (waypoint.getSource().left().map(uuid -> uuid.equals(client.cameraEntity.getUuid())).orElse(false)) {
+        client.player.networkHandler.getWaypointHandler().forEachWaypoint(client.getCameraEntity(), (waypoint) -> {
+            if (waypoint.getSource().left().map(uuid -> uuid.equals(client.getCameraEntity().getUuid())).orElse(false)) {
                 return;
             }
 
             WaypointDto waypointDto = new WaypointDto();
             waypointDto.setRelativeYaw(waypoint.getRelativeYaw(world, client.gameRenderer.getCamera()));
             waypointDto.setPitch(waypoint.getPitch(world, client.gameRenderer));
-            waypointDto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(client.cameraEntity)));
+            waypointDto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(client.getCameraEntity())));
+
+            int color = waypoint.getConfig().color.orElseGet(() -> waypoint.getSource().map(
+                    uuid -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, uuid.hashCode()), 0.9F),
+                    name -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, name.hashCode()), 0.9F)));
+            waypointDto.setColor(color);
+
+            waypoints.add(waypointDto);
+        });
+        playerDto.setWaypoints(waypoints);
+        *///?}
+        //? if >=1.21.9 {
+        List<WaypointDto> waypoints = new ArrayList<>();
+        client.player.networkHandler.getWaypointHandler().forEachWaypoint(client.getCameraEntity(), (waypoint) -> {
+            if (waypoint.getSource().left().map(uuid -> uuid.equals(client.getCameraEntity().getUuid())).orElse(false)) {
+                return;
+            }
+
+            WaypointDto waypointDto = new WaypointDto();
+            net.minecraft.world.waypoint.EntityTickProgress tickProgress = (entity) -> client.getRenderTickCounter().getTickProgress(true);
+            waypointDto.setRelativeYaw(waypoint.getRelativeYaw(world, client.gameRenderer.getCamera(), tickProgress));
+            waypointDto.setPitch(waypoint.getPitch(world, client.gameRenderer, tickProgress));
+            waypointDto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(client.getCameraEntity())));
 
             int color = waypoint.getConfig().color.orElseGet(() -> waypoint.getSource().map(
                     uuid -> ColorHelper.withBrightness(ColorHelper.withAlpha(255, uuid.hashCode()), 0.9F),
@@ -185,23 +208,23 @@ public class PlayerDataCollector {
         return playerDto;
     }
 
-    private static void updateCompassData(PlayerDto dto, ClientPlayerEntity player, ClientWorld world) {
+        private static void updateCompassData(PlayerDto dto, ClientPlayerEntity player, ClientWorld world) {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
             //? if >=1.16 && <1.20.5 {
             /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
-             world.getRegistryKey().equals(World.OVERWORLD)) {
-             dto.setCompassType(CompassType.STANDARD);
-             GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
-             world.getSpawnPos());
-             setCompassTarget(dto, player, spawnPos.getPos());
-             } else {
-             dto.setCompassState(megabytesme.minelights.CompassState.NONE);
-             dto.setCompassType(CompassType.NONE);
-             }
-            *///?} else if >=1.20.5 {
-            if (MineLightsClient.CONFIG.alwaysShowCompass &&
+            world.getRegistryKey().equals(World.OVERWORLD)) {
+            dto.setCompassType(CompassType.STANDARD);
+            GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
+            world.getSpawnPos());
+            setCompassTarget(dto, player, spawnPos.getPos());
+            } else {
+            dto.setCompassState(megabytesme.minelights.CompassState.NONE);
+            dto.setCompassType(CompassType.NONE);
+            }
+            *///?} else if >=1.20.5 && <1.21.9 {
+            /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
                 world.getRegistryKey().equals(World.OVERWORLD)) {
                 dto.setCompassType(CompassType.STANDARD);
                 GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
@@ -211,15 +234,26 @@ public class PlayerDataCollector {
                 dto.setCompassState(megabytesme.minelights.CompassState.NONE);
                 dto.setCompassType(CompassType.NONE);
             }
+            *///?} else if >=1.21.9 {
+            if (MineLightsClient.CONFIG.alwaysShowCompass &&
+                world.getRegistryKey().equals(World.OVERWORLD)) {
+                dto.setCompassType(CompassType.STANDARD);
+                GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(),
+                world.getSpawnPoint().getPos()); // Changed .pos() to .getPos()
+                setCompassTarget(dto, player, spawnPos.pos());
+            } else {
+                dto.setCompassState(megabytesme.minelights.CompassState.NONE);
+                dto.setCompassType(CompassType.NONE);
+            }
             //?} else {
             /* if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension.getType() ==
-             DimensionType.OVERWORLD) {
-             dto.setCompassType(CompassType.STANDARD);
-             setCompassTarget(dto, player, world.getSpawnPos());
-             } else {
-             dto.setCompassState(CompassState.NONE);
-             dto.setCompassType(CompassType.NONE);
-             }
+            DimensionType.OVERWORLD) {
+            dto.setCompassType(CompassType.STANDARD);
+            setCompassTarget(dto, player, world.getSpawnPos());
+            } else {
+            dto.setCompassState(CompassState.NONE);
+            dto.setCompassType(CompassType.NONE);
+            }
             *///?}
             return;
         }
@@ -377,9 +411,15 @@ public class PlayerDataCollector {
             }
         }
         *///?}
+        //? if >=1.21.9 {
         if (world.getRegistryKey().equals(World.OVERWORLD)) {
+            return world.getSpawnPoint().getPos();
+        }
+        //?} else if >=1.19 && <=1.21.8 {
+        /*if (world.getRegistryKey().equals(World.OVERWORLD)) {
             return world.getSpawnPos();
         }
+        *///?}
         //?} else if >= 1.18 {
         /* if (stack.hasNbt()) {
             NbtCompound tag = stack.getNbt();
@@ -434,7 +474,11 @@ public class PlayerDataCollector {
     }
 
     private static void setCompassTarget(PlayerDto dto, ClientPlayerEntity player, BlockPos target) {
-        Vec3d playerPos = player.getPos();
+        //? if <=1.14.4 {
+        /* Vec3d playerPos = player.getPos();
+        *///?} else {
+        Vec3d playerPos = new Vec3d(player.getX(), player.getY(), player.getZ());
+        //?}
         Vec3d targetPos = new Vec3d(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
 
         double deltaX = targetPos.x - playerPos.x;
