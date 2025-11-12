@@ -7,9 +7,20 @@ import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.text.ClickEvent;
+//? if >1.15.2 {
+import net.minecraft.text.MutableText;
+//?}
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,6 +34,8 @@ import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -31,6 +44,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,6 +54,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
+    public static final String MOD_ID = "mine-lights";
     public static final List<String> serverLogLines = Collections.synchronizedList(new ArrayList<>());
     public static MineLightsConfig CONFIG;
     private static SimpleJsonConfig CONFIG_MANAGER;
@@ -60,6 +75,9 @@ public class MineLightsClient implements ClientModInitializer {
     private boolean titleScreenHooked = false;
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
+
+    private static final String MODRINTH_PROJECT_ID = "minelights"; 
+    private static final AtomicBoolean hasCheckedForUpdate = new AtomicBoolean(false);
 
     public enum DownloadStatus {
         IDLE,
@@ -95,6 +113,12 @@ public class MineLightsClient implements ClientModInitializer {
                 }
             });
         }
+        
+        ClientTickEvents.START_WORLD_TICK.register((client) -> {
+            if (hasCheckedForUpdate.compareAndSet(false, true)) {
+                new Thread(MineLightsClient::checkForUpdate, "MineLights-Modrinth-Update-Check").start();
+            }
+        });
 
         new Thread(() -> {
             try {
@@ -122,6 +146,251 @@ public class MineLightsClient implements ClientModInitializer {
             }
         });
     }
+
+    //? if <= 1.15.2 {
+    /* private static void checkForUpdate() {
+        LOGGER.info("Checking for MineLights updates on Modrinth...");
+        try {
+            Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
+            if (!modContainer.isPresent()) { return; }
+            String currentVersion = modContainer.get().getMetadata().getVersion().getFriendlyString();
+            String gameVersion = SharedConstants.getGameVersion().getName();
+
+            String urlString = String.format(
+                    "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
+                    MODRINTH_PROJECT_ID,
+                    URLEncoder.encode("[\"" + gameVersion + "\"]", "UTF-8"),
+                    URLEncoder.encode("[\"fabric\"]", "UTF-8"));
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() != 200) { return; }
+
+            String json;
+            try (InputStream in = conn.getInputStream()) { json = readAllBytes(in); }
+            JsonArray versions = new JsonParser().parse(json).getAsJsonArray();
+
+            if (versions.size() > 0) {
+                String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
+                if (!currentVersion.equals(latestVersionNumber)) {
+                    MinecraftClient.getInstance().execute(() -> {
+                        if (MinecraftClient.getInstance().player != null) {
+                            String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
+                            Text message = new net.minecraft.text.LiteralText("[MineLights] ").formatted(Formatting.GOLD)
+                                    .append(new net.minecraft.text.LiteralText("A new version is available: ").formatted(Formatting.YELLOW))
+                                    .append(new net.minecraft.text.LiteralText(latestVersionNumber).formatted(Formatting.AQUA));
+                            Text link = new net.minecraft.text.LiteralText("[Click here to download]")
+                                    .setStyle(new Style()
+                                            .setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            .setHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, new net.minecraft.text.LiteralText("Open Modrinth page")))
+                                            .setColor(Formatting.GREEN)); // FIXED: Use .setColor() for old versions
+                            MinecraftClient.getInstance().player.sendMessage(message);
+                            MinecraftClient.getInstance().player.sendMessage(link);
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for mod updates", e);
+        }
+    }
+    *///?} else if >= 1.16 && < 1.19 {
+    /* private static void checkForUpdate() {
+        LOGGER.info("Checking for MineLights updates on Modrinth...");
+        try {
+            Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
+            if (!modContainer.isPresent()) { return; }
+            String currentVersion = modContainer.get().getMetadata().getVersion().getFriendlyString();
+            String gameVersion = SharedConstants.getGameVersion().getName();
+
+            String urlString = String.format(
+                    "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
+                    MODRINTH_PROJECT_ID,
+                    URLEncoder.encode("[\"" + gameVersion + "\"]", StandardCharsets.UTF_8.toString()),
+                    URLEncoder.encode("[\"fabric\"]", StandardCharsets.UTF_8.toString()));
+
+            HttpURLConnection conn = (HttpURLConnection) URI.create(urlString).toURL().openConnection();
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() != 200) { return; }
+
+            String json;
+            try (InputStream in = conn.getInputStream()) { json = readAllBytes(in); }
+            JsonArray versions = new JsonParser().parse(json).getAsJsonArray();
+
+            if (versions.size() > 0) {
+                String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
+                if (!currentVersion.equals(latestVersionNumber)) {
+                    MinecraftClient.getInstance().execute(() -> {
+                        if (MinecraftClient.getInstance().player != null) {
+                            String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
+                            MutableText message = new net.minecraft.text.LiteralText("[MineLights] ").formatted(Formatting.GOLD)
+                                    .append(new net.minecraft.text.LiteralText("A new version is available: ").formatted(Formatting.YELLOW))
+                                    .append(new net.minecraft.text.LiteralText(latestVersionNumber).formatted(Formatting.AQUA));
+                            MutableText link = new net.minecraft.text.LiteralText("[Click here to download]")
+                                    .setStyle(Style.EMPTY
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            .withColor(Formatting.GREEN));
+                            MinecraftClient.getInstance().player.sendMessage(message, false);
+                            MinecraftClient.getInstance().player.sendMessage(link, false);
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for mod updates", e);
+        }
+    }
+    *///?}
+    //? if >= 1.19 && < 1.21.6 {
+    /* private static void checkForUpdate() {
+        LOGGER.info("Checking for MineLights updates on Modrinth...");
+        try {
+            Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
+            if (!modContainer.isPresent()) { return; }
+            String currentVersion = modContainer.get().getMetadata().getVersion().getFriendlyString();
+            String gameVersion = SharedConstants.getGameVersion().getId();
+
+            String gameVersionsJson = "[\"" + gameVersion + "\"]";
+            String loadersJson = "[\"fabric\"]";
+            String urlString = String.format(
+                    "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
+                    MODRINTH_PROJECT_ID,
+                    URLEncoder.encode(gameVersionsJson, StandardCharsets.UTF_8.toString()),
+                    URLEncoder.encode(loadersJson, StandardCharsets.UTF_8.toString()));
+
+            HttpURLConnection conn = (HttpURLConnection) URI.create(urlString).toURL().openConnection();
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() != 200) { return; }
+
+            String json;
+            try (InputStream in = conn.getInputStream()) { json = readAllBytes(in); }
+            JsonArray versions = JsonParser.parseString(json).getAsJsonArray();
+
+            if (versions.size() > 0) {
+                String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
+                if (!currentVersion.equals(latestVersionNumber)) {
+                    MinecraftClient.getInstance().execute(() -> {
+                        if (MinecraftClient.getInstance().player != null) {
+                            String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
+                            MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
+                                    .append(Text.literal("A new version is available: ").formatted(Formatting.YELLOW))
+                                    .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA));
+                            MutableText link = Text.literal("[Click here to download]")
+                                    .setStyle(Style.EMPTY
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            .withColor(Formatting.GREEN));
+                            MinecraftClient.getInstance().player.sendMessage(message, false);
+                            MinecraftClient.getInstance().player.sendMessage(link, false);
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for mod updates", e);
+        }
+    }
+    *///?}
+    //? if >= 1.21.6 {
+    private static void checkForUpdate() {
+        LOGGER.info("Starting update check thread...");
+
+        try {
+            LOGGER.info("Attempting to get mod container for '{}'", MOD_ID);
+            Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
+
+            if (!modContainer.isPresent()) {
+                LOGGER.warn("Could not find mod container for '{}'", MOD_ID);
+                return;
+            }
+
+            String currentVersion = modContainer.get().getMetadata().getVersion().getFriendlyString();
+            LOGGER.info("Current mod version: {}", currentVersion);
+
+            String gameVersion = SharedConstants.getGameVersion().id();
+            LOGGER.info("Current Minecraft version: {}", gameVersion);
+
+            String gameVersionsJson = "[\"" + gameVersion + "\"]";
+            String loadersJson = "[\"fabric\"]";
+
+            String urlString = String.format(
+                    "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
+                    MODRINTH_PROJECT_ID,
+                    URLEncoder.encode(gameVersionsJson, StandardCharsets.UTF_8),
+                    URLEncoder.encode(loadersJson, StandardCharsets.UTF_8)
+            );
+            LOGGER.info("Constructed URL: {}", urlString);
+
+            URL url = URI.create(urlString).toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            LOGGER.info("Sending request to Modrinth...");
+            int responseCode = conn.getResponseCode();
+            LOGGER.info("Received response code: {}", responseCode);
+
+            if (responseCode != 200) {
+                LOGGER.warn("Failed to check for updates. Modrinth API responded with code: {}", responseCode);
+                return;
+            }
+
+            String json;
+            try (InputStream in = conn.getInputStream()) {
+                LOGGER.info("Reading response body...");
+                json = readAllBytes(in);
+            }
+            LOGGER.info("Response body length: {}", json.length());
+
+            JsonArray versions = JsonParser.parseString(json).getAsJsonArray();
+            LOGGER.info("Parsed {} versions from Modrinth", versions.size());
+
+            if (versions.size() > 0) {
+                JsonObject latestVersion = versions.get(0).getAsJsonObject();
+                String latestVersionNumber = latestVersion.get("version_number").getAsString();
+                LOGGER.info("Latest version number from Modrinth: {}", latestVersionNumber);
+
+                if (!currentVersion.equals(latestVersionNumber)) {
+                    LOGGER.info("A new version of MineLights is available: {}", latestVersionNumber);
+
+                    MinecraftClient.getInstance().execute(() -> {
+                        LOGGER.info("Scheduling message send on client thread...");
+                        if (MinecraftClient.getInstance().player != null) {
+                            LOGGER.info("Player is present, sending chat messages...");
+
+                            String gameVersionId = SharedConstants.getGameVersion().id(); 
+                            String modrinthUrl = String.format(
+                                "https://modrinth.com/mod/%s/versions?version=%s#download",
+                                MODRINTH_PROJECT_ID,
+                                gameVersionId
+                            );
+
+                            MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
+                                    .append(Text.literal("A new version is available: ").formatted(Formatting.YELLOW))
+                                    .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA));
+
+                            MutableText link = Text.literal("[Click here to download]")
+                                    .setStyle(Style.EMPTY
+                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
+                                            .withColor(Formatting.GREEN));
+
+                            MinecraftClient.getInstance().player.sendMessage(message, false);
+                            MinecraftClient.getInstance().player.sendMessage(link, false);
+                        } else {
+                            LOGGER.info("Player is null, cannot send chat messages.");
+                        }
+                    });
+                } else {
+                    LOGGER.info("MineLights is up to date.");
+                }
+            } else {
+                LOGGER.info("No versions returned from Modrinth.");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for mod updates", e);
+        }
+    }
+    //?}
 
     private static String readAllBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -152,7 +421,12 @@ public class MineLightsClient implements ClientModInitializer {
                 json = readAllBytes(in);
             }
 
-            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+            //? if <=1.21.2 {
+            /* JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+            *///?} else {
+            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            //?}
+
             JsonArray assets = root.getAsJsonArray("assets");
             if (assets.size() == 0)
                 return;
@@ -253,7 +527,11 @@ public class MineLightsClient implements ClientModInitializer {
                 json = readAllBytes(in);
             }
 
-            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+            //? if <=1.21.2 {
+            /* JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+            *///?} else {
+            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            //?}
             JsonArray assets = root.getAsJsonArray("assets");
             if (assets.size() == 0)
                 throw new IOException("No assets found in release");
