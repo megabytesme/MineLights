@@ -134,6 +134,16 @@ public class PlayerDataCollector {
             playerDto.setWeather("Clear");
         }
 
+        //? if >= 1.21.9 {
+        if (world.getRegistryKey().equals(World.END)) {
+            net.minecraft.client.render.EndLightFlashManager flashManager = world.getEndLightFlashManager();
+            float intensity = flashManager.getSkyFactor(client.getRenderTickCounter().getTickProgress(true));
+            playerDto.setEndFlashIntensity(intensity);
+        } else {
+            playerDto.setEndFlashIntensity(0.0f);
+        }
+        //?}
+
         //? if =1.21.8 {
         /*
         List<WaypointDto> waypoints = new ArrayList<>();

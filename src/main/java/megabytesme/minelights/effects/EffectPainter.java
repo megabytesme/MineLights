@@ -117,6 +117,9 @@ public class EffectPainter {
     private static long lastSheenTime = 0;
     private static int sheenIndex = 0;
 
+    private long lastEndFlashCrackleUpdate = 0;
+    private final List<Integer> endFlashCracklingKeys = new ArrayList<>();
+
     private static RGBColorDto blend(RGBColorDto base, RGBColorDto overlay, double overlayOpacity) {
         if (base == null)
             return overlay;
@@ -305,6 +308,13 @@ public class EffectPainter {
 
     private void paintSpecialWorldEffects(FrameStateDto state, PlayerDto player, long now) {
         paintWeatherEffects(state, player, now);
+
+        //? if >= 1.21.9 {
+        if (MineLightsClient.CONFIG.enableEndFlashEffect && player.getCurrentWorld().equals("minecraft:the_end")) {
+            paintEndFlashEffect(state, player, now);
+        }
+        //?}
+
         if (player.getIsLightningFlashing())
             return;
 
@@ -344,6 +354,39 @@ public class EffectPainter {
                 state.keys.put(keyId, new RGBColorDto(50, 50, 50));
         }
     }
+
+    //? if >= 1.21.9 {
+    private void paintEndFlashEffect(FrameStateDto state, PlayerDto player, long now) {
+        float intensity = player.getEndFlashIntensity();
+        if (intensity <= 0.0f) {
+            return;
+        }
+
+        RGBColorDto tintColor = new RGBColorDto(150, 80, 255);
+        RGBColorDto flashColor = new RGBColorDto(220, 180, 255);
+
+        for (DeviceLayout layout : deviceLayouts) {
+            for (Integer ledId : layout.getAllLeds()) {
+                RGBColorDto baseColor = state.keys.get(ledId);
+                state.keys.put(ledId, blend(baseColor, tintColor, intensity * 0.8));
+            }
+        }
+
+        List<Integer> allDeviceLeds = deviceLayouts.stream()
+                .flatMap(d -> d.getAllLeds().stream())
+                .collect(Collectors.toList());
+
+        if (now - lastEndFlashCrackleUpdate > 120) {
+            updateRandomKeys(endFlashCracklingKeys, allDeviceLeds, 0.15f);
+            lastEndFlashCrackleUpdate = now;
+        }
+
+        for (Integer keyId : endFlashCracklingKeys) {
+            RGBColorDto currentColor = state.keys.get(keyId);
+            state.keys.put(keyId, blend(currentColor, flashColor, intensity));
+        }
+    }
+    //?}
 
     private void paintWeatherEffects(FrameStateDto state, PlayerDto player, long now) {
         if (player.getIsLightningFlashing()) {

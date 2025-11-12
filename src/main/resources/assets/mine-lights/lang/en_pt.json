@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Nearby Glow",
   "option.mine-lights.enableWeatherEffects": "Show Weather Effects",
   "option.mine-lights.enableWeatherEffects.tooltip": "Adds squalls and thunderstorms to yer lights.",
+  "option.mine-lights.enableEndFlashEffect": "Enable th' Flash o' th' End",
+  "option.mine-lights.enableEndFlashEffect.tooltip": "Be showin' ye th' purple flash from th' dark dimension o' th' End.",
   "option.mine-lights.enableOnFireEffect": "Show On-Fire Effect",
   "option.mine-lights.enableInWaterEffect": "Show In-Water Effect",
   "option.mine-lights.enableInWaterEffect.tooltip": "Highlights movement keys with a blue colour when submerged.",

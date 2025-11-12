@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Close Litez",
   "option.mine-lights.enableWeatherEffects": "ENABL WETHR EFFECTZ",
   "option.mine-lights.enableWeatherEffects.tooltip": "addz rain an thundersturm lightin effectz.",
+  "option.mine-lights.enableEndFlashEffect": "ENABL END FLASHY THING",
+  "option.mine-lights.enableEndFlashEffect.tooltip": "MAEK PURPLE FLASHY LIEK IN END PLACE.",
   "option.mine-lights.enableOnFireEffect": "ENABL ON-FIRE EFFECT",
   "option.mine-lights.enableInWaterEffect": "ENABL IN-WATR EFFECT",
   "option.mine-lights.enableInWaterEffect.tooltip": "highlightz move keyz with a blu color when submerged.",

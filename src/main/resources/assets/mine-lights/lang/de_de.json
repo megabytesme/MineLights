@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Umgebungslicht",
   "option.mine-lights.enableWeatherEffects": "Wettereffekte aktivieren",
   "option.mine-lights.enableWeatherEffects.tooltip": "Fügt Regen- und Gewitter-Lichteffekte hinzu.",
+  "option.mine-lights.enableEndFlashEffect": "Endblitz-Effekt aktivieren",
+  "option.mine-lights.enableEndFlashEffect.tooltip": "Repliziert den violetten Blitzeffekt, der in der End-Dimension auftritt.",
   "option.mine-lights.enableOnFireEffect": "„Brennen“-Effekt aktivieren",
   "option.mine-lights.enableInWaterEffect": "„Im Wasser“-Effekt aktivieren",
   "option.mine-lights.enableInWaterEffect.tooltip": "Hebt Bewegungstasten mit einer blauen Farbe hervor, wenn man untergetaucht ist.",

@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Near Light",
   "option.mine-lights.enableWeatherEffects": "Onflow Weather Workings",
   "option.mine-lights.enableWeatherEffects.tooltip": "Adds rain and thunder-light workings.",
+  "option.mine-lights.enableEndFlashEffect": "Endgleam Working",
+  "option.mine-lights.enableEndFlashEffect.tooltip": "Aftermakes the bluish-red gleam that happens in the End-world.",
   "option.mine-lights.enableOnFireEffect": "Onflow On-Fire Working",
   "option.mine-lights.enableInWaterEffect": "Onflow In-Water Working",
   "option.mine-lights.enableInWaterEffect.tooltip": "Highlights fare keys with a blue hue when underwater.",

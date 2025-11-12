@@ -18,6 +18,7 @@ public class PlayerDto {
     private boolean isLightningFlashing;
     private int skyLightLevel;
     private float renderedBrightnessLevel;
+    private float endFlashIntensity;
     private boolean isOnFire;
     private boolean isPoisoned;
     private boolean isWithering;
@@ -83,6 +84,10 @@ public class PlayerDto {
 
     public float getRenderedBrightnessLevel() {
         return renderedBrightnessLevel;
+    }
+
+    public float getEndFlashIntensity() {
+        return endFlashIntensity;
     }
 
     public boolean getIsOnFire() {
@@ -159,6 +164,10 @@ public class PlayerDto {
 
     public void setRenderedBrightnessLevel(float renderedBrightnessLevel) {
         this.renderedBrightnessLevel = renderedBrightnessLevel;
+    }
+
+    public void setEndFlashIntensity(float intensity) {
+        this.endFlashIntensity = intensity;
     }
 
     public void setIsOnFire(boolean isOnFire) {

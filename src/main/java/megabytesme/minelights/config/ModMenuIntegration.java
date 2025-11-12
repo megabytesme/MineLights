@@ -1034,6 +1034,18 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
                 .build());
+        //? if >=1.21.9 {
+        environment.addEntry(entryBuilder
+                .startBooleanToggle(
+                        Text.translatable("option.mine-lights.enableEndFlashEffect"),
+                        MineLightsClient.CONFIG.enableEndFlashEffect)
+                .setDefaultValue(true)
+                .setTooltip(
+                    Text.translatable("option.mine-lights.enableEndFlashEffect.tooltip"))
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.enableEndFlashEffect = newValue)
+                .build());
+        //?}
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {

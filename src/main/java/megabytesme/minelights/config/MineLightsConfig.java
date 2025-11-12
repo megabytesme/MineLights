@@ -39,6 +39,7 @@ public class MineLightsConfig {
     public DimmingMode dimmingMode = DimmingMode.LOCAL_LIGHT;
     public float minBrightness = 0.2F;
     public boolean enableWeatherEffects = true;
+    public boolean enableEndFlashEffect = true;
     public boolean enableOnFireEffect = true;
     public boolean enableInWaterEffect = true;
     public boolean enablePortalEffects = true;

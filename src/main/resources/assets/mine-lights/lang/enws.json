@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Proximate Glow",
   "option.mine-lights.enableWeatherEffects": "Showeth the Effects of Weather",
   "option.mine-lights.enableWeatherEffects.tooltip": "Addeth the lights of rain and tempest.",
+  "option.mine-lights.enableEndFlashEffect": "Enable the Flash of the End",
+  "option.mine-lights.enableEndFlashEffect.tooltip": "Hark, it doth replicate the purple flash that doth appear in the realm of the End.",
   "option.mine-lights.enableOnFireEffect": "Showeth the On-Fire Effect",
   "option.mine-lights.enableInWaterEffect": "Showeth the In-Water Effect",
   "option.mine-lights.enableInWaterEffect.tooltip": "Maketh bright the movement keys with a blue hue when thou art submerged.",
