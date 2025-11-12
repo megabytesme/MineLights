@@ -26,8 +26,11 @@
     "modmenu": {
       "modmenu": true,
       "links": {
-        "Donate": "https://ko-fi.com/megabytesme"
-      }
+        "modmenu.kofi": "${kofi}",
+        "modmenu.discord": "${discord}",
+        "modmenu.modrinth": "${modrinth}"
+      },
+      "update_checker": true
     }
   }
 }

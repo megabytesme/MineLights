@@ -96,7 +96,10 @@ tasks {
             "sources" to project.property("mod.sources"),
             "issues" to project.property("mod.issues"),
             "icon" to project.property("mod.icon"),
-            "environment" to project.property("mod.environment")
+            "environment" to project.property("mod.environment"),
+            "modrinth" to project.property("mod.modrinth"),
+            "kofi" to project.property("mod.kofi"),
+            "discord" to project.property("mod.discord")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
@@ -128,12 +131,14 @@ publishMods {
     modrinth {
         projectId = property("publish.modrinth").toString()
         accessToken = ""
-        minecraftVersions.add(mcVersion)
+        val targets = property("mod.mc_targets").toString().split(" ")
+        minecraftVersions.addAll(targets)
         requires {
             slug = "fabric-api"
             version = property("deps.fabric_api").toString()
         }
     }
+
 /*
     curseforge {
         projectId = property("publish.curseforge").toString()
