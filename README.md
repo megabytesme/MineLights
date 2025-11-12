@@ -9,7 +9,7 @@
 
 MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets a range of Minecraft versions (1.14.3+) and uses a modular design to support a wide range of hardware.
 
-###### Currently supported: MInecraft 1.14.3 - 1.21.9 (Fabric)
+###### Currently supported: MInecraft 1.14.3 - 1.21.10 (Fabric)
 
 ## Features
 
