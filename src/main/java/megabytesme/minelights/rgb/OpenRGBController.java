@@ -219,6 +219,33 @@ public class OpenRGBController {
         innerPayload.putShort((short) numLeds);
 
         byte[][] colorArray = new byte[numLeds][4];
+
+        /**
+         * Fallback for RGB devices where the calculated LocalLedId is invalid or
+         * the device does not expose per-key LED mappings (e.g. zone-based keyboards
+         * like SteelSeries Apex 3).
+         *
+         * Without this fallback, LEDs that are not explicitly mapped receive (0,0,0)
+         * and the device turns partially or fully black.
+         *
+         * This distributes the available colors cyclically across all LEDs so that
+         * zone-based devices still receive a valid color update.
+         */
+        {
+            int colorId = 0;
+            for(int ledId=0;ledId<numLeds;++ledId){
+                KeyColorDto color = colorsToUpdate.get(colorId);
+
+                colorArray[ledId][0] = (byte) color.r;
+                colorArray[ledId][1] = (byte) color.g;
+                colorArray[ledId][2] = (byte) color.b;
+                colorArray[ledId][3] = (byte) 255;
+
+                colorId = (colorId + 1) % colorsToUpdate.size();
+            }
+        }
+
+
         for (KeyColorDto dto : colorsToUpdate) {
             int localLedId = dto.id - getLedOffsetForDevice(deviceId);
             if (localLedId >= 0 && localLedId < numLeds) {
