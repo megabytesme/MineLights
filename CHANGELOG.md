@@ -1,26 +1,29 @@
-# MineLights 2.3.4
+# MineLights 2.3.5
 
-This is a minor update which adds various links/URLs to Mod Menu.
+This is an update which improves OpenRGB device support on zone-based devices.
 Previous server version compatible (as of 2.3.1)!
 
 ## Key Features & Major Changes
 
-- Links in Mod Menu added for:
-  1. Discord
-  2. Modrinth
-  3. Ko-fi
-- Added support for 1.21.11.
+- Added a fallback for zone-based RGB devices to prevent LEDs turning black.
 
 ## Installation / Upgrade Instructions
 
 - DELETE your old mine-lights-\*.jar file completely.
 - Download the from this release.
-- Place the new mine-lights-2.3.4.jar into your mods folder.
+- Place the new mine-lights-2.3.5.jar into your mods folder.
 - Run Minecraft
 
 **For the best experience, also install Mod Menu and Cloth Config. Fabric API is required.**
 
 ## Full Changelog & Technical Details
 
-- Improved builds to include additional links and to support multiple Minecraft version targets with single mod upload
-- Added 1.21.11 target to 1.21.9 gradle.properties
+- Add a fallback for zone-based RGB devices to prevent LEDs turning black [(PR #19 - SaturninTheAlien)](https://github.com/megabytesme/MineLights/pull/19)
+  1. Added a fallback to prevent some RGB devices, particularly zone-based keyboards (e.g. SteelSeries Apex 3), from turning black when LED indices fall outside the device's supported range.
+  2. The fallback distributes the available colors cyclically across all LEDs so that zone-based devices still receive a valid color update.
+  3. For some devices, the calculated value of localLedId falls outside the valid LED index range. This can also occur when multiple RGB devices are present.
+  4. The fallback ensures that byte[][] colorArray is always initialized, which prevents LEDs from being set to (0,0,0).
+
+## New Contributors ⭐
+
+- [SaturninTheAlien](https://github.com/SaturninTheAlien): [PR #19](https://github.com/megabytesme/MineLights/pull/19)
