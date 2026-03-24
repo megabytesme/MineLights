@@ -15,7 +15,7 @@
   "environment": "${environment}",
   "entrypoints": {
     "client": ["megabytesme.minelights.MineLightsClient"],
-    "modmenu": ["megabytesme.minelights.config.ModMenuIntegration"]
+    "modmenu": ["${modmenu_entrypoint_class}"]
   },
   "mixins": ["minelights.mixins.json"],
   "depends": {

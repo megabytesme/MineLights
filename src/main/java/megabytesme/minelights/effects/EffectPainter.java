@@ -7,11 +7,15 @@ import megabytesme.minelights.PlayerDto;
 //? if >=1.21.8 {
 import megabytesme.minelights.WaypointDto;
 //?}
-import net.minecraft.client.MinecraftClient;
-//? if >=1.17 {
+//? if >=26.1 {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+//?} else if >=1.17 {
+/* import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
-//?} else {
-/* import net.minecraft.client.options.GameOptions;
+*///?} else {
+/* import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.options.GameOptions;
 *///?}
 
 import org.apache.logging.log4j.LogManager;
@@ -216,12 +220,25 @@ public class EffectPainter {
         }
         
         for (String blockId : blockIds) {
-            if (relevantBlocks.contains(blockId)) {
-                return true;
+            String normalizedBlockId = normalizeBlockId(blockId);
+            for (String relevantBlock : relevantBlocks) {
+                if (normalizeBlockId(relevantBlock).equals(normalizedBlockId)) {
+                    return true;
+                }
             }
         }
         
         return false;
+    }
+
+    private String normalizeBlockId(String blockId) {
+        if (blockId == null) {
+            return "";
+        }
+        if (blockId.startsWith("block.")) {
+            return blockId.substring("block.".length()).replace('.', ':');
+        }
+        return blockId;
     }
 
     private RGBColorDto resolveEnvironmentalBaseColor(PlayerDto player, long now) {
@@ -242,7 +259,8 @@ public class EffectPainter {
 
         boolean isSoulFire = false;
         if (player.getIsOnFire()) {
-            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand",
+                    "minecraft:soul_soil");
         }
         boolean isRegularFire = isPlayerInOrOnBlock(player, "block.minecraft.fire", "block.minecraft.lava");
         
@@ -324,7 +342,8 @@ public class EffectPainter {
 
         boolean isSoulFire = false;
         if (player.getIsOnFire()) {
-            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+            isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand",
+                    "minecraft:soul_soil");
         }
         boolean isRegularFire = isPlayerInOrOnBlock(player, "block.minecraft.fire", "block.minecraft.lava");
         
@@ -648,9 +667,9 @@ public class EffectPainter {
                     int b = packedColor & 0xFF;
                     RGBColorDto waypointColor = new RGBColorDto(r, g, b);
 
-                    if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.UP) {
+                    if (waypoint.getPitch() == WaypointDto.Pitch.UP) {
                         waypointColor = lerpColor(waypointColor, new RGBColorDto(255, 255, 255), 0.5f);
-                    } else if (waypoint.getPitch() == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.DOWN) {
+                    } else if (waypoint.getPitch() == WaypointDto.Pitch.DOWN) {
                         waypointColor = lerpColor(waypointColor, new RGBColorDto(0, 0, 0), 0.5f);
                     }
 
@@ -874,10 +893,12 @@ public class EffectPainter {
         if (MineLightsClient.CONFIG.enableInWaterEffect && isPlayerInOrOnBlock(player, "block.minecraft.water")) {
             keyColor = new RGBColorDto(0, 100, 255);
         } else if (MineLightsClient.CONFIG.enableOnFireEffect
-                && (isPlayerInOrOnBlock(player, "block.minecraft.lava", "block.minecraft.fire", "block.minecraft.soul_fire", "block.minecraft.soul_sand"))) {
+                && (isPlayerInOrOnBlock(player, "block.minecraft.lava", "block.minecraft.fire", "block.minecraft.soul_fire",
+                        "block.minecraft.soul_sand", "minecraft:soul_soil"))) {
                     boolean isSoulFire = false;
                     if (player.getIsOnFire()) {
-                        isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand");
+                        isSoulFire = isPlayerInOrOnBlock(player, "block.minecraft.soul_fire", "block.minecraft.soul_sand",
+                                "minecraft:soul_soil");
                     }        
             keyColor = isSoulFire ? new RGBColorDto(0, 100, 255) : new RGBColorDto(255, 0, 0);
         } else if (MineLightsClient.CONFIG.highlightMovementKeys) {
@@ -898,16 +919,31 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
-        GameOptions options = MinecraftClient.getInstance().options;
+        //? if >=26.1 {
+        Options options = Minecraft.getInstance().options;
+        //?} else {
+        /* GameOptions options = MinecraftClient.getInstance().options;
+        *///?}
         // ? if >= 1.19 {
         keybindsToFetch = Arrays.asList(
-                options.forwardKey.getBoundKeyTranslationKey(),
+                //? if >=26.1 {
+                options.keyUp.getTranslatedKeyMessage().getString(),
+                options.keyDown.getTranslatedKeyMessage().getString(),
+                options.keyLeft.getTranslatedKeyMessage().getString(),
+                options.keyRight.getTranslatedKeyMessage().getString(),
+                options.keyJump.getTranslatedKeyMessage().getString(),
+                options.keyShift.getTranslatedKeyMessage().getString(),
+                options.keySprint.getTranslatedKeyMessage().getString()
+                //?} else {
+                /* options.forwardKey.getBoundKeyTranslationKey(),
                 options.backKey.getBoundKeyTranslationKey(),
                 options.leftKey.getBoundKeyTranslationKey(),
                 options.rightKey.getBoundKeyTranslationKey(),
                 options.jumpKey.getBoundKeyTranslationKey(),
                 options.sneakKey.getBoundKeyTranslationKey(),
-                options.sprintKey.getBoundKeyTranslationKey());
+                options.sprintKey.getBoundKeyTranslationKey() */
+                //?}
+        );
         // ?} else if >=1.16 {
         /*
          keybindsToFetch = Arrays.asList(
@@ -932,18 +968,25 @@ public class EffectPainter {
          */// ?}
 
         for (String key : keybindsToFetch) {
+            //? if >=26.1 {
+            String friendlyName = normalize26KeyName(key);
+            if (friendlyName != null) {
+                friendlyNames.add(friendlyName);
+            }
+            //?} else {
             if (key == null || !key.startsWith("key.keyboard."))
                 continue;
             String[] parts = key.split("\\.");
-            String friendlyName = "";
+            String legacyFriendlyName = "";
             if (parts.length == 4)
-                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
+                legacyFriendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
             else if (parts.length == 3)
-                friendlyName = parts[2].toUpperCase();
-            if (!friendlyName.isEmpty()) {
-                friendlyName = friendlyName.replace("CONTROL", "CTRL");
-                friendlyNames.add(friendlyName);
+                legacyFriendlyName = parts[2].toUpperCase();
+            if (!legacyFriendlyName.isEmpty()) {
+                legacyFriendlyName = legacyFriendlyName.replace("CONTROL", "CTRL");
+                friendlyNames.add(legacyFriendlyName);
             }
+            //?}
         }
         return friendlyNames;
     }
@@ -981,33 +1024,72 @@ public class EffectPainter {
 
     private List<String> getChatKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
-        GameOptions options = MinecraftClient.getInstance().options;
+        //? if >=26.1 {
+        Options options = Minecraft.getInstance().options;
+        //?} else {
+        /* GameOptions options = MinecraftClient.getInstance().options;
+        *///?}
         String keybindToFetch = null;
 
         //? if >= 1.19 {
-        keybindToFetch = options.chatKey.getBoundKeyTranslationKey();
+        //? if >=26.1 {
+        keybindToFetch = options.keyChat.getTranslatedKeyMessage().getString();
+        //?} else {
+        /* keybindToFetch = options.chatKey.getBoundKeyTranslationKey(); */
+        //?}
         //?} else if >=1.16 {
         /* keybindToFetch = options.keyChat.getBoundKeyTranslationKey();
         *///?} else {
         /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString();
         *///?}
 
+        //? if >=26.1 {
+        String friendlyName = normalize26KeyName(keybindToFetch);
+        if (friendlyName != null) {
+            friendlyNames.add(friendlyName);
+        }
+        //?} else {
         if (keybindToFetch != null && keybindToFetch.startsWith("key.keyboard.")) {
             String[] parts = keybindToFetch.split("\\.");
-            String friendlyName = "";
+            String legacyFriendlyName = "";
             if (parts.length == 4) {
-                friendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
+                legacyFriendlyName = (parts[2].substring(0, 1) + parts[3]).toUpperCase();
             } else if (parts.length == 3) {
-                friendlyName = parts[2].toUpperCase();
+                legacyFriendlyName = parts[2].toUpperCase();
             }
-            if (!friendlyName.isEmpty()) {
-                friendlyName = friendlyName.replace("CONTROL", "CTRL");
-                friendlyNames.add(friendlyName);
+            if (!legacyFriendlyName.isEmpty()) {
+                legacyFriendlyName = legacyFriendlyName.replace("CONTROL", "CTRL");
+                friendlyNames.add(legacyFriendlyName);
             }
         }
+        //?}
 
         return friendlyNames;
     }
+
+    //? if >=26.1 {
+    private String normalize26KeyName(String keyName) {
+        if (keyName == null || keyName.isBlank()) {
+            return null;
+        }
+
+        String normalized = keyName.trim().toUpperCase().replace(' ', '_');
+        return switch (normalized) {
+            case "LEFT_SHIFT" -> "LSHIFT";
+            case "RIGHT_SHIFT" -> "RSHIFT";
+            case "LEFT_CONTROL", "LEFT_CTRL" -> "LCTRL";
+            case "RIGHT_CONTROL", "RIGHT_CTRL" -> "RCTRL";
+            case "LEFT_ALT" -> "LALT";
+            case "RIGHT_ALT" -> "RALT";
+            case "LEFT_WINDOWS", "LEFT_WIN", "LEFT_SUPER" -> "LWIN";
+            case "UP_ARROW" -> "UP";
+            case "DOWN_ARROW" -> "DOWN";
+            case "LEFT_ARROW" -> "LEFT";
+            case "RIGHT_ARROW" -> "RIGHT";
+            default -> normalized;
+        };
+    }
+    //?}
 
     private void updateRandomKeys(List<Integer> keyList, List<Integer> sourceList, float density) {
         keyList.clear();

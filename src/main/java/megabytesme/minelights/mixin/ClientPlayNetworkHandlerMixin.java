@@ -1,37 +1,69 @@
 package megabytesme.minelights.mixin;
 
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+//? if >=26.1 {
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+//?} else {
+/* import net.minecraft.client.network.ClientPlayNetworkHandler;
 //? if 1.14.4 || >=1.19 {
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 //?} else if >=1.16 && <=1.18.2 {
-/* import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
-*///?} else {
-/* import net.minecraft.client.network.packet.ChatMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+//?} else {
+import net.minecraft.client.network.packet.ChatMessageS2CPacket;
+//?}
 *///?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+//? if >=26.1 {
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//?} else {
+/* import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+*///?}
 
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
 
-@Mixin(ClientPlayNetworkHandler.class)
+//? if >=26.1 {
+@Mixin(ClientPacketListener.class)
+//?} else {
+/* @Mixin(ClientPlayNetworkHandler.class)
+*///?}
 public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAccessor {
     @Unique
     private boolean chatReceivedThisTick = false;
 
-    //? if >=1.16 && <=1.18.2 {
+    //? if >=26.1 {
+    @Inject(method = "handleSystemChat", at = @At("HEAD"))
+    private void onSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+
+    @Inject(method = "handlePlayerChat", at = @At("HEAD"))
+    private void onPlayerChat(ClientboundPlayerChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+
+    @Inject(method = "handleDisguisedChat", at = @At("HEAD"))
+    private void onDisguisedChat(ClientboundDisguisedChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    //?} else if >=1.16 && <=1.18.2 {
     /* @Inject(method = "onGameMessage", at = @At("HEAD"))
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;
     }
-    *///?} else {
-    @Inject(method = "onChatMessage", at = @At("HEAD"))
+    *///?} else if <26.1 {
+    /* @Inject(method = "onChatMessage", at = @At("HEAD"))
     private void onChatMessage(ChatMessageS2CPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;
     }
-    //?}
+    *///?}
 
     @Unique
     @Override

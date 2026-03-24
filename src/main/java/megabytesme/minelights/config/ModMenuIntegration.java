@@ -1,5 +1,5 @@
+//? if <26.1 {
 package megabytesme.minelights.config;
-
 //? if <1.17 {
 /*
 import io.github.prospector.modmenu.api.ModMenuApi;
@@ -1246,3 +1246,4 @@ public class ModMenuIntegration implements ModMenuApi {
         return builder.build();
     }
 }
+//?}

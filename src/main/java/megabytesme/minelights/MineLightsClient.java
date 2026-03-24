@@ -10,8 +10,16 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.SharedConstants;
-import net.minecraft.client.MinecraftClient;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+//? if >=26.1 {
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+//?} else {
+/* import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.text.ClickEvent;
 //? if >1.15.2 {
@@ -20,6 +28,8 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+*///?}
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -105,7 +115,11 @@ public class MineLightsClient implements ClientModInitializer {
             initializeServerConnection();
 
             ClientTickEvents.END_CLIENT_TICK.register(client -> {
-                if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
+                //? if >=26.1 {
+                if (client.screen instanceof TitleScreen && !titleScreenHooked) {
+                //?} else {
+                /* if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
+                *///?}
                     titleScreenHooked = true;
                     if (!hasPerformedServerCheck.getAndSet(true)) {
                         new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Update-Check").start();
@@ -114,7 +128,7 @@ public class MineLightsClient implements ClientModInitializer {
             });
         }
         
-        ClientTickEvents.START_WORLD_TICK.register((client) -> {
+        ClientTickEvents.END_CLIENT_TICK.register((client) -> {
             if (hasCheckedForUpdate.compareAndSet(false, true)) {
                 new Thread(MineLightsClient::checkForUpdate, "MineLights-Modrinth-Update-Check").start();
             }
@@ -306,7 +320,11 @@ public class MineLightsClient implements ClientModInitializer {
             String currentVersion = modContainer.get().getMetadata().getVersion().getFriendlyString();
             LOGGER.info("Current mod version: {}", currentVersion);
 
-            String gameVersion = SharedConstants.getGameVersion().id();
+            //? if >=26.1 {
+            String gameVersion = SharedConstants.getCurrentVersion().id();
+            //?} else {
+            /* String gameVersion = SharedConstants.getGameVersion().id(); */
+            //?}
             LOGGER.info("Current Minecraft version: {}", gameVersion);
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
@@ -353,29 +371,59 @@ public class MineLightsClient implements ClientModInitializer {
                 if (!currentVersion.equals(latestVersionNumber)) {
                     LOGGER.info("A new version of MineLights is available: {}", latestVersionNumber);
 
-                    MinecraftClient.getInstance().execute(() -> {
+                    //? if >=26.1 {
+                    Minecraft.getInstance().execute(() -> {
+                    //?} else {
+                    /* MinecraftClient.getInstance().execute(() -> {
+                    *///?}
                         LOGGER.info("Scheduling message send on client thread...");
-                        if (MinecraftClient.getInstance().player != null) {
+                        //? if >=26.1 {
+                        if (Minecraft.getInstance().player != null) {
+                        //?} else {
+                        /* if (MinecraftClient.getInstance().player != null) {
+                        *///?}
                             LOGGER.info("Player is present, sending chat messages...");
 
-                            String gameVersionId = SharedConstants.getGameVersion().id(); 
+                            //? if >=26.1 {
+                            String gameVersionId = SharedConstants.getCurrentVersion().id();
+                            //?} else {
+                            /* String gameVersionId = SharedConstants.getGameVersion().id(); */
+                            //?}
                             String modrinthUrl = String.format(
                                 "https://modrinth.com/mod/%s/versions?version=%s#download",
                                 MODRINTH_PROJECT_ID,
                                 gameVersionId
                             );
 
-                            MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
+                            //? if >=26.1 {
+                            MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                                    .append(Component.literal("A new version is available: ").withStyle(ChatFormatting.YELLOW))
+                                    .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA));
+                            //?} else {
+                            /* MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
                                     .append(Text.literal("A new version is available: ").formatted(Formatting.YELLOW))
-                                    .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA));
+                                    .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA)); */
+                            //?}
 
-                            MutableText link = Text.literal("[Click here to download]")
+                            //? if >=26.1 {
+                            MutableComponent link = Component.literal("[Click here to download]")
                                     .setStyle(Style.EMPTY
                                             .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
-                                            .withColor(Formatting.GREEN));
+                                            .withColor(ChatFormatting.GREEN));
+                            //?} else {
+                            /* MutableText link = Text.literal("[Click here to download]")
+                                    .setStyle(Style.EMPTY
+                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
+                                            .withColor(Formatting.GREEN)); */
+                            //?}
 
-                            MinecraftClient.getInstance().player.sendMessage(message, false);
-                            MinecraftClient.getInstance().player.sendMessage(link, false);
+                            //? if >=26.1 {
+                            Minecraft.getInstance().player.sendSystemMessage(message);
+                            Minecraft.getInstance().player.sendSystemMessage(link);
+                            //?} else {
+                            /* MinecraftClient.getInstance().player.sendMessage(message, false);
+                            MinecraftClient.getInstance().player.sendMessage(link, false); */
+                            //?}
                         } else {
                             LOGGER.info("Player is null, cannot send chat messages.");
                         }
@@ -408,7 +456,11 @@ public class MineLightsClient implements ClientModInitializer {
         }
 
         try {
-            Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods")
+            //? if >=26.1 {
+            Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods")
+            //?} else {
+            /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods") */
+            //?}
                     .resolve("MineLights").resolve("MineLights.exe");
             URI apiUri = URI.create(GITHUB_API_URL);
             HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
@@ -657,7 +709,11 @@ public class MineLightsClient implements ClientModInitializer {
                     continue;
                 }
 
-                Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath()
+                //? if >=26.1 {
+                Path serverExePath = Minecraft.getInstance().gameDirectory.toPath()
+                //?} else {
+                /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath() */
+                //?}
                     .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
 
                 if (!Files.exists(serverExePath)) {
@@ -701,7 +757,11 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private static void startServerProcess() {
-        Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights")
+        //? if >=26.1 {
+        Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods").resolve("MineLights")
+        //?} else {
+        /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights") */
+        //?}
                 .resolve("MineLights.exe");
 
         if (!Files.exists(serverExePath)) {

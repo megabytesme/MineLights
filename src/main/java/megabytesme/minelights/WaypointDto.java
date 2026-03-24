@@ -1,15 +1,15 @@
 package megabytesme.minelights;
 
-//? if >=1.21.8 {
-import net.minecraft.world.waypoint.TrackedWaypoint.Pitch;
-//?}
-
 public class WaypointDto {
+    public enum Pitch {
+        UP,
+        DOWN,
+        LEVEL
+    }
+
     private double relativeYaw;
     private int color;
-    //? if >=1.21.8 {
     private Pitch pitch;
-    //?}    
     private float distance;
 
     public double getRelativeYaw() {
@@ -28,7 +28,6 @@ public class WaypointDto {
         this.color = color;
     }
 
-    //? if >=1.21.8 {
     public Pitch getPitch() {
         return pitch;
     }
@@ -36,7 +35,6 @@ public class WaypointDto {
     public void setPitch(Pitch pitch) {
         this.pitch = pitch;
     }
-    //?}
 
     public float getDistance() {
         return distance;

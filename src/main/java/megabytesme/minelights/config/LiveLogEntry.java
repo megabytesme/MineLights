@@ -1,3 +1,4 @@
+//? if <26.1 {
 package megabytesme.minelights.config;
 
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -212,3 +213,4 @@ public class LiveLogEntry extends AbstractConfigListEntry<String> {
         return lines;
     }
 }
+//?}

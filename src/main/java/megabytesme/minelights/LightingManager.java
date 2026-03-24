@@ -13,7 +13,11 @@ import megabytesme.minelights.effects.KeyNameStandardizer;
 import megabytesme.minelights.effects.RGBColorDto;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.YeelightController;
-import net.minecraft.client.MinecraftClient;
+//? if >=26.1 {
+import net.minecraft.client.Minecraft;
+//?} else {
+/* import net.minecraft.client.MinecraftClient;
+*///?}
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -228,7 +232,11 @@ public class LightingManager implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 long frameStart = System.currentTimeMillis();
 
-                MinecraftClient client = MinecraftClient.getInstance();
+                //? if >=26.1 {
+                Minecraft client = Minecraft.getInstance();
+                //?} else {
+                /* MinecraftClient client = MinecraftClient.getInstance();
+                *///?}
                 PlayerDto playerState;
                 if (client.player == null || !MineLightsClient.CONFIG.enableMod) {
                     playerState = new PlayerDto();
