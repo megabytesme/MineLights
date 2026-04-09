@@ -42,6 +42,9 @@ dependencies {
     if (!isUnobfuscatedVersion) {
         add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
         add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
+    } else {
+        compileOnly("curse.maven:${property("deps.cloth_config")}")
+        compileOnly("curse.maven:${property("deps.modmenu")}")
     }
 }
 
@@ -59,14 +62,6 @@ java {
     sourceCompatibility = javaVersion
 }
 
-if (isUnobfuscatedVersion) {
-    sourceSets.named("main") {
-        java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
-        java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
-        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
-    }
-}
-
 tasks {
     processResources {
         inputs.property("id", project.property("mod.id"))
@@ -81,7 +76,7 @@ tasks {
         inputs.property("issues", project.property("mod.issues"))
         inputs.property("icon", project.property("mod.icon"))
         inputs.property("environment", project.property("mod.environment"))
-        inputs.property("modmenu_entrypoint_class", if (isUnobfuscatedVersion) "megabytesme.minelights.config.ModMenuIntegrationStub" else "megabytesme.minelights.config.ModMenuIntegration")
+        inputs.property("modmenu_entrypoint_class", "megabytesme.minelights.config.ModMenuIntegration")
         val props = mapOf(
             "id" to project.property("mod.id"),
             "name" to project.property("mod.name"),
@@ -98,7 +93,7 @@ tasks {
             "modrinth" to project.property("mod.modrinth"),
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
-            "modmenu_entrypoint_class" to if (isUnobfuscatedVersion) "megabytesme.minelights.config.ModMenuIntegrationStub" else "megabytesme.minelights.config.ModMenuIntegration"
+            "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration"
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
