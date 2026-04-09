@@ -1,3 +1,7 @@
+import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.authentication.http.BasicAuthentication
+import org.gradle.jvm.tasks.Jar
+
 plugins {
     `maven-publish`
     id("net.fabricmc.fabric-loom") apply false
@@ -30,19 +34,16 @@ repositories {
 
 dependencies {
     add("minecraft", "com.mojang:minecraft:${stonecutter.current.version}")
+
     if (!isUnobfuscatedVersion) {
         add("mappings", "net.fabricmc:yarn:${property("deps.yarn")}:v2")
         add("modImplementation", "net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         add("modImplementation", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    } else {
-        implementation("net.fabricmc:fabric-loader:0.18.4")
-        implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    }
-
-    if (!isUnobfuscatedVersion) {
         add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
         add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
     } else {
+        implementation("net.fabricmc:fabric-loader:0.18.4")
+        implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
         compileOnly("curse.maven:${property("deps.cloth_config")}")
         compileOnly("curse.maven:${property("deps.modmenu")}")
     }
@@ -50,16 +51,27 @@ dependencies {
 
 java {
     withSourcesJar()
+
     val requiresJava25: Boolean = stonecutter.eval(stonecutter.current.version, ">=26.1")
     val requiresJava21: Boolean = stonecutter.eval(stonecutter.current.version, ">=1.20.6")
     val requiresJava17: Boolean = stonecutter.eval(stonecutter.current.version, ">=1.18")
+
     val javaVersion: JavaVersion =
         if (requiresJava25) JavaVersion.VERSION_25
         else if (requiresJava21) JavaVersion.VERSION_21
         else if (requiresJava17) JavaVersion.VERSION_17
         else JavaVersion.VERSION_1_8
+
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
+}
+
+if (isUnobfuscatedVersion) {
+    sourceSets.named("main") {
+        java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
+        java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
+        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
+    }
 }
 
 tasks {
@@ -76,7 +88,15 @@ tasks {
         inputs.property("issues", project.property("mod.issues"))
         inputs.property("icon", project.property("mod.icon"))
         inputs.property("environment", project.property("mod.environment"))
-        inputs.property("modmenu_entrypoint_class", "megabytesme.minelights.config.ModMenuIntegration")
+        inputs.property(
+            "modmenu_entrypoint_class",
+            if (isUnobfuscatedVersion) {
+                "megabytesme.minelights.config.ModMenuIntegrationStub"
+            } else {
+                "megabytesme.minelights.config.ModMenuIntegration"
+            }
+        )
+
         val props = mapOf(
             "id" to project.property("mod.id"),
             "name" to project.property("mod.name"),
@@ -93,26 +113,44 @@ tasks {
             "modrinth" to project.property("mod.modrinth"),
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
-            "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration"
+            "modmenu_entrypoint_class" to if (isUnobfuscatedVersion) {
+                "megabytesme.minelights.config.ModMenuIntegrationStub"
+            } else {
+                "megabytesme.minelights.config.ModMenuIntegration"
+            }
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
-    }
-
-    // Builds the version into a shared folder in `build/libs/${mod version}/`
-    register<Copy>("buildAndCollect") {
-        group = "build"
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
-        dependsOn("build")
     }
 }
 
 val mcVersion = stonecutter.current.version
 fun prop(name: String) = project.property(name).toString()
 
+val mainPublishJar = if (isUnobfuscatedVersion) {
+    tasks.named<Jar>("jar")
+} else {
+    tasks.named<Jar>("remapJar")
+}
+
+val sourcesPublishJar = if (isUnobfuscatedVersion) {
+    tasks.named<Jar>("sourcesJar")
+} else {
+    tasks.named<Jar>("remapSourcesJar")
+}
+
+tasks.register<Copy>("buildAndCollect") {
+    group = "build"
+    from(mainPublishJar.flatMap { it.archiveFile })
+    from(sourcesPublishJar.flatMap { it.archiveFile })
+    into(rootProject.layout.buildDirectory.dir("libs/${project.property("mod.version")}"))
+    dependsOn(mainPublishJar, sourcesPublishJar)
+}
+
 publishMods {
-    file = rootProject.layout.buildDirectory.file("tmp/publish/${project.name}.jar")
-    additionalFiles.from(rootProject.layout.buildDirectory.file("tmp/publish/${project.name}-sources.jar"))
+    file = mainPublishJar.flatMap { it.archiveFile }
+    additionalFiles.from(sourcesPublishJar.flatMap { it.archiveFile })
+
     displayName = "${prop("mod.name")} ${prop("mod.version")} for $mcVersion"
     version = prop("mod.version")
     changelog = rootProject.file("CHANGELOG.md").readText()
@@ -132,7 +170,7 @@ publishMods {
         }
     }
 
-/*
+    /*
     curseforge {
         projectId = property("publish.curseforge").toString()
         accessToken = ""
