@@ -66,14 +66,6 @@ java {
     sourceCompatibility = javaVersion
 }
 
-if (isUnobfuscatedVersion) {
-    sourceSets.named("main") {
-        java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
-        java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
-        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
-    }
-}
-
 tasks {
     processResources {
         inputs.property("id", project.property("mod.id"))
@@ -90,11 +82,7 @@ tasks {
         inputs.property("environment", project.property("mod.environment"))
         inputs.property(
             "modmenu_entrypoint_class",
-            if (isUnobfuscatedVersion) {
-                "megabytesme.minelights.config.ModMenuIntegrationStub"
-            } else {
-                "megabytesme.minelights.config.ModMenuIntegration"
-            }
+            "megabytesme.minelights.config.ModMenuIntegration"
         )
 
         val props = mapOf(
@@ -113,11 +101,7 @@ tasks {
             "modrinth" to project.property("mod.modrinth"),
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
-            "modmenu_entrypoint_class" to if (isUnobfuscatedVersion) {
-                "megabytesme.minelights.config.ModMenuIntegrationStub"
-            } else {
-                "megabytesme.minelights.config.ModMenuIntegration"
-            }
+            "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration"
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
