@@ -87,6 +87,7 @@ public class MineLightsClient {
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
     private boolean titleScreenHooked = false;
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
+    private static final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
 
@@ -118,6 +119,9 @@ public class MineLightsClient {
         MineLightsClient.configDir = configDir;
         MineLightsClient.resolvedModVersion = modVersion;
         MineLightsClient.resolvedModLoader = modLoader;
+        if (shutdownHookRegistered.compareAndSet(false, true)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown, "MineLights-Shutdown"));
+        }
         CONFIG_MANAGER = new SimpleJsonConfig("minelights");
         CONFIG = CONFIG_MANAGER.load(MineLightsConfig.class, new MineLightsConfig());
 
@@ -503,12 +507,7 @@ public class MineLightsClient {
         }
 
         try {
-            //? if loader_neoforge || >=26.1 {
-            Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods")
-            //?} else {
-            /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods") */
-            //?}
-                    .resolve("MineLights").resolve("MineLights.exe");
+            Path serverExePath = getServerExePath();
             URI apiUri = URI.create(GITHUB_API_URL);
             HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
             conn.setRequestProperty("Accept", "application/vnd.github+json");
@@ -756,12 +755,7 @@ public class MineLightsClient {
                     continue;
                 }
 
-                //? if loader_neoforge || >=26.1 {
-                Path serverExePath = Minecraft.getInstance().gameDirectory.toPath()
-                //?} else {
-                /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath() */
-                //?}
-                    .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+                Path serverExePath = getServerExePath();
 
                 if (!Files.exists(serverExePath)) {
                     if (downloadStatus.get() != DownloadStatus.DOWNLOADING) {
@@ -804,12 +798,7 @@ public class MineLightsClient {
     }
 
     private static void startServerProcess() {
-        //? if loader_neoforge || >=26.1 {
-        Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods").resolve("MineLights")
-        //?} else {
-        /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights") */
-        //?}
-                .resolve("MineLights.exe");
+        Path serverExePath = getServerExePath();
 
         if (!Files.exists(serverExePath)) {
             return;
@@ -881,6 +870,15 @@ public class MineLightsClient {
 
     public static void saveConfig() {
         CONFIG_MANAGER.save(CONFIG);
+    }
+
+    private static Path getServerExePath() {
+        return getGameDir().resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+    }
+
+    private static Path getGameDir() {
+        Path parent = configDir.getParent();
+        return parent != null ? parent : configDir.toAbsolutePath();
     }
 
     public static Path getConfigDir() {

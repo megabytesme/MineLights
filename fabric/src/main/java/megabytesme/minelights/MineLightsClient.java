@@ -474,12 +474,7 @@ public class MineLightsClient implements ClientModInitializer {
         }
 
         try {
-            //? if >=26.1 {
-            Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods")
-            //?} else {
-            /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods") */
-            //?}
-                    .resolve("MineLights").resolve("MineLights.exe");
+            Path serverExePath = getServerExePath();
             URI apiUri = URI.create(GITHUB_API_URL);
             HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
             conn.setRequestProperty("Accept", "application/vnd.github+json");
@@ -727,12 +722,7 @@ public class MineLightsClient implements ClientModInitializer {
                     continue;
                 }
 
-                //? if >=26.1 {
-                Path serverExePath = Minecraft.getInstance().gameDirectory.toPath()
-                //?} else {
-                /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath() */
-                //?}
-                    .resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+                Path serverExePath = getServerExePath();
 
                 if (!Files.exists(serverExePath)) {
                     if (downloadStatus.get() != DownloadStatus.DOWNLOADING) {
@@ -775,12 +765,7 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private static void startServerProcess() {
-        //? if >=26.1 {
-        Path serverExePath = Minecraft.getInstance().gameDirectory.toPath().resolve("mods").resolve("MineLights")
-        //?} else {
-        /* Path serverExePath = MinecraftClient.getInstance().runDirectory.toPath().resolve("mods").resolve("MineLights") */
-        //?}
-                .resolve("MineLights.exe");
+        Path serverExePath = getServerExePath();
 
         if (!Files.exists(serverExePath)) {
             return;
@@ -852,6 +837,15 @@ public class MineLightsClient implements ClientModInitializer {
 
     public static void saveConfig() {
         CONFIG_MANAGER.save(CONFIG);
+    }
+
+    private static Path getServerExePath() {
+        return getGameDir().resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+    }
+
+    private static Path getGameDir() {
+        Path parent = configDir.getParent();
+        return parent != null ? parent : configDir.toAbsolutePath();
     }
 
     public static Path getConfigDir() {
