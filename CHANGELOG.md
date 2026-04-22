@@ -11,9 +11,10 @@ Previous server version compatible (as of 2.3.1)!
 
 ## Installation / Upgrade Instructions
 
-- DELETE your old mine-lights-*.jar file completely.
+- DELETE your old mine-lights-\*.jar file completely.
 - Download the jar from this release.
-- Place the new minelights-*.jar into your mods folder.
+- Place the new minelights-\*.jar into your mods folder.
+- Install Cloth Config, here: [https://modrinth.com/mod/cloth-config](https://modrinth.com/mod/cloth-config)
 - Run Minecraft.
   - Using anything which is not OpenRGB?
     1. Start Minecraft.
