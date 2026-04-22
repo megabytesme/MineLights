@@ -1,6 +1,6 @@
 package megabytesme.minelights.mixin;
 
-//? if >=26.1 {
+//? if loader_neoforge || >=26.1 {
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 import megabytesme.minelights.accessor.PlayerVisualBrightnessAccessor;
 
-//? if >=26.1 {
+//? if loader_neoforge || >=26.1 {
 @Mixin(Player.class)
 //?} else {
 /* @Mixin(PlayerEntity.class)
@@ -26,19 +26,19 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
     @Unique
     @Override
     public int getSkyLightLevel() {
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         Minecraft mc = Minecraft.getInstance();
         Player player = (Player)(Object)this;
         //?} else {
         /* MinecraftClient mc = MinecraftClient.getInstance();
         PlayerEntity player = (PlayerEntity)(Object)this;
         *///?}
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         BlockPos pos = player.blockPosition();
         //?} else {
         /* BlockPos pos = player.getBlockPos(); */
         //?}
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         return mc.level.getBrightness(LightLayer.SKY, pos);
         //?} else {
         /* return mc.world.getLightLevel(LightType.SKY, pos);
@@ -48,19 +48,19 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
     @Unique
     @Override
     public float getRenderedBrightness() {
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         Minecraft mc = Minecraft.getInstance();
         Player player = (Player)(Object)this;
         //?} else {
         /* MinecraftClient mc = MinecraftClient.getInstance();
         PlayerEntity player = (PlayerEntity)(Object)this;
         *///?}
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         BlockPos pos = player.blockPosition();
         //?} else {
         /* BlockPos pos = player.getBlockPos(); */
         //?}
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         int blockLight = mc.level.getBrightness(LightLayer.BLOCK, pos);
         int skyLight   = mc.level.getBrightness(LightLayer.SKY, pos);
         //?} else {

@@ -7,7 +7,7 @@ import megabytesme.minelights.model.PlayerDto;
 //? if >=1.21.8 {
 import megabytesme.minelights.model.WaypointDto;
 //?}
-//? if >=26.1 {
+//? if loader_neoforge || >=26.1 {
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 //?} else if >=1.17 {
@@ -919,14 +919,14 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         Options options = Minecraft.getInstance().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
         // ? if >= 1.19 {
         keybindsToFetch = Arrays.asList(
-                //? if >=26.1 {
+                //? if loader_neoforge || >=26.1 {
                 options.keyUp.getTranslatedKeyMessage().getString(),
                 options.keyDown.getTranslatedKeyMessage().getString(),
                 options.keyLeft.getTranslatedKeyMessage().getString(),
@@ -968,7 +968,7 @@ public class EffectPainter {
          */// ?}
 
         for (String key : keybindsToFetch) {
-            //? if >=26.1 {
+            //? if loader_neoforge || >=26.1 {
             String friendlyName = normalize26KeyName(key);
             if (friendlyName != null) {
                 friendlyNames.add(friendlyName);
@@ -1024,7 +1024,7 @@ public class EffectPainter {
 
     private List<String> getChatKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         Options options = Minecraft.getInstance().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
@@ -1032,7 +1032,7 @@ public class EffectPainter {
         String keybindToFetch = null;
 
         //? if >= 1.19 {
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         keybindToFetch = options.keyChat.getTranslatedKeyMessage().getString();
         //?} else {
         /* keybindToFetch = options.chatKey.getBoundKeyTranslationKey(); */
@@ -1043,7 +1043,7 @@ public class EffectPainter {
         /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString();
         *///?}
 
-        //? if >=26.1 {
+        //? if loader_neoforge || >=26.1 {
         String friendlyName = normalize26KeyName(keybindToFetch);
         if (friendlyName != null) {
             friendlyNames.add(friendlyName);
@@ -1067,7 +1067,7 @@ public class EffectPainter {
         return friendlyNames;
     }
 
-    //? if >=26.1 {
+    //? if loader_neoforge || >=26.1 {
     private String normalize26KeyName(String keyName) {
         if (keyName == null || keyName.isBlank()) {
             return null;

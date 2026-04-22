@@ -16,7 +16,7 @@ import megabytesme.minelights.model.PlayerDto;
 import megabytesme.minelights.network.UDPClient;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.YeelightController;
-//? if >=26.1 {
+//? if loader_neoforge || >=26.1 {
 import net.minecraft.client.Minecraft;
 //?} else {
 /* import net.minecraft.client.MinecraftClient;
@@ -235,7 +235,7 @@ public class LightingManager implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 long frameStart = System.currentTimeMillis();
 
-                //? if >=26.1 {
+                //? if loader_neoforge || >=26.1 {
                 Minecraft client = Minecraft.getInstance();
                 //?} else {
                 /* MinecraftClient client = MinecraftClient.getInstance();

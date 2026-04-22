@@ -9,6 +9,7 @@ import megabytesme.minelights.config.ModMenuIntegration;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLPaths;
 //? if >=1.20.5 {
 /*import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -25,7 +26,11 @@ public final class MineLightsNeoForge {
 
     public MineLightsNeoForge(ModContainer modContainer) {
         MineLightsClient.LOGGER.info("Constructing NeoForge entrypoint for MineLights.");
-        client.init();
+        client.init(
+                FMLPaths.CONFIGDIR.get(),
+                modContainer.getModInfo().getVersion().toString(),
+                "neoforge"
+        );
         NeoForge.EVENT_BUS.register(this);
         //? if >=1.20.5 {
         /*MineLightsClient.LOGGER.info("Registering NeoForge config screen factory.");
