@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     base
 }
@@ -17,62 +19,77 @@ val defaultNeoForgeVersions = listOf(
 fun mergedProjectProperties(vararg overrides: Pair<String, String>): Map<String, String> =
     gradle.startParameter.projectProperties + overrides
 
-val cleanFabric = tasks.register<GradleBuild>("cleanFabric") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Cleans the dedicated Fabric workspace."
-    dir = fabricDir.asFile
-    tasks = listOf("clean")
-    startParameter.projectProperties = mergedProjectProperties()
-}
+fun projectPropertyArgs(vararg overrides: Pair<String, String>): List<String> =
+    mergedProjectProperties(*overrides).entries.map { (key, value) -> "-P$key=$value" }
 
-val cleanNeoForge = tasks.register<GradleBuild>("cleanNeoForge") {
+val gradleWrapper = if (OperatingSystem.current().isWindows) "gradlew.bat" else "./gradlew"
+
+fun registerWorkspaceTask(
+    name: String,
+    descriptionText: String,
+    workspaceDir: String,
+    gradleTaskName: String,
+    vararg overrides: Pair<String, String>,
+) = tasks.register<Exec>(name) {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Cleans the dedicated NeoForge workspace."
-    dir = neoforgeDir.asFile
-    tasks = listOf("clean")
-    startParameter.projectProperties = mergedProjectProperties(
-        "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
+    description = descriptionText
+    workingDir = layout.projectDirectory.asFile
+    commandLine(
+        gradleWrapper,
+        "-p",
+        workspaceDir,
+        *projectPropertyArgs(*overrides).toTypedArray(),
+        gradleTaskName
     )
 }
 
-tasks.register<GradleBuild>("buildFabric") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Builds all Fabric targets from the dedicated Fabric workspace."
-    dir = fabricDir.asFile
-    tasks = listOf("clean", "build")
-    startParameter.projectProperties = mergedProjectProperties()
-}
+val cleanFabric = registerWorkspaceTask(
+    name = "cleanFabric",
+    descriptionText = "Cleans the dedicated Fabric workspace.",
+    workspaceDir = "fabric",
+    gradleTaskName = "clean"
+)
 
-tasks.register<GradleBuild>("buildNeoForge") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Builds the supported NeoForge targets from the dedicated NeoForge workspace."
-    dir = neoforgeDir.asFile
-    tasks = listOf("clean", "build")
-    startParameter.projectProperties = mergedProjectProperties(
-        "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
-    )
-}
+val cleanNeoForge = registerWorkspaceTask(
+    name = "cleanNeoForge",
+    descriptionText = "Cleans the dedicated NeoForge workspace.",
+    workspaceDir = "neoforge",
+    gradleTaskName = "clean",
+    "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
+)
 
-val publishFabric = tasks.register<GradleBuild>("publishFabric") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Publishes all Fabric targets from the dedicated Fabric workspace."
-    dir = fabricDir.asFile
-    tasks = listOf("publishMods")
-    startParameter.projectProperties = mergedProjectProperties()
-}
+val buildFabric = registerWorkspaceTask(
+    name = "buildFabric",
+    descriptionText = "Builds all Fabric targets from the dedicated Fabric workspace.",
+    workspaceDir = "fabric",
+    gradleTaskName = "build"
+)
 
-val publishNeoForge = tasks.register<GradleBuild>("publishNeoForge") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Publishes the supported NeoForge targets from the dedicated NeoForge workspace."
-    dir = neoforgeDir.asFile
-    tasks = listOf("publishMods")
-    startParameter.projectProperties = mergedProjectProperties(
-        "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
-    )
-}
+val buildNeoForge = registerWorkspaceTask(
+    name = "buildNeoForge",
+    descriptionText = "Builds the supported NeoForge targets from the dedicated NeoForge workspace.",
+    workspaceDir = "neoforge",
+    gradleTaskName = "build",
+    "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
+)
+
+val publishFabric = registerWorkspaceTask(
+    name = "publishFabric",
+    descriptionText = "Publishes all Fabric targets from the dedicated Fabric workspace.",
+    workspaceDir = "fabric",
+    gradleTaskName = "publishMods"
+)
+
+val publishNeoForge = registerWorkspaceTask(
+    name = "publishNeoForge",
+    descriptionText = "Publishes the supported NeoForge targets from the dedicated NeoForge workspace.",
+    workspaceDir = "neoforge",
+    gradleTaskName = "publishMods",
+    "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
+)
 
 tasks.named("build") {
-    dependsOn("buildFabric", "buildNeoForge")
+    dependsOn(buildFabric, buildNeoForge)
 }
 
 tasks.named("clean") {

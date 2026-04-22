@@ -49,12 +49,18 @@ base.archivesName.set(modId)
 val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: rootProject.tasks.register("syncSharedSources") {
     doLast {
         val generatedPaths = listOf(
+            "src/main/java/megabytesme/minelights/MineLightsClient.java",
+            "src/main/java/megabytesme/minelights/accessor",
+            "src/main/java/megabytesme/minelights/effects",
+            "src/main/java/megabytesme/minelights/mixin",
             "src/main/java/megabytesme/minelights/model",
             "src/main/java/megabytesme/minelights/network",
             "src/main/java/megabytesme/minelights/rgb",
+            "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
+            "src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java",
             "src/main/resources/assets/minelights",
             "src/main/resources/minelights.mixins.json"
         )
@@ -64,8 +70,36 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
         }
 
         copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/MineLightsClient.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/accessor"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/accessor"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/effects"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/effects"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/mixin"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/mixin"))
+        }
+        copy {
             from(rootProject.file("../common/src/main/java/megabytesme/minelights/model"))
             into(rootProject.file("src/main/java/megabytesme/minelights/model"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/runtime"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/runtime"))
+        }
+        copy {
+            from(rootProject.file("overrides/src/main/java/megabytesme/minelights/runtime/PlayerDataCollector.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/runtime"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/config"))
         }
         copy {
             from(rootProject.file("../common/src/main/java/megabytesme/minelights/network"))
