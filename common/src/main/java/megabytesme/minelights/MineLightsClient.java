@@ -64,7 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MineLightsClient {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.3.6";
+    public static final String MOD_VERSION = "2.3.7";
     private static Path configDir = Paths.get(".");
     private static String resolvedModVersion = MOD_VERSION;
     private static String resolvedModLoader = "fabric";
