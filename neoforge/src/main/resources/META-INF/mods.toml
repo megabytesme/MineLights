@@ -21,7 +21,7 @@ side = "CLIENT"
 
 [[mods]]
 modId = "minelights"
-version = "2.3.6"
+version = "2.3.7"
 displayName = "MineLights"
 authors = "MegaBytesMe"
 description = "MineLights is a Minecraft NeoForge mod that brings RGB lighting integrations to Minecraft Java Edition."
