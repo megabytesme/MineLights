@@ -1,7 +1,7 @@
 package megabytesme.minelights;
 
 import megabytesme.minelights.config.ModMenuIntegration;
-//? if >=1.20.2 {
+//? if >=1.20.1 {
 /*import net.minecraft.client.Minecraft;
 *///?} else {
  import net.minecraft.client.MinecraftClient; 
@@ -48,7 +48,7 @@ public final class MineLightsNeoForge {
      @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
-            //? if >=1.20.2 {
+            //? if >=1.20.1 {
             /*client.onClientTick(Minecraft.getInstance());
             *///?} else {
             client.onClientTick(MinecraftClient.getInstance());

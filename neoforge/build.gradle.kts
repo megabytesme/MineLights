@@ -1,3 +1,4 @@
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.jvm.tasks.Jar
 
 plugins {
@@ -20,6 +21,7 @@ val modLicense = property("mod.license").toString()
 val modIcon = property("mod.icon").toString()
 val modEnvironment = property("mod.environment").toString()
 val mcVersion = stonecutter.current.version
+val buildVersion = "$modVersion+$mcVersion-neoforge"
 val mcDep = property("mod.mc_dep").toString()
 val neoforgeVersion = property("deps.neoforge").toString()
 val clothConfigVersion = when {
@@ -40,7 +42,7 @@ val clothConfigDependency = if (stonecutter.eval(mcVersion, ">=26.1")) {
     "me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion"
 }
 
-version = "$modVersion+$mcVersion-neoforge"
+version = buildVersion
 group = modGroup
 base.archivesName.set(modId)
 
@@ -202,6 +204,7 @@ tasks.named<Jar>("sourcesJar") {
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(layout.buildDirectory.dir("generated/stonecutter/main/java"))
     from("src/main/resources") {
         include("META-INF/mods.toml")
@@ -225,4 +228,11 @@ publishMods {
     type = STABLE
     modLoaders.add("neoforge")
     dryRun = true
+
+    modrinth {
+        projectId = property("publish.modrinth").toString()
+        accessToken = ""
+        val targets = property("mod.mc_targets").toString().split(" ")
+        minecraftVersions.addAll(targets)
+    }
 }
