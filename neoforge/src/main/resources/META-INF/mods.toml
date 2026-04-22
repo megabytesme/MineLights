@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "*"
+issueTrackerURL = "https://github.com/megabytesme/MineLights/issues"
+license = "CC BY-NC-SA 4.0"
+
+[dependencies]
+
+[[dependencies.minelights]]
+modId = "neoforge"
+mandatory = true
+versionRange = "[${forge_version},)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.minelights]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${minecraft}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[mods]]
+modId = "minelights"
+version = "2.3.6"
+displayName = "MineLights"
+authors = "MegaBytesMe"
+description = "MineLights is a Minecraft NeoForge mod that brings RGB lighting integrations to Minecraft Java Edition."
+logoFile = "assets/minelights/icon.png"
+
+[[mixins]]
+config = "minelights.mixins.json"

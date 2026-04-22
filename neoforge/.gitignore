@@ -1,0 +1,14 @@
+/src/main/java/megabytesme/minelights/MineLightsClient.java
+/src/main/java/megabytesme/minelights/accessor/
+/src/main/java/megabytesme/minelights/effects/
+/src/main/java/megabytesme/minelights/mixin/
+/src/main/java/megabytesme/minelights/model/
+/src/main/java/megabytesme/minelights/network/
+/src/main/java/megabytesme/minelights/rgb/
+/src/main/java/megabytesme/minelights/runtime/
+/src/main/java/megabytesme/minelights/config/CompassPriority.java
+/src/main/java/megabytesme/minelights/config/DimmingMode.java
+/src/main/java/megabytesme/minelights/config/MineLightsConfig.java
+/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java
+/src/main/resources/assets/minelights/
+/src/main/resources/minelights.mixins.json
