@@ -5,6 +5,18 @@ build/
 out/
 classes/
 
+# multiloader workspace outputs
+
+common/.gradle/
+common/build/
+fabric/.gradle/
+fabric/build/
+fabric/run/
+neoforge/.gradle/
+neoforge/build/
+neoforge/run/
+neoforge/mappings/
+
 # eclipse
 
 *.launch
