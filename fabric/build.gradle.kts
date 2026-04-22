@@ -226,7 +226,7 @@ publishMods {
     file = mainPublishJar.flatMap { it.archiveFile }
     additionalFiles.from(sourcesPublishJar.flatMap { it.archiveFile })
 
-    displayName = "${prop("mod.name")} ${prop("mod.version")} for $mcVersion"
+    displayName = "${prop("mod.name")} ${prop("mod.version")} for $mcVersion (Fabric)"
     version = prop("mod.version")
     changelog = rootProject.file("CHANGELOG.md").readText()
     type = STABLE

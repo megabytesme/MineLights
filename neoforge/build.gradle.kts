@@ -227,6 +227,7 @@ publishMods {
     changelog = rootProject.file("../CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided."
     type = STABLE
     modLoaders.add("neoforge")
+    
     dryRun = true
 
     modrinth {
