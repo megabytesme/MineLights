@@ -1,13 +1,14 @@
-# MineLights 2.3.7
+# MineLights 2.3.8
 
-This release adds support for NeoForge, from 1.20.2 - 26.1.2.
+This release adds support for Minecraft 26.2 on Fabric and NeoForge.
 
 Previous server version compatible (as of 2.3.1)!
 
 ## Key Features & Major Changes
 
-- Added support for NeoForge 1.20.2 - 26.1.2.
-- Core project restructure to new multiloader setup
+- Added Fabric and NeoForge targets for Minecraft 26.2.
+- Updated Fabric API, Fabric Loader, Mod Menu, Cloth Config, and NeoForge dependency coordinates for 26.2.
+- Fixed MineLights Server autostart sometimes stalling because the mod no longer drained the server process output stream.
 
 ## Installation / Upgrade Instructions
 
@@ -24,5 +25,6 @@ Previous server version compatible (as of 2.3.1)!
 
 ## Full Changelog & Technical Details
 
-- Added support for NeoForge 1.20.2 - 26.1.2.
-- Core project restructured to new multiloader setup.
+- Added Minecraft 26.2 target metadata for Fabric and NeoForge.
+- Updated supported-version documentation to include Minecraft 26.2.
+- Restored MineLights.exe output draining after launch while keeping the in-game live server log UI removed.

@@ -33,7 +33,11 @@ public final class ModMenuIntegration {
             LOGGER.error("Failed to build NeoForge config screen. Falling back to an error screen.", throwable);
             String message = throwable.getMessage() == null ? "No additional details were provided." : throwable.getMessage();
             return new AlertScreen(
-                    () -> Minecraft.getInstance().setScreen(parent),
+                    //? if >=26.2 {
+                    () -> Minecraft.getInstance().setScreenAndShow(parent),
+                    //?} else {
+                    /* () -> Minecraft.getInstance().setScreen(parent),
+                    *///?}
                     Component.literal("MineLights Config Error"),
                     Component.literal("MineLights could not open its config screen: " + message)
             );
@@ -98,7 +102,11 @@ public final class ModMenuIntegration {
                 new Thread(() -> {
                     try {
                         waitForDeviceRefresh();
-                        Minecraft.getInstance().execute(() -> Minecraft.getInstance().setScreen(buildConfigScreen(parent)));
+                        //? if >=26.2 {
+                        Minecraft.getInstance().execute(() -> Minecraft.getInstance().setScreenAndShow(buildConfigScreen(parent)));
+                        //?} else {
+                        /* Minecraft.getInstance().execute(() -> Minecraft.getInstance().setScreen(buildConfigScreen(parent)));
+                        *///?}
                     } catch (InterruptedException ignored) {
                         Thread.currentThread().interrupt();
                     }
@@ -166,9 +174,6 @@ public final class ModMenuIntegration {
                     .setTooltip(translatable("option.mine-lights.restart_admin.tooltip"))
                     .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
                     .build());
-            //? if <26.1 {
-            serverManagement.addEntry(new LiveLogEntry("Server Log", MineLightsClient.serverLogLines));
-            //?}
         }
 
         ConfigCategory general = builder.getOrCreateCategory(translatable("category.mine-lights.general"));

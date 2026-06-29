@@ -51,8 +51,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,11 +65,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.3.6";
+    public static final String MOD_VERSION = "2.3.8";
     private static Path configDir = Paths.get(".");
     private static String resolvedModVersion = MOD_VERSION;
     private static String resolvedModLoader = "fabric";
-    public static final List<String> serverLogLines = Collections.synchronizedList(new ArrayList<>());
     public static MineLightsConfig CONFIG;
     private static SimpleJsonConfig CONFIG_MANAGER;
     private static LightingManager lightingManager;
@@ -164,9 +161,11 @@ public class MineLightsClient implements ClientModInitializer {
     //?} else {
     /* public void onClientTick(MinecraftClient client) {
     *///?}
-        //? if >=26.1 {
-        if (client.screen instanceof TitleScreen && !titleScreenHooked) {
-        //?} else {
+        //? if >=26.2 {
+        if (client.gui.screen() instanceof TitleScreen && !titleScreenHooked) {
+        //?} else if >=26.1 {
+        /* if (client.screen instanceof TitleScreen && !titleScreenHooked) {
+        *///?} else {
         /* if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
         *///?}
             titleScreenHooked = true;
@@ -773,36 +772,34 @@ public class MineLightsClient implements ClientModInitializer {
 
         try {
             LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
-            serverLogLines.clear();
-
             ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString());
             pb.directory(serverExePath.getParent().toFile());
             pb.redirectErrorStream(true);
-            serverProcess = pb.start();
-            DateTimeFormatter tsFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-            new Thread(() -> {
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(serverProcess.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        String ts = LocalTime.now().format(tsFormat);
-                        String stamped = "[" + ts + "] " + line;
-
-                        LOGGER.info("[MineLights.exe] {}", stamped);
-
-                        synchronized (serverLogLines) {
-                            serverLogLines.add(0, stamped);
-                        }
-                    }
-                } catch (IOException e) {
-                    LOGGER.error("Error reading server log", e);
-                }
-            }, "MineLights-Server-Log-Reader").start();
+            Process process = pb.start();
+            serverProcess = process;
+            startServerOutputDrain(process);
         } catch (IOException e) {
             LOGGER.warn("Failed to start MineLights.exe process: {}", e.getMessage());
             serverProcess = null;
         }
+    }
+
+    private static void startServerOutputDrain(Process process) {
+        Thread outputDrainThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    LOGGER.info("[MineLights.exe] {}", line);
+                }
+            } catch (IOException e) {
+                if (process.isAlive()) {
+                    LOGGER.error("Error reading MineLights.exe output", e);
+                }
+            }
+        }, "MineLights-Server-Output-Drain");
+        outputDrainThread.setDaemon(true);
+        outputDrainThread.start();
     }
 
     public static synchronized void triggerLightingInitialization() {

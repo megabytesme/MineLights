@@ -120,7 +120,7 @@ dependencies {
         add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
         add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
     } else {
-        implementation("net.fabricmc:fabric-loader:0.18.4")
+        implementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
         compileOnly("curse.maven:${property("deps.cloth_config")}")
         compileOnly("curse.maven:${property("deps.modmenu")}")

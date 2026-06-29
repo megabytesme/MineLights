@@ -14,7 +14,6 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import megabytesme.minelights.network.CommandClient;
 import megabytesme.minelights.MineLightsClient;
-import megabytesme.minelights.config.LiveLogEntry;
 import megabytesme.minelights.config.LiveStatusEntry;
 //? if >=26.1 {
 import net.minecraft.ChatFormatting;
@@ -154,9 +153,11 @@ public class ModMenuIntegration implements ModMenuApi {
                         /* MinecraftClient.getInstance().execute(() -> {
                         *///?}
                             //? if >=1.19 {
-                            //? if >=26.1 {
-                            Minecraft.getInstance().setScreen(buildConfigScreen(parent));
-                            //?} else {
+                            //? if >=26.2 {
+                            Minecraft.getInstance().setScreenAndShow(buildConfigScreen(parent));
+                            //?} else if >=26.1 {
+                            /* Minecraft.getInstance().setScreen(buildConfigScreen(parent));
+                            *///?} else {
                             /* MinecraftClient.getInstance().setScreen(buildConfigScreen(parent)); */
                             //?}
                             //?}
@@ -367,7 +368,6 @@ public class ModMenuIntegration implements ModMenuApi {
                             newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
                     .build());
             
-            serverManagement.addEntry(new LiveLogEntry("Server Log", MineLightsClient.serverLogLines));
         }
         
         ConfigCategory general = builder.getOrCreateCategory(
@@ -1188,9 +1188,9 @@ public class ModMenuIntegration implements ModMenuApi {
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
                 //? if >=1.19 {
-                translatable("text.mine-lights.about.version", "2.3.6.1")
+                translatable("text.mine-lights.about.version", MineLightsClient.MOD_VERSION)
                 //?} else if <1.19 {
-                /*new TranslatableText("text.mine-lights.about.version", "2.3.6.1")
+                /*new TranslatableText("text.mine-lights.about.version", MineLightsClient.MOD_VERSION)
                 *///?}
                 //? if <1.16 {
                 /* .getString()

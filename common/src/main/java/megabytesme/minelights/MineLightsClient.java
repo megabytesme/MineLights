@@ -48,8 +48,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,11 +62,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MineLightsClient {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.3.7";
+    public static final String MOD_VERSION = "2.3.8";
     private static Path configDir = Paths.get(".");
-    private static String resolvedModVersion = MOD_VERSION;
-    private static String resolvedModLoader = "fabric";
-    public static final List<String> serverLogLines = Collections.synchronizedList(new ArrayList<>());
+    private static volatile String resolvedModVersion;
+    private static volatile String resolvedModLoader;
     public static MineLightsConfig CONFIG;
     private static SimpleJsonConfig CONFIG_MANAGER;
     private static LightingManager lightingManager;
@@ -93,6 +90,9 @@ public class MineLightsClient {
 
     private static final String MODRINTH_PROJECT_ID = "minelights"; 
     private static final AtomicBoolean hasCheckedForUpdate = new AtomicBoolean(false);
+    private static final AtomicReference<String> pendingUpdateVersion = new AtomicReference<>(null);
+    private static final AtomicReference<String> pendingUpdateUrl = new AtomicReference<>(null);
+    private static final AtomicBoolean pendingUpdateNotification = new AtomicBoolean(false);
 
     public enum DownloadStatus {
         IDLE,
@@ -148,9 +148,11 @@ public class MineLightsClient {
     //?} else {
     /* public void onClientTick(MinecraftClient client) {
     *///?}
-        //? if loader_neoforge || >=26.1 {
-        if (client.screen instanceof TitleScreen && !titleScreenHooked) {
-        //?} else {
+        //? if >=26.2 {
+        if (client.gui.screen() instanceof TitleScreen && !titleScreenHooked) {
+        //?} else if loader_neoforge || >=26.1 {
+        /* if (client.screen instanceof TitleScreen && !titleScreenHooked) {
+        *///?} else {
         /* if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
         *///?}
             titleScreenHooked = true;
@@ -162,6 +164,8 @@ public class MineLightsClient {
         if (hasCheckedForUpdate.compareAndSet(false, true)) {
             new Thread(MineLightsClient::checkForUpdate, "MineLights-Modrinth-Update-Check").start();
         }
+
+        flushPendingUpdateNotification();
     }
 
     public void shutdown() {
@@ -366,6 +370,11 @@ public class MineLightsClient {
 
         try {
             String currentVersion = resolvedModVersion;
+            String currentLoader = resolvedModLoader;
+            if (currentVersion == null || currentLoader == null) {
+                LOGGER.warn("Skipping MineLights update check because the client has not been initialized yet.");
+                return;
+            }
             LOGGER.info("Current mod version: {}", currentVersion);
 
             //? if loader_neoforge || >=26.1 {
@@ -376,7 +385,7 @@ public class MineLightsClient {
             LOGGER.info("Current Minecraft version: {}", gameVersion);
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
-            String loadersJson = "[\"" + resolvedModLoader + "\"]";
+            String loadersJson = "[\"" + currentLoader + "\"]";
 
             String urlString = String.format(
                     "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
@@ -418,67 +427,17 @@ public class MineLightsClient {
 
                 if (!currentVersion.equals(latestVersionNumber)) {
                     LOGGER.info("A new version of MineLights is available: {}", latestVersionNumber);
-
                     //? if loader_neoforge || >=26.1 {
-                    Minecraft.getInstance().execute(() -> {
+                    String gameVersionId = SharedConstants.getCurrentVersion().id();
                     //?} else {
-                    /* MinecraftClient.getInstance().execute(() -> {
-                    *///?}
-                        LOGGER.info("Scheduling message send on client thread...");
-                        //? if loader_neoforge || >=26.1 {
-                        if (Minecraft.getInstance().player != null) {
-                        //?} else {
-                        /* if (MinecraftClient.getInstance().player != null) {
-                        *///?}
-                            LOGGER.info("Player is present, sending chat messages...");
-
-                            //? if loader_neoforge || >=26.1 {
-                            String gameVersionId = SharedConstants.getCurrentVersion().id();
-                            //?} else {
-                            /* String gameVersionId = SharedConstants.getGameVersion().id(); */
-                            //?}
-                            String modrinthUrl = String.format(
-                                "https://modrinth.com/mod/%s/versions?version=%s#download",
-                                MODRINTH_PROJECT_ID,
-                                gameVersionId
-                            );
-
-                            //? if loader_neoforge || >=26.1 {
-                            MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                                    .append(Component.literal("A new version is available: ").withStyle(ChatFormatting.YELLOW))
-                                    .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA));
-                            //?} else {
-                            /* MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
-                                    .append(Text.literal("A new version is available: ").formatted(Formatting.YELLOW))
-                                    .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA)); */
-                            //?}
-
-                            //? if loader_neoforge || >=26.1 {
-                            MutableComponent link = Component.literal("[Click here to download]")
-                                    .setStyle(Style.EMPTY
-                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
-                                            .withColor(ChatFormatting.GREEN));
-                            //?} else {
-                            /* MutableText link = Text.literal("[Click here to download]")
-                                    .setStyle(Style.EMPTY
-                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
-                                            .withColor(Formatting.GREEN)); */
-                            //?}
-
-                            //? if >=26.1 {
-                            Minecraft.getInstance().player.sendSystemMessage(message);
-                            Minecraft.getInstance().player.sendSystemMessage(link);
-                            //?} else if loader_neoforge {
-                            Minecraft.getInstance().player.displayClientMessage(message, false);
-                            Minecraft.getInstance().player.displayClientMessage(link, false);
-                            //?} else {
-                            /* MinecraftClient.getInstance().player.sendMessage(message, false);
-                            MinecraftClient.getInstance().player.sendMessage(link, false); */
-                            //?}
-                        } else {
-                            LOGGER.info("Player is null, cannot send chat messages.");
-                        }
-                    });
+                    /* String gameVersionId = SharedConstants.getGameVersion().id(); */
+                    //?}
+                    String modrinthUrl = String.format(
+                        "https://modrinth.com/mod/%s/versions?version=%s#download",
+                        MODRINTH_PROJECT_ID,
+                        gameVersionId
+                    );
+                    queueUpdateNotification(latestVersionNumber, modrinthUrl);
                 } else {
                     LOGGER.info("MineLights is up to date.");
                 }
@@ -490,6 +449,70 @@ public class MineLightsClient {
         }
     }
     //?}
+
+    private static void queueUpdateNotification(String latestVersionNumber, String modrinthUrl) {
+        pendingUpdateVersion.set(latestVersionNumber);
+        pendingUpdateUrl.set(modrinthUrl);
+        pendingUpdateNotification.set(true);
+    }
+
+    private static void flushPendingUpdateNotification() {
+        if (!pendingUpdateNotification.get()) {
+            return;
+        }
+
+        //? if loader_neoforge || >=26.1 {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null) {
+            return;
+        }
+        //?} else {
+        /* MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) {
+            return;
+        } */
+        //?}
+
+        if (!pendingUpdateNotification.compareAndSet(true, false)) {
+            return;
+        }
+
+        String latestVersionNumber = pendingUpdateVersion.getAndSet(null);
+        String modrinthUrl = pendingUpdateUrl.getAndSet(null);
+        if (latestVersionNumber == null || modrinthUrl == null) {
+            return;
+        }
+
+        //? if loader_neoforge || >=26.1 {
+        //? if >=26.1 {
+        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA))
+                .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl))));
+        client.player.sendSystemMessage(message);
+        //?} else if >=1.21.6 {
+        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA))
+                .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl))));
+        client.player.displayClientMessage(message, false);
+        //?} else {
+        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA));
+        message.setStyle(message.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl)));
+        client.player.displayClientMessage(message, false);
+        //?}
+        //?} else {
+        /* MutableText message = Text.literal("[MineLights] ").formatted(Formatting.GOLD)
+                .append(Text.literal("New version available: ").formatted(Formatting.YELLOW))
+                .append(Text.literal(latestVersionNumber).formatted(Formatting.AQUA));
+        message.setStyle(message.getStyle().withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl))));
+        client.player.sendMessage(message, false); */
+        //?}
+
+        LOGGER.info("Delivered queued update notification for version {}.", latestVersionNumber);
+    }
 
     private static String readAllBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -806,36 +829,34 @@ public class MineLightsClient {
 
         try {
             LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
-            serverLogLines.clear();
-
             ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString());
             pb.directory(serverExePath.getParent().toFile());
             pb.redirectErrorStream(true);
-            serverProcess = pb.start();
-            DateTimeFormatter tsFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-            new Thread(() -> {
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(serverProcess.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        String ts = LocalTime.now().format(tsFormat);
-                        String stamped = "[" + ts + "] " + line;
-
-                        LOGGER.info("[MineLights.exe] {}", stamped);
-
-                        synchronized (serverLogLines) {
-                            serverLogLines.add(0, stamped);
-                        }
-                    }
-                } catch (IOException e) {
-                    LOGGER.error("Error reading server log", e);
-                }
-            }, "MineLights-Server-Log-Reader").start();
+            Process process = pb.start();
+            serverProcess = process;
+            startServerOutputDrain(process);
         } catch (IOException e) {
             LOGGER.warn("Failed to start MineLights.exe process: {}", e.getMessage());
             serverProcess = null;
         }
+    }
+
+    private static void startServerOutputDrain(Process process) {
+        Thread outputDrainThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    LOGGER.info("[MineLights.exe] {}", line);
+                }
+            } catch (IOException e) {
+                if (process.isAlive()) {
+                    LOGGER.error("Error reading MineLights.exe output", e);
+                }
+            }
+        }, "MineLights-Server-Output-Drain");
+        outputDrainThread.setDaemon(true);
+        outputDrainThread.start();
     }
 
     public static synchronized void triggerLightingInitialization() {
