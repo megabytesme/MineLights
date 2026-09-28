@@ -220,7 +220,7 @@ publishMods {
     file = mainPublishJar.flatMap { it.archiveFile }
     additionalFiles.from(sourcesPublishJar.flatMap { it.archiveFile })
     displayName = "${prop("mod.name")} ${prop("mod.version")} for $mcVersion (Quilt)"
-    version = prop("mod.version")
+    version = "${prop("mod.version")}+${mcVersion}-quilt"
     changelog = rootProject.file("../CHANGELOG.md").readText()
     type = STABLE
     modLoaders.add("quilt")

@@ -265,7 +265,7 @@ publishMods {
     additionalFiles.from(tasks.named<Jar>("sourcesJar").flatMap { it.archiveFile })
 
     displayName = "$modName $modVersion for $mcVersion (NeoForge)"
-    version = modVersion
+    version = "$modVersion+$mcVersion-neoforge"
     changelog = rootProject.file("../CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided."
     type = STABLE
     modLoaders.add("neoforge")
