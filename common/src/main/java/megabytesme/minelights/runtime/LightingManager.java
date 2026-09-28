@@ -241,7 +241,7 @@ public class LightingManager implements Runnable {
                 /* MinecraftClient client = MinecraftClient.getInstance();
                 *///?}
                 PlayerDto playerState;
-                if (client.player == null || !MineLightsClient.CONFIG.enableMod) {
+                if (client == null || client.player == null || !MineLightsClient.CONFIG.enableMod) {
                     playerState = new PlayerDto();
                     playerState.setInGame(false);
                 } else {

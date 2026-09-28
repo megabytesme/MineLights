@@ -1,14 +1,16 @@
-# MineLights 2.3.8
+# MineLights 2.3.8.1
 
-This release adds support for Minecraft 26.2 on Fabric and NeoForge.
+This release adds support for Minecraft 26.3 on Fabric and NeoForge.
 
 Previous server version compatible (as of 2.3.1)!
 
 ## Key Features & Major Changes
 
-- Added Fabric and NeoForge targets for Minecraft 26.2.
-- Updated Fabric API, Fabric Loader, Mod Menu, Cloth Config, and NeoForge dependency coordinates for 26.2.
-- Fixed MineLights Server autostart sometimes stalling because the mod no longer drained the server process output stream.
+- Added Fabric and NeoForge targets for Minecraft 26.3.
+- Added a dedicated warm autumn lighting color for the Dappled Forest biome.
+- Fixed lighting initialization when Minecraft's client is not ready during startup.
+- Added the NeoForge Mods screen icon metadata.
+- Updated Fabric API, Fabric Loader, Mod Menu, Cloth Config, and NeoForge dependency coordinates for 26.3.
 
 ## Installation / Upgrade Instructions
 
@@ -25,6 +27,8 @@ Previous server version compatible (as of 2.3.1)!
 
 ## Full Changelog & Technical Details
 
-- Added Minecraft 26.2 target metadata for Fabric and NeoForge.
-- Updated supported-version documentation to include Minecraft 26.2.
-- Restored MineLights.exe output draining after launch while keeping the in-game live server log UI removed.
+- Added Minecraft 26.3 target metadata for Fabric and NeoForge.
+- Updated supported-version documentation to include Minecraft 26.3.
+- Added rain and biome-color data for Dappled Forest lighting.
+- Fixed the startup lighting loop to tolerate the client not being initialized yet.
+- Updated About to show the resolved mod version and 2026 copyright.

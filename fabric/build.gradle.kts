@@ -11,6 +11,7 @@ plugins {
 }
 
 val isUnobfuscatedVersion = stonecutter.eval(stonecutter.current.version, ">=26.1")
+val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3")
 
 apply(plugin = if (isUnobfuscatedVersion) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
 
@@ -122,8 +123,13 @@ dependencies {
     } else {
         implementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-        compileOnly("curse.maven:${property("deps.cloth_config")}")
-        compileOnly("curse.maven:${property("deps.modmenu")}")
+        if (usesModrinthModDependencies) {
+            compileOnly("maven.modrinth:cloth-config:${property("deps.cloth_config")}")
+            compileOnly("maven.modrinth:modmenu:${property("deps.modmenu")}")
+        } else {
+            compileOnly("curse.maven:${property("deps.cloth_config")}")
+            compileOnly("curse.maven:${property("deps.modmenu")}")
+        }
     }
 }
 
@@ -139,6 +145,10 @@ java {
         else if (requiresJava21) JavaVersion.VERSION_21
         else if (requiresJava17) JavaVersion.VERSION_17
         else JavaVersion.VERSION_1_8
+
+    if (requiresJava25) {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+    }
 
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion

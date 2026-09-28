@@ -1188,9 +1188,9 @@ public class ModMenuIntegration implements ModMenuApi {
 
         aboutCategory.addEntry(entryBuilder.startTextDescription(
                 //? if >=1.19 {
-                translatable("text.mine-lights.about.version", MineLightsClient.MOD_VERSION)
+                translatable("text.mine-lights.about.version", MineLightsClient.getModVersion())
                 //?} else if <1.19 {
-                /*new TranslatableText("text.mine-lights.about.version", MineLightsClient.MOD_VERSION)
+                /*new TranslatableText("text.mine-lights.about.version", MineLightsClient.getModVersion())
                 *///?}
                 //? if <1.16 {
                 /* .getString()

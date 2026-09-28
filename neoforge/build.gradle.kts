@@ -36,10 +36,10 @@ val clothConfigVersion = when {
     stonecutter.eval(mcVersion, ">=1.20.4") -> "13.0.138"
     else -> "12.0.137"
 }
-val clothConfigDependency = if (stonecutter.eval(mcVersion, ">=26.1")) {
-    "curse.maven:${property("deps.cloth_config")}"
-} else {
-    "me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion"
+val clothConfigDependency = when {
+    stonecutter.eval(mcVersion, ">=26.3") -> "maven.modrinth:cloth-config:${property("deps.cloth_config")}"
+    stonecutter.eval(mcVersion, ">=26.1") -> "curse.maven:${property("deps.cloth_config")}"
+    else -> "me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion"
 }
 
 version = buildVersion

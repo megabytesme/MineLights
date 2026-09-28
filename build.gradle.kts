@@ -15,6 +15,7 @@ val defaultNeoForgeVersions = listOf(
     "1.21.9",
     "26.1",
     "26.2",
+    "26.3",
 )
 
 fun mergedProjectProperties(vararg overrides: Pair<String, String>): Map<String, String> =

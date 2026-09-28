@@ -367,7 +367,7 @@ public final class ModMenuIntegration {
 
         ConfigCategory about = builder.getOrCreateCategory(translatable("category.mine-lights.about"));
         about.addEntry(entryBuilder.startTextDescription(Component.translatable("text.mine-lights.about.title")).build());
-        about.addEntry(entryBuilder.startTextDescription(Component.translatable("text.mine-lights.about.version", MineLightsClient.MOD_VERSION)).build());
+        about.addEntry(entryBuilder.startTextDescription(Component.translatable("text.mine-lights.about.version", MineLightsClient.getModVersion())).build());
         about.addEntry(entryBuilder.startTextDescription(Component.translatable("text.mine-lights.about.copyright")).build());
         about.addEntry(entryBuilder.startTextField(Component.translatable("text.mine-lights.about.source_code"), "https://github.com/megabytesme/MineLights").build());
         about.addEntry(entryBuilder.startTextField(Component.translatable("text.mine-lights.about.issues"), "https://github.com/megabytesme/MineLights/issues").build());

@@ -81,6 +81,10 @@ public class MineLightsClient implements ClientModInitializer {
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
     public static volatile boolean isProxyConnected = false;
 
+    public static String getModVersion() {
+        return resolvedModVersion != null ? resolvedModVersion : MOD_VERSION;
+    }
+
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);

@@ -19,6 +19,7 @@ public class BiomeData {
         addBiome("CHERRY_GROVE", true, false, 255, 112, 216);
         addBiome("COLD_OCEAN", true, false, 48, 94, 128);
         addBiome("CRIMSON_FOREST", false, false, 221, 8, 8);
+        addBiome("DAPPLED_FOREST", true, false, 218, 126, 52);
         addBiome("DARK_FOREST", true, false, 42, 67, 36);
         addBiome("DARK_FOREST_HILLS", true, false, 42, 67, 36);
         addBiome("DEEP_COLD_OCEAN", true, false, 5, 46, 73);
