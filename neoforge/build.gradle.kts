@@ -163,7 +163,8 @@ java {
         else -> 17
     }
 
-    toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+    // Newer NeoForm source transformers require Java 21 even when targeting older Java 17 mods.
+    toolchain.languageVersion.set(JavaLanguageVersion.of(maxOf(javaVersion, 21)))
     targetCompatibility = JavaVersion.toVersion(javaVersion)
     sourceCompatibility = JavaVersion.toVersion(javaVersion)
 }
@@ -252,6 +253,13 @@ if (stonecutter.current.isActive) {
     }
 }
 
+val modrinthToken = providers.gradleProperty("modrinthToken")
+    .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+    .getOrElse("")
+val modrinthDryRun = providers.gradleProperty("publish.dryRun")
+    .map(String::toBoolean)
+    .getOrElse(true)
+
 publishMods {
     file = tasks.named<Jar>("jar").flatMap { it.archiveFile }
     additionalFiles.from(tasks.named<Jar>("sourcesJar").flatMap { it.archiveFile })
@@ -262,11 +270,11 @@ publishMods {
     type = STABLE
     modLoaders.add("neoforge")
     
-    dryRun = true
+    dryRun = modrinthDryRun
 
     modrinth {
         projectId = property("publish.modrinth").toString()
-        accessToken = ""
+        accessToken = modrinthToken
         val targets = property("mod.mc_targets").toString().split(" ")
         minecraftVersions.addAll(targets)
     }

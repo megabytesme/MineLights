@@ -7,9 +7,9 @@
 
 
 
-MineLights is a Minecraft Fabric mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets a range of Minecraft versions (1.14.3+) and uses a modular design to support a wide range of hardware.
+MineLights is a Minecraft Fabric, Quilt, and NeoForge mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets Minecraft versions from 1.14.3 onward on Fabric, 1.14.4 onward on Quilt, and 1.20.2 onward on NeoForge.
 
-###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), Minecraft 1.20.2 - 26.3 (NeoForge)
+###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), 1.14.4 - 26.3 (Quilt), and 1.20.2 - 26.3 (NeoForge)
 
 ## Features
 
@@ -44,9 +44,11 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 ### Prerequisites
 
-- **Minecraft Fabric**: You must have the Fabric Loader installed.
+- **Minecraft Fabric or Quilt**: Install the matching Fabric or Quilt Loader.
+- **Minecraft NeoForge**: Install NeoForge for the supported Minecraft version.
 - **Mod Menu**: Required to access the in-game configuration screen.
 - **Cloth Config API**: Required to access the in-game configuration screen.
+- **No Quilt API bundle required**: MineLights runs on Quilt without QSL, QFAPI, or Fabric API.
 - **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
@@ -60,7 +62,7 @@ MineLights is a Minecraft Fabric mod that brings your world to life with dynamic
 
 ## Usage
 
-1. **Launch Minecraft:** Start the game with your Fabric profile.
+1. **Launch Minecraft:** Start the game with your Fabric, Quilt, or NeoForge profile.
 2. **Configure:**
    - In the main menu, go to **Mods > MineLights > Config** (the gear icon).
    - Enable the integrations you want to use (OpenRGB, Corsair iCUE, etc.).

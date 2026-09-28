@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "megabytesme.minelights",
+    "id": "${id}",
+    "version": "${version}",
+    "metadata": {
+      "name": "${name}",
+      "description": "${description}",
+      "contributors": {
+        "${authors}": "Owner"
+      },
+      "contact": {
+        "homepage": "${homepage}",
+        "sources": "${sources}",
+        "issues": "${issues}"
+      },
+      "license": "${license}",
+      "icon": "${icon}"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "modmenu": "megabytesme.minelights.config.ModMenuIntegration"
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=0.16.0"
+      },
+      {
+        "id": "minecraft",
+        "versions": {
+          "any": [${minecraft_versions_json}]
+        }
+      },
+      {
+        "id": "modmenu",
+        "optional": true
+      },
+      {
+        "id": "cloth-config",
+        "optional": true
+      }
+    ]
+  },
+  "mixin": [
+    "minelights.mixins.json",
+    "minelights.quilt.mixins.json"
+  ],
+  "minecraft": {
+    "environment": "client"
+  }
+}

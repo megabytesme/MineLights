@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "megabytesme.minelights.quilt.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "QuiltClientTickMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

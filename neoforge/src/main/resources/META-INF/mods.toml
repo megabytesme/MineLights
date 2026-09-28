@@ -24,7 +24,7 @@ modId = "minelights"
 version = "${version}"
 displayName = "MineLights"
 authors = "MegaBytesMe"
-description = "MineLights is a Minecraft NeoForge mod that brings RGB lighting integrations to Minecraft Java Edition."
+description = "MineLights brings RGB lighting integrations to Minecraft Java Edition."
 logoFile = "assets/minelights/icon.png"
 
 [[mixins]]

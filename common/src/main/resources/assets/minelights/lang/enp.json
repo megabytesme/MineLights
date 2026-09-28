@@ -12,7 +12,7 @@
   "text.mine-lights.about.issues": "Show a Shortcoming",
   "text.mine-lights.about.support_intro": "If this mod bringeth thee joy, think on upholding its becoming:",
   "text.mine-lights.about.kofi": "Buy me a drink on Ko-fi",
-  "text.mine-lights.about.description": "MineLights is a Minecraft Fabric mod that bringeth RGB light-workings to the Minecraft Java Making.",
+  "text.mine-lights.about.description": "MineLights is a Minecraft mod that bringeth RGB light-workings to the Minecraft Java Making.",
   "title.mine-lights.config": "MineLights Foresetness",
   "option.mine-lights.enableMod": "Onflow the Mod",
   "option.mine-lights.enableMod.tooltip": "Switcheth all light-workings from this mod.",

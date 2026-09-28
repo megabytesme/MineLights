@@ -12,7 +12,7 @@
   "text.mine-lights.about.issues": "Report an Issue",
   "text.mine-lights.about.support_intro": "If you enjoy this mod, please consider supporting its development:",
   "text.mine-lights.about.kofi": "Buy me a coffee on Ko-fi",
-  "text.mine-lights.about.description": "MineLights is a Minecraft Fabric mod that brings RGB lighting integrations to Minecraft Java Edition.",
+  "text.mine-lights.about.description": "MineLights is a Minecraft mod that brings RGB lighting integrations to Minecraft Java Edition.",
   "title.mine-lights.config": "MineLights Configuration",
   "option.mine-lights.enableMod": "Enable Mod",
   "option.mine-lights.enableMod.tooltip": "Toggles all lighting effects from the mod.",

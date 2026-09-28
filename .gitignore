@@ -16,6 +16,25 @@ neoforge/.gradle/
 neoforge/build/
 neoforge/run/
 neoforge/mappings/
+quilt/.gradle/
+quilt/build/
+quilt/run/
+quilt/src/main/java/megabytesme/minelights/accessor/
+quilt/src/main/java/megabytesme/minelights/effects/
+quilt/src/main/java/megabytesme/minelights/mixin/
+quilt/src/main/java/megabytesme/minelights/model/
+quilt/src/main/java/megabytesme/minelights/network/
+quilt/src/main/java/megabytesme/minelights/rgb/
+quilt/src/main/java/megabytesme/minelights/runtime/
+quilt/src/main/java/megabytesme/minelights/MineLightsClient.java
+quilt/src/main/java/megabytesme/minelights/config/CompassPriority.java
+quilt/src/main/java/megabytesme/minelights/config/DimmingMode.java
+quilt/src/main/java/megabytesme/minelights/config/MineLightsConfig.java
+quilt/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java
+quilt/src/main/java/megabytesme/minelights/config/LiveStatusEntry.java
+quilt/src/main/java/megabytesme/minelights/config/ModMenuIntegration.java
+quilt/src/main/resources/assets/minelights/
+quilt/src/main/resources/minelights.mixins.json
 
 # eclipse
 

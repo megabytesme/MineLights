@@ -12,7 +12,7 @@
   "text.mine-lights.about.issues": "REPORT A BUGZ",
   "text.mine-lights.about.support_intro": "if u liek dis mod, plz consider supportin its development:",
   "text.mine-lights.about.kofi": "buy me a cheezburger on Ko-fi",
-  "text.mine-lights.about.description": "MineLights iz a Minecraft Fabric mod dat bringz shiny RGB lightz to Minecraft Java Edition.",
+  "text.mine-lights.about.description": "MineLights iz a Minecraft mod dat bringz shiny RGB lightz to Minecraft Java Edition.",
   "title.mine-lights.config": "MineLights SETTINZ",
   "option.mine-lights.enableMod": "ENABL MOD",
   "option.mine-lights.enableMod.tooltip": "turnz all teh shiny lightz from dis mod on an off.",

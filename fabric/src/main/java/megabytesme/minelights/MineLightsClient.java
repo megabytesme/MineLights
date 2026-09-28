@@ -192,7 +192,31 @@ public class MineLightsClient implements ClientModInitializer {
             serverMonitorThread.interrupt();
         UDPClient.close();
         if (IS_WINDOWS) {
-            CommandClient.sendCommand("shutdown");
+            CommandClient.sendCommandSync("shutdown");
+            Process process = serverProcess;
+            if (process != null && process.isAlive()) {
+                try {
+                    if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                        LOGGER.warn("MineLights server did not exit after shutdown; terminating its process.");
+                        process.destroy();
+                        if (!process.waitFor(2, TimeUnit.SECONDS)) {
+                            LOGGER.warn("MineLights server did not stop after termination; forcing it to exit.");
+                            process.destroyForcibly().waitFor(2, TimeUnit.SECONDS);
+                        }
+                    }
+                    if (!process.isAlive()) {
+                        LOGGER.info("MineLights server process stopped.");
+                        serverProcess = null;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    process.destroy();
+                    if (process.isAlive()) {
+                        process.destroyForcibly();
+                    }
+                    serverProcess = null;
+                }
+            }
         }
     }
 

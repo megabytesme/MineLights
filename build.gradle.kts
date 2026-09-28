@@ -6,6 +6,7 @@ plugins {
 
 val fabricDir = layout.projectDirectory.dir("fabric")
 val neoforgeDir = layout.projectDirectory.dir("neoforge")
+val quiltDir = layout.projectDirectory.dir("quilt")
 val defaultNeoForgeVersions = listOf(
     "1.20.2",
     "1.20.5",
@@ -60,6 +61,13 @@ val cleanNeoForge = registerWorkspaceTask(
     "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
 )
 
+val cleanQuilt = registerWorkspaceTask(
+    name = "cleanQuilt",
+    descriptionText = "Cleans the dedicated Quilt workspace.",
+    workspaceDir = "quilt",
+    gradleTaskName = "clean"
+)
+
 val buildFabric = registerWorkspaceTask(
     name = "buildFabric",
     descriptionText = "Builds all Fabric targets from the dedicated Fabric workspace.",
@@ -73,6 +81,13 @@ val buildNeoForge = registerWorkspaceTask(
     workspaceDir = "neoforge",
     gradleTaskName = "build",
     "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
+)
+
+val buildQuilt = registerWorkspaceTask(
+    name = "buildQuilt",
+    descriptionText = "Builds all supported Quilt targets from the dedicated Quilt workspace.",
+    workspaceDir = "quilt",
+    gradleTaskName = "build"
 )
 
 val publishFabric = registerWorkspaceTask(
@@ -90,25 +105,32 @@ val publishNeoForge = registerWorkspaceTask(
     "neoforge.versions" to defaultNeoForgeVersions.joinToString(",")
 )
 
+val publishQuilt = registerWorkspaceTask(
+    name = "publishQuilt",
+    descriptionText = "Publishes the supported Quilt targets from the dedicated Quilt workspace.",
+    workspaceDir = "quilt",
+    gradleTaskName = "publishMods"
+)
+
 tasks.named("build") {
-    dependsOn(buildFabric, buildNeoForge)
+    dependsOn(buildFabric, buildNeoForge, buildQuilt)
 }
 
 tasks.named("clean") {
-    dependsOn(cleanFabric, cleanNeoForge)
+    dependsOn(cleanFabric, cleanNeoForge, cleanQuilt)
 }
 
 tasks.register("publish") {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Publishes all configured Fabric and NeoForge targets."
-    dependsOn(publishFabric, publishNeoForge)
+    description = "Publishes all configured Fabric, NeoForge, and Quilt targets."
+    dependsOn(publishFabric, publishNeoForge, publishQuilt)
 }
 
 tasks.register("verifyWorkspaces") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Verifies that the Fabric and NeoForge workspaces are present."
+    description = "Verifies that the Fabric, NeoForge, and Quilt workspaces are present."
     doLast {
-        val requiredDirs = listOf(fabricDir.asFile, neoforgeDir.asFile, layout.projectDirectory.dir("common").asFile)
+        val requiredDirs = listOf(fabricDir.asFile, neoforgeDir.asFile, quiltDir.asFile, layout.projectDirectory.dir("common").asFile)
         val missing = requiredDirs.filterNot { it.exists() }
         check(missing.isEmpty()) {
             "Missing required workspace directories: ${missing.joinToString { it.absolutePath }}"

@@ -229,6 +229,12 @@ val sourcesPublishJar = if (isUnobfuscatedVersion) {
 } else {
     tasks.named<Jar>("remapSourcesJar")
 }
+val modrinthToken = providers.gradleProperty("modrinthToken")
+    .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+    .getOrElse("")
+val modrinthDryRun = providers.gradleProperty("publish.dryRun")
+    .map(String::toBoolean)
+    .getOrElse(true)
 
 tasks.register<Copy>("buildAndCollect") {
     group = "build"
@@ -248,11 +254,11 @@ publishMods {
     type = STABLE
     modLoaders.add("fabric")
 
-    dryRun = true
+    dryRun = modrinthDryRun
 
     modrinth {
         projectId = property("publish.modrinth").toString()
-        accessToken = ""
+        accessToken = modrinthToken
         val targets = property("mod.mc_targets").toString().split(" ")
         minecraftVersions.addAll(targets)
         requires {

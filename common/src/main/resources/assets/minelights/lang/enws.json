@@ -12,7 +12,7 @@
   "text.mine-lights.about.issues": "Report a Grievance",
   "text.mine-lights.about.support_intro": "Shouldst this mod find favour in thy sight, pray, consider supporting its creation:",
   "text.mine-lights.about.kofi": "Procure for me a draught on Ko-fi",
-  "text.mine-lights.about.description": "MineLights is a Minecraft Fabric mod, which doth bring forth shimmering RGB illuminations unto the Java Edition of Minecraft.",
+  "text.mine-lights.about.description": "MineLights is a Minecraft mod, which doth bring forth shimmering RGB illuminations unto the Java Edition of Minecraft.",
   "title.mine-lights.config": "MineLights' Settings & Devices",
   "option.mine-lights.enableMod": "Set Forth the Mod",
   "option.mine-lights.enableMod.tooltip": "Toggleth all shimmering effects from this very mod.",
