@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 public class OpenRGBController {
     public static final Logger LOGGER = LogManager.getLogger("MineLights - OpenRGBController");
+    private static final int MAX_CLIENT_PROTOCOL_VERSION = 5;
 
     private String processKeyName(String name) {
         return KeyNameStandardizer.standardize(name);
@@ -32,6 +33,7 @@ public class OpenRGBController {
 
     public static class OpenRGBDevice {
         public String name;
+        public int controllerId;
         public int ledCount;
         public Map<String, Integer> keyMap = new HashMap<>();
     }
@@ -50,18 +52,33 @@ public class OpenRGBController {
 
             byte[] clientVersionData = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(5).array();
             sendPacket(40, 0, clientVersionData);
-            this.serverProtocolVersion = readResponse().getInt();
+            int serverMaxProtocolVersion = readResponse().getInt();
+            this.serverProtocolVersion = Math.min(serverMaxProtocolVersion, MAX_CLIENT_PROTOCOL_VERSION);
+            if (serverMaxProtocolVersion > this.serverProtocolVersion) {
+                LOGGER.info("OpenRGB server protocol " + serverMaxProtocolVersion
+                        + " is newer than MineLights supports; using compatible protocol "
+                        + this.serverProtocolVersion + ".");
+            }
 
             sendPacket(0, 0, new byte[0]);
-            int deviceCount = readResponse().getInt();
+            ByteBuffer controllerList = readResponse();
+            int deviceCount = controllerList.getInt();
+            int[] controllerIds = new int[deviceCount];
+            boolean hasControllerIds = serverMaxProtocolVersion >= 6
+                    && controllerList.remaining() >= deviceCount * Integer.BYTES;
+            for (int i = 0; i < deviceCount; i++) {
+                controllerIds[i] = hasControllerIds ? controllerList.getInt() : i;
+            }
 
             for (int i = 0; i < deviceCount; i++) {
+                int controllerId = controllerIds[i];
                 byte[] deviceRequestData = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
                         .putInt(this.serverProtocolVersion).array();
-                sendPacket(1, i, deviceRequestData);
+                sendPacket(1, controllerId, deviceRequestData);
 
                 ByteBuffer response = readResponse();
                 OpenRGBDevice device = parseDeviceData(response);
+                device.controllerId = controllerId;
                 devices.add(device);
 
                 LOGGER.info("Discovered device #" + i + ": " + device.name);
@@ -74,7 +91,7 @@ public class OpenRGBController {
                     );
                 }
 
-                sendPacket(1100, i, new byte[0]);
+                sendPacket(1100, controllerId, new byte[0]);
             }
             return true;
         } catch (IOException e) {
@@ -264,7 +281,7 @@ public class OpenRGBController {
         fullPayload.put(innerPayload.array());
 
         try {
-            sendPacket(1050, deviceId, fullPayload.array());
+            sendPacket(1050, device.controllerId, fullPayload.array());
         } catch (IOException e) {
             System.err
                     .println("Failed to send LED update to OpenRGB device " + deviceId + ". Connection may be closed.");
