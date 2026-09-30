@@ -1,6 +1,9 @@
 package megabytesme.minelights.mixin;
 
-//? if >=26.1 {
+//? if loader_forge && <1.17 {
+import net.minecraft.client.network.play.ClientPlayNetHandler;
+import net.minecraft.network.play.server.SChatPacket;
+//?} else if >=26.1 {
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
@@ -53,7 +56,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
 
-//? if >=26.1 {
+//? if loader_forge && <1.17 {
+@Mixin(ClientPlayNetHandler.class)
+//?} else if >=26.1 {
 @Mixin(ClientPacketListener.class)
 //?} else if loader_neoforge || loader_forge {
 /* @Mixin(ClientPacketListener.class)
@@ -64,7 +69,12 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     @Unique
     private boolean chatReceivedThisTick = false;
 
-//? if >=26.1 {
+//? if loader_forge && <1.17 {
+    @Inject(method = "handleChat", at = @At("HEAD"))
+    private void onChat(SChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+//?} else if >=26.1 {
     @Inject(method = "handleSystemChat", at = @At("HEAD"))
     private void onSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;

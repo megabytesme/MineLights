@@ -1,12 +1,30 @@
 package megabytesme.minelights.config;
 
+//? if loader_forge && <1.16.3 {
+import me.shedaniel.clothconfig2.forge.api.ConfigBuilder;
+import me.shedaniel.clothconfig2.forge.api.ConfigCategory;
+import me.shedaniel.clothconfig2.forge.api.ConfigEntryBuilder;
+//?} else {
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+//?}
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.network.CommandClient;
+//? if loader_forge && <1.17 {
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+//?} else {
 import net.minecraft.ChatFormatting;
+//?}
 import net.minecraft.client.Minecraft;
+//? if loader_forge && <1.17 {
+import net.minecraft.client.gui.screen.AlertScreen;
+import net.minecraft.client.gui.screen.Screen;
+//?} else {
 import net.minecraft.client.gui.screens.AlertScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -14,6 +32,7 @@ import net.minecraft.network.chat.MutableComponent;
 //? if <1.19 {
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+//?}
 //?}
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,6 +67,11 @@ public final class ModMenuIntegration {
         }
     }
 
+    //? if loader_forge && <1.17 {
+    private static IFormattableTextComponent translatable(String key, Object... args) {
+        return new TranslationTextComponent(key, args);
+    }
+    //?} else {
     private static MutableComponent translatable(String key, Object... args) {
         //? if >=1.19 {
         return Component.translatable(key, args);
@@ -55,7 +79,13 @@ public final class ModMenuIntegration {
         /* return new TranslatableComponent(key, args);
         *///?}
     }
+    //?}
 
+    //? if loader_forge && <1.17 {
+    private static IFormattableTextComponent literal(String text) {
+        return new StringTextComponent(text);
+    }
+    //?} else {
     private static MutableComponent literal(String text) {
         //? if >=1.19 {
         return Component.literal(text);
@@ -63,10 +93,17 @@ public final class ModMenuIntegration {
         /* return new TextComponent(text);
         *///?}
     }
+    //?}
 
+    //? if loader_forge && <1.17 {
+    private static IFormattableTextComponent gray(IFormattableTextComponent component) {
+        return component.copy().withStyle(TextFormatting.GRAY);
+    }
+    //?} else {
     private static MutableComponent gray(MutableComponent component) {
         return component.copy().withStyle(ChatFormatting.GRAY);
     }
+    //?}
 
     private static Screen buildConfigScreen(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
@@ -130,7 +167,11 @@ public final class ModMenuIntegration {
 
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(translatable("category.mine-lights.server_management"));
+            //? if loader_forge && <1.17 {
+            Supplier<ITextComponent> statusTextSupplier = () -> {
+            //?} else {
             Supplier<Component> statusTextSupplier = () -> {
+            //?}
                 MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
                 switch (status) {
                     case DOWNLOADING:
@@ -255,7 +296,11 @@ public final class ModMenuIntegration {
             String[] parts = uniqueId.split("\\|", 2);
             String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
             String deviceName = parts.length > 1 ? parts[1] : uniqueId;
+            //? if loader_forge && <1.17 {
+            ITextComponent label = literal(deviceName).append(gray(literal(" (" + deviceSdk + ")")));
+            //?} else {
             Component label = literal(deviceName).append(gray(literal(" (" + deviceSdk + ")")));
+            //?}
 
             devices.addEntry(entryBuilder
                     .startBooleanToggle(label, isEnabled)

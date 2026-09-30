@@ -9,8 +9,24 @@ import megabytesme.minelights.network.CommandClient;
 import megabytesme.minelights.network.DiscoveryListener;
 import megabytesme.minelights.network.UDPClient;
 import megabytesme.minelights.runtime.LightingManager;
+//? if loader_forge && <1.17 {
+import net.minecraft.util.SharedConstants;
+//?} else {
 import net.minecraft.SharedConstants;
-//? if loader_neoforge || >=26.1 {
+//?}
+//? if loader_forge && <1.17 {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.MainMenuScreen;
+import net.minecraft.util.text.event.ClickEvent;
+//? if loader_forge && <=1.15.2 {
+import net.minecraft.util.text.ITextComponent;
+//?} else {
+import net.minecraft.util.text.IFormattableTextComponent;
+//?}
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+//?} else if loader_neoforge || >=26.1 {
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -18,9 +34,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-//? if loader_forge && <1.19 {
-import net.minecraft.network.chat.TextComponent;
-//?}
 //?} else {
 /* import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -109,7 +122,8 @@ public class MineLightsClient {
                         continue;
                     }
                     Object value = stringAccessor.invoke(gameVersion);
-                    if (value instanceof String versionString) {
+                    if (value instanceof String) {
+                        String versionString = (String) value;
                         Matcher matcher = MINECRAFT_VERSION_PATTERN.matcher(versionString);
                         if (matcher.find()) {
                             return matcher.group(1);
@@ -132,6 +146,17 @@ public class MineLightsClient {
     }
 
     //? if loader_neoforge || >=26.1 {
+    //? if loader_forge && <1.17 {
+    //? if <=1.15.2 {
+    private static ITextComponent literalComponent(String text) {
+        return new StringTextComponent(text);
+    }
+    //?} else {
+    private static IFormattableTextComponent literalComponent(String text) {
+        return new StringTextComponent(text);
+    }
+    //?}
+    //?} else {
     private static MutableComponent literalComponent(String text) {
         //? if loader_forge && <1.19 {
         return new TextComponent(text);
@@ -139,6 +164,7 @@ public class MineLightsClient {
         /* return Component.literal(text);
         *///?}
     }
+    //?}
     //?}
 
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
@@ -213,7 +239,11 @@ public class MineLightsClient {
     *///?}
         //? if >=26.2 {
         if (client.gui.screen() instanceof TitleScreen && !titleScreenHooked) {
-        //?} else if loader_neoforge || >=26.1 {
+        //?} else if loader_forge && 1.14.3 {
+        if (client.currentScreen instanceof MainMenuScreen && !titleScreenHooked) {
+        //?} else if loader_forge && <1.17 {
+        /* if (client.screen instanceof MainMenuScreen && !titleScreenHooked) {
+        *///?} else if loader_neoforge || >=26.1 {
         /* if (client.screen instanceof TitleScreen && !titleScreenHooked) {
         *///?} else {
         /* if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
@@ -268,7 +298,7 @@ public class MineLightsClient {
         }
     }
 
-    //? if <= 1.15.2 {
+    //? if <= 1.15.2 && !loader_forge {
     /* private static void checkForUpdate() {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
@@ -387,6 +417,20 @@ public class MineLightsClient {
                     Minecraft.getInstance().execute(() -> {
                         if (Minecraft.getInstance().player != null) {
                             String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
+                            //? if loader_forge && <=1.15.2 {
+                            Minecraft.getInstance().player.sendMessage(new StringTextComponent(
+                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl));
+                            //?} else if loader_forge && <1.17 {
+                            IFormattableTextComponent message = literalComponent("[MineLights] ").withStyle(TextFormatting.GOLD)
+                                    .append(literalComponent("A new version is available: ").withStyle(TextFormatting.YELLOW))
+                                    .append(literalComponent(latestVersionNumber).withStyle(TextFormatting.AQUA));
+                            IFormattableTextComponent link = literalComponent("[Click here to download]")
+                                    .setStyle(Style.EMPTY
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            .withColor(TextFormatting.GREEN));
+                            Minecraft.getInstance().player.sendMessage(message, java.util.UUID.randomUUID());
+                            Minecraft.getInstance().player.sendMessage(link, java.util.UUID.randomUUID());
+                            //?} else {
                             MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
                                     .append(literalComponent("A new version is available: ").withStyle(ChatFormatting.YELLOW))
                                     .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA));
@@ -400,6 +444,7 @@ public class MineLightsClient {
                                             .withColor(ChatFormatting.GREEN));
                             Minecraft.getInstance().player.displayClientMessage(message, false);
                             Minecraft.getInstance().player.displayClientMessage(link, false);
+                            //?}
                         }
                     });
                 }
@@ -567,7 +612,17 @@ public class MineLightsClient {
         }
 
         //? if loader_neoforge || >=26.1 {
-        //? if >=26.1 {
+        //? if loader_forge && <=1.15.2 {
+        ITextComponent message = new StringTextComponent(
+                "[MineLights] New version available: " + latestVersionNumber + " - " + modrinthUrl);
+        client.player.sendMessage(message);
+        //?} else if loader_forge && <1.17 {
+        IFormattableTextComponent message = literalComponent("[MineLights] ").withStyle(TextFormatting.GOLD)
+                .append(literalComponent("New version available: ").withStyle(TextFormatting.YELLOW))
+                .append(literalComponent(latestVersionNumber).withStyle(TextFormatting.AQUA));
+        message.setStyle(message.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl)));
+        client.player.sendMessage(message, java.util.UUID.randomUUID());
+        //?} else if >=26.1 {
         MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
                 .append(literalComponent("New version available: ").withStyle(ChatFormatting.YELLOW))
                 .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA))

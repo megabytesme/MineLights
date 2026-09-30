@@ -1,7 +1,17 @@
 package megabytesme.minelights.config;
 
+//? if loader_forge && <1.16.3 {
+import me.shedaniel.clothconfig2.forge.api.AbstractConfigListEntry;
+//?} else {
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
+//?}
 import net.minecraft.client.Minecraft;
+//? if loader_forge && <1.17 {
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+//?} else {
 //? if >=1.20 {
 import net.minecraft.client.gui.GuiGraphics;
 //?} else {
@@ -19,12 +29,85 @@ import net.minecraft.network.chat.Component;
 //? if <1.19 {
 import net.minecraft.network.chat.TextComponent;
 //?}
+//?}
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+//? if loader_forge && <1.17 {
+public class LiveStatusEntry extends AbstractConfigListEntry<ITextComponent> {
+    private final Supplier<ITextComponent> supplier;
+
+    private static ITextComponent literal(String text) {
+        return new StringTextComponent(text);
+    }
+
+    public LiveStatusEntry(String fieldName, Supplier<ITextComponent> supplier) {
+        super(literal(fieldName), false);
+        this.supplier = supplier;
+    }
+
+    @Override
+    public ITextComponent getValue() {
+        return supplier.get();
+    }
+
+    @Override
+    public Optional<ITextComponent> getDefaultValue() {
+        return Optional.empty();
+    }
+
+    @Override
+    public void save() {
+    }
+
+    @Override
+    public boolean isRequiresRestart() {
+        return false;
+    }
+
+    @Override
+    public void setRequiresRestart(boolean requiresRestart) {
+    }
+
+    @Override
+    public int getItemHeight() {
+        return 12;
+    }
+
+    @Override
+    public List<? extends IGuiEventListener> children() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public IGuiEventListener getFocused() {
+        return null;
+    }
+
+    @Override
+    public void setFocused(IGuiEventListener listener) {
+    }
+
+    @Override
+    public boolean isDragging() {
+        return false;
+    }
+
+    @Override
+    public void setDragging(boolean dragging) {
+    }
+
+    @Override
+    public void render(MatrixStack context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX,
+                       int mouseY, boolean isHovered, float delta) {
+        ITextComponent current = supplier.get();
+        Minecraft.getInstance().font.draw(context, current, x + 2, y + 2, 0xFFFFFF);
+    }
+}
+//?} else {
 public class LiveStatusEntry extends AbstractConfigListEntry<Component> {
     private final Supplier<Component> supplier;
 
@@ -125,3 +208,4 @@ public class LiveStatusEntry extends AbstractConfigListEntry<Component> {
     }
     *///?}
 }
+//?}

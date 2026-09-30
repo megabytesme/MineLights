@@ -1,7 +1,17 @@
 package megabytesme.minelights;
 
+//? if loader_forge && >=1.16.3 {
 import megabytesme.minelights.config.ModMenuIntegration;
+//?}
 import net.minecraft.client.Minecraft;
+//? if loader_forge && >=1.16.3 {
+//? if loader_forge && <1.17 {
+import net.minecraft.client.gui.screen.AlertScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.ExtensionPoint;
+//?} else {
 import net.minecraft.client.gui.screens.AlertScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -15,6 +25,8 @@ import net.minecraftforge.client.ConfigScreenHandler;
 *///?} else {
 /* import net.minecraftforge.fmlclient.ConfigGuiHandler;
 *///?}
+//?}
+//?}
 //? if <26.1 {
 import net.minecraftforge.fml.ModLoadingContext;
 //?}
@@ -22,8 +34,15 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+//? if loader_forge && >=1.16.3 {
 import java.util.function.BiFunction;
-//? if >=1.21.8 {
+//?}
+//? if loader_forge && 1.14.3 {
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+//?} else if >=1.21.8 {
 import net.minecraftforge.event.TickEvent;
 //?} else {
 import net.minecraftforge.common.MinecraftForge;
@@ -38,7 +57,15 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 @Mod(MineLightsClient.MOD_ID)
 public final class MineLightsForge {
     private final MineLightsClient client = new MineLightsClient();
+    //? if loader_forge && 1.14.3 {
+    private static volatile boolean chatReceivedThisTick;
+    //?}
 
+    //? if loader_forge && >=1.16.3 && <1.17 {
+    private static ITextComponent literal(String text) {
+        return new StringTextComponent(text);
+    }
+    //?} else if >=1.16.3 {
     private static Component literal(String text) {
         //? if >=1.19 {
         return Component.literal(text);
@@ -46,6 +73,7 @@ public final class MineLightsForge {
         /* return new TextComponent(text);
         *///?}
     }
+    //?}
 
 //? if >=26.1 {
     public MineLightsForge(FMLJavaModLoadingContext context) {
@@ -71,6 +99,7 @@ public final class MineLightsForge {
         MinecraftForge.EVENT_BUS.register(this);
         //?}
 
+        //? if loader_forge && >=1.16.3 {
         MineLightsClient.LOGGER.info("Registering Forge config screen factory.");
         BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) -> {
             //? if >=26.1 {
@@ -94,10 +123,24 @@ public final class MineLightsForge {
         modContainer.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(screenFactory));
         //?} else {
-        /* ModLoadingContext.get().registerExtensionPoint(ConfigGuiHandler.ConfigGuiFactory.class,
-                () -> new ConfigGuiHandler.ConfigGuiFactory(screenFactory));
+        /* ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
+                () -> screenFactory);
         *///?}
+        //?}
     }
+
+    //? if loader_forge && 1.14.3 {
+    public static boolean consumeChatReceivedThisTick() {
+        boolean received = chatReceivedThisTick;
+        chatReceivedThisTick = false;
+        return received;
+    }
+
+    @SubscribeEvent
+    public void onClientChatReceived(ClientChatReceivedEvent event) {
+        chatReceivedThisTick = true;
+    }
+    //?}
 
     //? if <1.21.6 {
     @SubscribeEvent

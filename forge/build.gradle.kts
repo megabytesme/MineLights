@@ -1,6 +1,7 @@
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.jvm.tasks.Jar
 import net.minecraftforge.renamer.gradle.RenameJar
+import java.util.zip.GZIPInputStream
 
 plugins {
     `java-library`
@@ -20,19 +21,23 @@ val modHomepage = property("mod.homepage").toString()
 val modSources = property("mod.sources").toString()
 val modIssues = property("mod.issues").toString()
 val modLicense = property("mod.license").toString()
-val modIcon = property("mod.icon").toString()
+val modIcon = property("mod.icon").toString().substringAfterLast('/')
 val mcVersion = stonecutter.current.version
 val forgeVersion = property("deps.forge").toString()
 val forgeVersionRange = property("forge.version_range").toString()
 val forgeLoaderRange = property("forge.loader_range").toString()
 val buildVersion = "$modVersion+$mcVersion-forge"
 val requiresSrgRuntimeMappings = stonecutter.eval(mcVersion, "<=1.20.4")
+val mappingChannel = if (mcVersion == "1.14.3") "snapshot" else "official"
+val mappingVersion = if (mcVersion == "1.14.3") "20190719-1.14.3" else mcVersion
 val mcDependency = property("mod.mc_dep").toString()
 val clothConfigVersion = property("deps.cloth_config").toString()
 val clothConfigProject = if (stonecutter.eval(mcVersion, ">=1.21.5")) "cloth-config-forge" else "cloth-config"
-val clothConfigDependency = if (mcVersion == "1.18" || mcVersion == "1.18.1" || mcVersion == "1.18.2") {
+val clothConfigDependency = if (mcVersion == "1.16.2") {
+    "maven.modrinth:9s6osm5g:tR748cRj"
+} else if (mcVersion == "1.18" || mcVersion == "1.18.1" || mcVersion == "1.18.2") {
     "maven.modrinth:9s6osm5g:ZbWG3eJW"
-} else if (mcVersion == "1.16.5") {
+} else if (mcVersion == "1.16.4" || mcVersion == "1.16.5") {
     "maven.modrinth:9s6osm5g:31tLmbMI"
 } else if (mcVersion == "1.17.1") {
     "maven.modrinth:9s6osm5g:GH6kNTCk"
@@ -110,13 +115,13 @@ repositories {
 }
 
 minecraft {
-    mappings("official", mcVersion)
+    mappings(mappingChannel, mappingVersion)
     useDefaultAccessTransformer()
     runs {
         configureEach {
             workingDir = project.file("run/$mcVersion")
             systemProperty("forge.logging.console.level", "info")
-            if (stonecutter.eval(mcVersion, "<=1.18.2")) {
+            if (javaVersion >= 9 && stonecutter.eval(mcVersion, "<=1.18.2")) {
                 jvmArgs("--add-opens=java.base/java.lang.invoke=ALL-UNNAMED")
             }
         }
@@ -136,6 +141,11 @@ dependencies {
     if (clothConfigRuntime) {
         runtimeOnly(clothConfigDependency)
     }
+    if (mcVersion == "1.14.4") {
+        compileOnly("org.spongepowered:mixin:0.8.2")
+        annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
+        runtimeOnly("maven.modrinth:mixinbootstrap:hOGSWOX8")
+    }
     if (stonecutter.eval(mcVersion, ">=1.21.6")) {
         annotationProcessor("net.minecraftforge:eventbus-validator:7.0.5")
     }
@@ -150,6 +160,13 @@ java {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
+    if (stonecutter.eval(mcVersion, "<=1.16.2")) {
+        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
+        java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
+    }
+    if (mcVersion == "1.14.3") {
+        java.exclude("megabytesme/minelights/mixin/**")
+    }
     if (stonecutter.eval(mcVersion, ">=26.1")) {
         java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
         java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
@@ -172,6 +189,41 @@ tasks.withType<JavaCompile>().configureEach {
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
+    if (mcVersion == "1.14.4") {
+        val srgMappings = minecraft.dependency.toSrgFile
+        inputs.file(srgMappings)
+        doFirst {
+            val sourceMappings = project.file(srgMappings.get())
+            val mappings = if (sourceMappings.name.endsWith(".gz")) {
+                val uncompressed = layout.buildDirectory.file("generated/mixin/official-srg.tsrg").get().asFile
+                uncompressed.parentFile.mkdirs()
+                sourceMappings.inputStream().use { input ->
+                    GZIPInputStream(input).use { gzip ->
+                        gzip.bufferedReader().use { reader ->
+                            val header = reader.readLine()
+                            uncompressed.bufferedWriter().use { writer ->
+                                if (header?.startsWith("tsrg2 ") != true) {
+                                    writer.appendLine(header ?: "")
+                                }
+                                reader.copyTo(writer)
+                            }
+                        }
+                    }
+                }
+                uncompressed
+            } else {
+                sourceMappings
+            }
+            val compileTemp = temporaryDir.apply { mkdirs() }
+            options.compilerArgs.addAll(listOf(
+                "-AreobfTsrgFile=${mappings.absolutePath}",
+                "-AoutTsrgFile=${compileTemp.resolve("compileJava-mappings.tsrg").absolutePath}",
+                "-AoutRefMapFile=${compileTemp.resolve("minelights.refmap.json").absolutePath}",
+                "-AmappingTypes=tsrg",
+                "-AdefaultObfuscationEnv=searge"
+            ))
+        }
+    }
 }
 
 tasks.processResources {
@@ -193,9 +245,30 @@ tasks.processResources {
 
     templateProperties.forEach(inputs::property)
     filesMatching("META-INF/mods.toml") { expand(templateProperties) }
+    if (mcVersion == "1.14.4") {
+        val refmap = layout.buildDirectory.file("tmp/compileJava/minelights.refmap.json")
+        dependsOn(tasks.named("compileJava"))
+        from(refmap)
+    }
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
+    doLast {
+        rootProject.file("src/main/resources/assets/minelights/icon.png")
+            .copyTo(destinationDir.resolve(modIcon), overwrite = true)
+        if (mcVersion == "1.14.4") {
+            val mixinConfig = destinationDir.resolve("minelights.mixins.json")
+            mixinConfig.writeText(mixinConfig.readText().replaceFirst("{", "{\n  \"refmap\": \"minelights.refmap.json\","))
+        }
+        if (mcVersion == "1.14.3") {
+            destinationDir.resolve("minelights.mixins.json").delete()
+            val modsToml = destinationDir.resolve("META-INF/mods.toml")
+            modsToml.writeText(modsToml.readText().replace(
+                Regex("""(?m)^\[\[mixins]]\r?\nconfig = "minelights\.mixins\.json"\r?\n?"""),
+                ""
+            ))
+        }
+    }
 }
 
 tasks.named<Jar>("jar") {
@@ -254,5 +327,8 @@ publishMods {
         projectId = property("publish.modrinth").toString()
         accessToken = modrinthToken
         minecraftVersions.addAll(property("mod.mc_targets").toString().split(" "))
+        if (mcVersion == "1.14.4") {
+            requires("mixinbootstrap")
+        }
     }
 }

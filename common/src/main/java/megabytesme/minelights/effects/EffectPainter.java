@@ -7,7 +7,10 @@ import megabytesme.minelights.model.PlayerDto;
 //? if >=1.21.8 {
 import megabytesme.minelights.model.WaypointDto;
 //?}
-//? if loader_neoforge || >=26.1 {
+//? if loader_forge && <1.17 {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.GameSettings;
+//?} else if loader_neoforge || >=26.1 {
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 //?} else if >=1.17 {
@@ -919,12 +922,43 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
-        //? if loader_neoforge || >=26.1 {
+        //? if loader_forge && 1.14.3 {
+        GameSettings options = Minecraft.getInstance().gameSettings;
+        //?} else if loader_forge && <1.17 {
+        GameSettings options = Minecraft.getInstance().options;
+        //?} else if loader_neoforge || >=26.1 {
         Options options = Minecraft.getInstance().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
-        //? if loader_forge || >= 1.19 {
+        //? if loader_forge && 1.14.3 {
+        keybindsToFetch = Arrays.asList(
+                options.keyBindForward.getLocalizedName(),
+                options.keyBindBack.getLocalizedName(),
+                options.keyBindLeft.getLocalizedName(),
+                options.keyBindRight.getLocalizedName(),
+                options.keyBindJump.getLocalizedName(),
+                options.keyBindSneak.getLocalizedName(),
+                options.keyBindSprint.getLocalizedName());
+        //?} else if loader_forge && <=1.14.4 {
+        keybindsToFetch = Arrays.asList(
+                options.keyUp.getTranslatedKeyMessage(),
+                options.keyDown.getTranslatedKeyMessage(),
+                options.keyLeft.getTranslatedKeyMessage(),
+                options.keyRight.getTranslatedKeyMessage(),
+                options.keyJump.getTranslatedKeyMessage(),
+                options.keySneak.getTranslatedKeyMessage(),
+                options.keySprint.getTranslatedKeyMessage());
+        //?} else if loader_forge && <=1.15.2 {
+        keybindsToFetch = Arrays.asList(
+                options.keyUp.getTranslatedKeyMessage(),
+                options.keyDown.getTranslatedKeyMessage(),
+                options.keyLeft.getTranslatedKeyMessage(),
+                options.keyRight.getTranslatedKeyMessage(),
+                options.keyJump.getTranslatedKeyMessage(),
+                options.keyShift.getTranslatedKeyMessage(),
+                options.keySprint.getTranslatedKeyMessage());
+        //?} else if loader_forge || >= 1.19 {
         keybindsToFetch = Arrays.asList(
                 //? if loader_neoforge || >=26.1 {
                 options.keyUp.getTranslatedKeyMessage().getString(),
@@ -1024,14 +1058,22 @@ public class EffectPainter {
 
     private List<String> getChatKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
-        //? if loader_neoforge || >=26.1 {
+        //? if loader_forge && 1.14.3 {
+        GameSettings options = Minecraft.getInstance().gameSettings;
+        //?} else if loader_forge && <1.17 {
+        GameSettings options = Minecraft.getInstance().options;
+        //?} else if loader_neoforge || >=26.1 {
         Options options = Minecraft.getInstance().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
         String keybindToFetch = null;
 
-        //? if loader_forge || >= 1.19 {
+        //? if loader_forge && 1.14.3 {
+        keybindToFetch = options.keyBindChat.getLocalizedName();
+        //?} else if loader_forge && <=1.15.2 {
+        keybindToFetch = options.keyChat.getTranslatedKeyMessage();
+        //?} else if loader_forge || >= 1.19 {
         //? if loader_neoforge || >=26.1 {
         keybindToFetch = options.keyChat.getTranslatedKeyMessage().getString();
         //?} else {
