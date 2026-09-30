@@ -68,7 +68,7 @@ public class PlayerDataCollector {
         BlockPos headPos = BlockPos.containing(eyePos.x, eyePos.y, eyePos.z);
         playerDto.setBlockAtHead(BuiltInRegistries.BLOCK.getKey(world.getBlockState(headPos).getBlock()).toString());
 
-        //? if >=26.1 {
+        //? if >=1.21.11 {
         world.getBiome(playerPos).unwrapKey().ifPresent(key -> playerDto.setCurrentBiome(key.identifier().toString()));
         playerDto.setCurrentWorld(world.dimension().identifier().toString());
         //?} else {
