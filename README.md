@@ -50,7 +50,7 @@ MineLights is a Minecraft Fabric, Quilt, Forge, and NeoForge mod that brings you
 - **Mod Menu**: Required to access the in-game configuration screen.
 - **Cloth Config API**: Required to access the in-game configuration screen.
 - **No Quilt API bundle required**: MineLights runs on Quilt without QSL, QFAPI, or Fabric API.
-- **(Optional) OpenRGB**: If you want to use OpenRGB devices, make sure the OpenRGB server is running before you launch Minecraft.
+- **(Optional) OpenRGB**: The latest OpenRGB version is recommended for OpenRGB devices.
 - **(Optional) All other RGB software**: If you have any other hardware, ensure their official software is installed and running.
 
 ### Installation
@@ -60,6 +60,12 @@ MineLights is a Minecraft Fabric, Quilt, Forge, and NeoForge mod that brings you
 **Installing MineLights version 2.2**: Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
 **Installing MineLights version 2.1 or below**: Follow the guide in the release changelog.
+
+### OpenRGB setup (optional)
+
+1. Install the latest OpenRGB version (recommended) if you want to use OpenRGB devices.
+2. After installing or updating OpenRGB, restart your computer before using MineLights.
+3. Start OpenRGB, open the **SDK Server** tab, and click **Start Server**. Keep OpenRGB running while Minecraft is open. MineLights connects to the local server at `127.0.0.1:6742` (the default SDK server address and port).
 
 ## Usage
 
