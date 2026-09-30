@@ -9,7 +9,8 @@ plugins {
 }
 
 val isUnobfuscatedVersion = stonecutter.eval(stonecutter.current.version, ">=26.1")
-val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3")
+val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3") ||
+        stonecutter.current.version == "1.21.11"
 
 apply(plugin = if (isUnobfuscatedVersion) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
 
@@ -116,8 +117,13 @@ dependencies {
         add("mappings", "net.fabricmc:yarn:${property("deps.yarn")}:v2")
         add("modCompileOnly", quiltLoader)
         add("modCompileOnly", "net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-        add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
-        add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
+        if (usesModrinthModDependencies) {
+            add("modCompileOnly", "maven.modrinth:cloth-config:${property("deps.cloth_config")}")
+            add("modCompileOnly", "maven.modrinth:modmenu:${property("deps.modmenu")}")
+        } else {
+            add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
+            add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
+        }
     } else {
         compileOnly(quiltLoader)
         compileOnly("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
@@ -186,7 +192,8 @@ tasks {
             "sources" to prop("mod.sources"),
             "issues" to prop("mod.issues"),
             "icon" to prop("mod.icon"),
-            "minecraft_versions_json" to minecraftTargets.joinToString(", ") { "\"=$it\"" }
+            "minecraft_versions_json" to minecraftTargets.joinToString(", ") { "\"=$it\"" },
+            "quilt_loader_version_range" to if (isUnobfuscatedVersion) ">=0.31.0-beta.4" else ">=0.16.0"
         )
 
         inputs.properties(props)

@@ -12,6 +12,7 @@ stonecutter parameters {
     swaps["minecraft"] = "\"" + node.metadata.version + "\";"
     constants["release"] = property("mod.id") != "template"
     constants["loader_fabric"] = false
+    constants["loader_forge"] = false
     constants["loader_neoforge"] = false
     constants["loader_quilt"] = true
 }
