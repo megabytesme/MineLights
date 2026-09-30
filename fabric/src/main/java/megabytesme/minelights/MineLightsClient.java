@@ -855,6 +855,7 @@ public class MineLightsClient implements ClientModInitializer {
         proxyDiscoveredLatch = new CountDownLatch(1);
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-MainLoop");
+        lightingManagerThread.setDaemon(true);
         lightingManagerThread.start();
 
         lightingInitialized.set(true);
