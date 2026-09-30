@@ -69,23 +69,23 @@ public class LightingManager implements Runnable {
                 JsonObject configPayload = new JsonObject();
                 JsonArray enabledIntegrations = new JsonArray();
                 if (MineLightsClient.CONFIG.enableCorsair)
-                    enabledIntegrations.add("Corsair");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Corsair"));
                 if (MineLightsClient.CONFIG.enableAsus)
-                    enabledIntegrations.add("Asus");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Asus"));
                 if (MineLightsClient.CONFIG.enableLogitech)
-                    enabledIntegrations.add("Logitech");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Logitech"));
                 if (MineLightsClient.CONFIG.enableRazer)
-                    enabledIntegrations.add("Razer");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Razer"));
                 if (MineLightsClient.CONFIG.enableWooting)
-                    enabledIntegrations.add("Wooting");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Wooting"));
                 if (MineLightsClient.CONFIG.enableSteelSeries)
-                    enabledIntegrations.add("SteelSeries");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("SteelSeries"));
                 if (MineLightsClient.CONFIG.enableMsi)
-                    enabledIntegrations.add("Msi");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Msi"));
                 if (MineLightsClient.CONFIG.enableNovation)
-                    enabledIntegrations.add("Novation");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Novation"));
                 if (MineLightsClient.CONFIG.enablePicoPi)
-                    enabledIntegrations.add("PicoPi");
+                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("PicoPi"));
 
                 configPayload.add("enabled_integrations", enabledIntegrations);
                 configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
@@ -236,12 +236,16 @@ public class LightingManager implements Runnable {
                 long frameStart = System.currentTimeMillis();
 
                 //? if loader_neoforge || >=26.1 {
-                Minecraft client = Minecraft.getInstance();
+                Minecraft client = MineLightsClient.getMinecraft();
                 //?} else {
                 /* MinecraftClient client = MinecraftClient.getInstance();
                 *///?}
                 PlayerDto playerState;
-                if (client == null || client.player == null || !MineLightsClient.CONFIG.enableMod) {
+                //? if loader_forge && <=1.9.4 {
+                if (client == null || client.thePlayer == null || !MineLightsClient.CONFIG.enableMod) {
+                //?} else {
+                /* if (client == null || client.player == null || !MineLightsClient.CONFIG.enableMod) {
+                *///?}
                     playerState = new PlayerDto();
                     playerState.setInGame(false);
                 } else {

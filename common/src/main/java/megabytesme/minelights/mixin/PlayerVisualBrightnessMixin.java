@@ -43,12 +43,14 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
         /* MinecraftClient mc = MinecraftClient.getInstance();
         PlayerEntity player = (PlayerEntity)(Object)this;
         *///?}
-        //? if loader_forge && 1.14.3 {
+        //? if loader_forge && <=1.14.3 {
         BlockPos pos = new BlockPos(player.posX, player.posY, player.posZ);
         //?} else if loader_forge && <=1.14.4 {
         BlockPos pos = new BlockPos(player.x, player.y, player.z);
         //?} else if loader_forge && <=1.15.2 {
         BlockPos pos = new BlockPos(player.getX(), player.getY(), player.getZ());
+        //?} else if loader_forge && 1.16.1 {
+        BlockPos pos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
         //?} else if loader_forge && <1.17 {
         BlockPos pos = player.blockPosition();
         //?} else if loader_neoforge || >=26.1 {
@@ -56,7 +58,7 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
         //?} else {
         /* BlockPos pos = player.getBlockPos(); */
         //?}
-        //? if loader_forge && 1.14.3 {
+        //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
         return mc.world.getLightFor(LightType.SKY, pos);
         //?} else if loader_forge && <=1.14.4 {
         return mc.level.getBrightness(LightType.SKY, pos);
@@ -82,12 +84,14 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
         /* MinecraftClient mc = MinecraftClient.getInstance();
         PlayerEntity player = (PlayerEntity)(Object)this;
         *///?}
-        //? if loader_forge && 1.14.3 {
+        //? if loader_forge && <=1.14.3 {
         BlockPos pos = new BlockPos(player.posX, player.posY, player.posZ);
         //?} else if loader_forge && <=1.14.4 {
         BlockPos pos = new BlockPos(player.x, player.y, player.z);
         //?} else if loader_forge && <=1.15.2 {
         BlockPos pos = new BlockPos(player.getX(), player.getY(), player.getZ());
+        //?} else if loader_forge && 1.16.1 {
+        BlockPos pos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
         //?} else if loader_forge && <1.17 {
         BlockPos pos = player.blockPosition();
         //?} else if loader_neoforge || >=26.1 {
@@ -95,7 +99,7 @@ public abstract class PlayerVisualBrightnessMixin implements PlayerVisualBrightn
         //?} else {
         /* BlockPos pos = player.getBlockPos(); */
         //?}
-        //? if loader_forge && 1.14.3 {
+        //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
         int blockLight = mc.world.getLightFor(LightType.BLOCK, pos);
         int skyLight   = mc.world.getLightFor(LightType.SKY, pos);
         //?} else if loader_forge && <=1.14.4 {

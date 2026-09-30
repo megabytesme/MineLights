@@ -1,6 +1,7 @@
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.jvm.tasks.Jar
 import net.minecraftforge.renamer.gradle.RenameJar
+import java.io.RandomAccessFile
 import java.util.zip.GZIPInputStream
 
 plugins {
@@ -27,9 +28,31 @@ val forgeVersion = property("deps.forge").toString()
 val forgeVersionRange = property("forge.version_range").toString()
 val forgeLoaderRange = property("forge.loader_range").toString()
 val buildVersion = "$modVersion+$mcVersion-forge"
+val usesLegacyForgeMetadata = mcVersion in setOf("1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2", "1.11", "1.11.2", "1.12", "1.12.1", "1.12.2")
 val requiresSrgRuntimeMappings = stonecutter.eval(mcVersion, "<=1.20.4")
-val mappingChannel = if (mcVersion == "1.14.3") "snapshot" else "official"
-val mappingVersion = if (mcVersion == "1.14.3") "20190719-1.14.3" else mcVersion
+val mappingChannel = when (mcVersion) {
+    "1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2", "1.11", "1.11.2", "1.12", "1.12.1", "1.12.2" -> "stable"
+    "1.13.2", "1.14.2", "1.14.3", "1.16.1" -> "snapshot"
+    else -> "official"
+}
+val mappingVersion = when (mcVersion) {
+    "1.7.10" -> "12-1.7.10"
+    // MCP only published the stable-12 archive against 1.7.10; reuse it for the shared 1.7.2 SRG namespace.
+    "1.7.2" -> "12-1.7.10"
+    "1.8" -> "18-1.8"
+    "1.8.8" -> "20-1.8.8"
+    "1.8.9" -> "22-1.8.9"
+    "1.9" -> "24-1.9"
+    "1.9.4" -> "26-1.9.4"
+    "1.10", "1.10.2" -> "29-1.10.2"
+    "1.11", "1.11.2" -> "32-1.11"
+    "1.12", "1.12.1", "1.12.2" -> "39-1.12"
+    "1.13.2" -> "20190320-1.13.2"
+    "1.14.2" -> "20190624-1.14.2"
+    "1.14.3" -> "20190719-1.14.3"
+    "1.16.1" -> "20200723-1.16.1"
+    else -> mcVersion
+}
 val mcDependency = property("mod.mc_dep").toString()
 val clothConfigVersion = property("deps.cloth_config").toString()
 val clothConfigProject = if (stonecutter.eval(mcVersion, ">=1.21.5")) "cloth-config-forge" else "cloth-config"
@@ -121,6 +144,10 @@ minecraft {
         configureEach {
             workingDir = project.file("run/$mcVersion")
             systemProperty("forge.logging.console.level", "info")
+            if (mcVersion == "1.7.2") {
+                // This development runtime uses a remapped Minecraft jar, which legacy FML otherwise rejects.
+                systemProperty("fml.ignoreInvalidMinecraftCertificates", "true")
+            }
             if (javaVersion >= 9 && stonecutter.eval(mcVersion, "<=1.18.2")) {
                 jvmArgs("--add-opens=java.base/java.lang.invoke=ALL-UNNAMED")
             }
@@ -137,11 +164,13 @@ minecraft {
 
 dependencies {
     implementation(minecraft.dependency("net.minecraftforge:forge:$mcVersion-$forgeVersion"))
-    compileOnly(clothConfigDependency)
+    if (!usesLegacyForgeMetadata && mcVersion !in setOf("1.13.2", "1.16.1")) {
+        compileOnly(clothConfigDependency)
+    }
     if (clothConfigRuntime) {
         runtimeOnly(clothConfigDependency)
     }
-    if (mcVersion == "1.14.4") {
+    if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
         compileOnly("org.spongepowered:mixin:0.8.2")
         annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
         runtimeOnly("maven.modrinth:mixinbootstrap:hOGSWOX8")
@@ -164,8 +193,13 @@ sourceSets.named("main") {
         java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
         java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
     }
-    if (mcVersion == "1.14.3") {
+    if (mcVersion == "1.13.2" || mcVersion == "1.14.2" || mcVersion == "1.14.3") {
         java.exclude("megabytesme/minelights/mixin/**")
+    }
+    if (usesLegacyForgeMetadata) {
+        java.exclude("megabytesme/minelights/mixin/**")
+        resources.exclude("META-INF/mods.toml")
+        resources.exclude("minelights.mixins.json")
     }
     if (stonecutter.eval(mcVersion, ">=26.1")) {
         java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
@@ -189,7 +223,30 @@ tasks.withType<JavaCompile>().configureEach {
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
-    if (mcVersion == "1.14.4") {
+    if (stonecutter.eval(mcVersion, "<=1.7.2")) {
+        // Forge 1.7.2 and older use ASM 4, which rejects Java 8's class-file version.
+        // Keep the Java 8 bytecode (including invokedynamic) but mark it as Java 7 so ASM 4 can scan it.
+        doLast {
+            destinationDirectory.get().asFile.walkTopDown()
+                .filter { it.isFile && it.extension == "class" }
+                .forEach { classFile ->
+                    RandomAccessFile(classFile, "rw").use { classBytes ->
+                        if (classBytes.length() >= 8) {
+                            val header = ByteArray(8)
+                            classBytes.readFully(header)
+                            val isClassFile = header[0] == 0xCA.toByte() && header[1] == 0xFE.toByte() &&
+                                header[2] == 0xBA.toByte() && header[3] == 0xBE.toByte()
+                            val majorVersion = ((header[6].toInt() and 0xFF) shl 8) or (header[7].toInt() and 0xFF)
+                            if (isClassFile && majorVersion == 52) {
+                                classBytes.seek(6)
+                                classBytes.writeShort(51)
+                            }
+                        }
+                    }
+                }
+        }
+    }
+    if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
         val srgMappings = minecraft.dependency.toSrgFile
         inputs.file(srgMappings)
         doFirst {
@@ -240,12 +297,17 @@ tasks.processResources {
         "icon" to modIcon,
         "minecraft" to mcDependency,
         "forge_version_range" to forgeVersionRange,
-        "loader_version_range" to forgeLoaderRange
+        "loader_version_range" to forgeLoaderRange,
+        "minecraft_version" to mcVersion
     )
 
     templateProperties.forEach(inputs::property)
-    filesMatching("META-INF/mods.toml") { expand(templateProperties) }
-    if (mcVersion == "1.14.4") {
+    if (usesLegacyForgeMetadata) {
+        filesMatching("mcmod.info") { expand(templateProperties) }
+    } else {
+        filesMatching("META-INF/mods.toml") { expand(templateProperties) }
+    }
+    if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
         val refmap = layout.buildDirectory.file("tmp/compileJava/minelights.refmap.json")
         dependsOn(tasks.named("compileJava"))
         from(refmap)
@@ -260,7 +322,10 @@ tasks.processResources {
             val mixinConfig = destinationDir.resolve("minelights.mixins.json")
             mixinConfig.writeText(mixinConfig.readText().replaceFirst("{", "{\n  \"refmap\": \"minelights.refmap.json\","))
         }
-        if (mcVersion == "1.14.3") {
+        if (usesLegacyForgeMetadata) {
+            destinationDir.resolve("minelights.mixins.json").delete()
+            destinationDir.resolve("META-INF/mods.toml").delete()
+        } else if (mcVersion == "1.13.2" || mcVersion == "1.14.2" || mcVersion == "1.14.3") {
             destinationDir.resolve("minelights.mixins.json").delete()
             val modsToml = destinationDir.resolve("META-INF/mods.toml")
             modsToml.writeText(modsToml.readText().replace(
@@ -275,7 +340,11 @@ tasks.named<Jar>("jar") {
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
-    from("src/main/resources") { include("META-INF/mods.toml") }
+    if (usesLegacyForgeMetadata) {
+        from("src/main/resources") { include("mcmod.info") }
+    } else {
+        from("src/main/resources") { include("META-INF/mods.toml") }
+    }
 }
 
 val productionJar = if (requiresSrgRuntimeMappings) {
@@ -296,7 +365,11 @@ tasks.named<Jar>("sourcesJar") {
     dependsOn("stonecutterGenerate")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(layout.buildDirectory.dir("generated/stonecutter/main/java"))
-    from("src/main/resources") { include("META-INF/mods.toml") }
+    if (usesLegacyForgeMetadata) {
+        from("src/main/resources") { include("mcmod.info") }
+    } else {
+        from("src/main/resources") { include("META-INF/mods.toml") }
+    }
 }
 
 if (stonecutter.current.isActive) {

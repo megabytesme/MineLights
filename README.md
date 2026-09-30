@@ -7,9 +7,9 @@
 
 
 
-MineLights is a Minecraft Fabric, Quilt, Forge, and NeoForge mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets Minecraft versions from 1.14.3 onward on Fabric, 1.14.4 onward on Quilt, Forge releases from 1.14.3 onward, and NeoForge releases from 1.20.2 onward.
+MineLights is a Minecraft Fabric, Quilt, Forge, and NeoForge mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets Minecraft versions from 1.14.3 onward on Fabric, 1.14.4 onward on Quilt, Forge releases from 1.7.2 onward, and NeoForge releases from 1.20.2 onward.
 
-###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), 1.14.4 - 26.3 (Quilt), 1.14.3 - 26.3 (Forge), and 1.20.2 - 26.3 (NeoForge)
+###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), 1.14.4 - 26.3 (Quilt), 1.7.2 - 26.3 (Forge), and 1.20.2 - 26.3 (NeoForge)
 
 ## Features
 

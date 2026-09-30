@@ -18,9 +18,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 /* @Mixin(LightningEntity.class)
 *///?}
 public interface LightningAccessor {
-    //? if loader_forge && 1.14.3 {
+    //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
     @Accessor("lightningState")
     //?} else if loader_forge && <=1.14.4 {
+    @Accessor("life")
+    //?} else if loader_forge && <=1.15.2 {
     @Accessor("life")
     //?} else if loader_forge && <1.17 {
     @Accessor("ambientTick")
@@ -31,9 +33,11 @@ public interface LightningAccessor {
     *///?}
     int getAmbientTick();
 
-    //? if loader_forge && 1.14.3 {
+    //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
     @Accessor("boltLivingTime")
     //?} else if loader_forge && <=1.14.4 {
+    @Accessor("flashes")
+    //?} else if loader_forge && <=1.15.2 {
     @Accessor("flashes")
     //?} else if loader_forge && <1.17 {
     @Accessor("remainingActions")

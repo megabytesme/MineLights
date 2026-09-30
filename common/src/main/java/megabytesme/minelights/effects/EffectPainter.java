@@ -9,7 +9,19 @@ import megabytesme.minelights.model.WaypointDto;
 //?}
 //? if loader_forge && <1.17 {
 import net.minecraft.client.Minecraft;
+//? if loader_forge && <=1.8.9 {
+import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
+import org.lwjgl.input.Keyboard;
+//?} else if loader_forge && <=1.12.2 {
+import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
+//?} else {
 import net.minecraft.client.GameSettings;
+//? if loader_forge && <=1.13.2 {
+import net.minecraft.client.settings.KeyBinding;
+//?}
+//?}
 //?} else if loader_neoforge || >=26.1 {
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -922,16 +934,43 @@ public class EffectPainter {
     private List<String> getMovementKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
         List<String> keybindsToFetch = new ArrayList<>();
-        //? if loader_forge && 1.14.3 {
-        GameSettings options = Minecraft.getInstance().gameSettings;
+        //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
+        GameSettings options = MineLightsClient.getMinecraft().gameSettings;
         //?} else if loader_forge && <1.17 {
-        GameSettings options = Minecraft.getInstance().options;
+        GameSettings options = MineLightsClient.getMinecraft().options;
         //?} else if loader_neoforge || >=26.1 {
-        Options options = Minecraft.getInstance().options;
+        Options options = MineLightsClient.getMinecraft().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
-        //? if loader_forge && 1.14.3 {
+        //? if loader_forge && <=1.8.9 {
+        keybindsToFetch = Arrays.asList(
+                Keyboard.getKeyName(options.keyBindForward.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindBack.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindLeft.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindRight.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindJump.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindSneak.getKeyCode()),
+                Keyboard.getKeyName(options.keyBindSprint.getKeyCode()));
+        //?} else if loader_forge && <=1.11.2 {
+        keybindsToFetch = Arrays.asList(
+                options.keyBindForward.getDisplayName(),
+                options.keyBindBack.getDisplayName(),
+                options.keyBindLeft.getDisplayName(),
+                options.keyBindRight.getDisplayName(),
+                options.keyBindJump.getDisplayName(),
+                options.keyBindSneak.getDisplayName(),
+                options.keyBindSprint.getDisplayName());
+        //?} else if loader_forge && <=1.13.2 {
+        keybindsToFetch = Arrays.asList(
+                KeyBinding.getDisplayString(options.keyBindForward.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindBack.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindLeft.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindRight.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindJump.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindSneak.getKeyDescription()).get(),
+                KeyBinding.getDisplayString(options.keyBindSprint.getKeyDescription()).get());
+        //?} else if loader_forge && <=1.14.3 {
         keybindsToFetch = Arrays.asList(
                 options.keyBindForward.getLocalizedName(),
                 options.keyBindBack.getLocalizedName(),
@@ -958,6 +997,15 @@ public class EffectPainter {
                 options.keyJump.getTranslatedKeyMessage(),
                 options.keyShift.getTranslatedKeyMessage(),
                 options.keySprint.getTranslatedKeyMessage());
+        //?} else if loader_forge && 1.16.1 {
+        keybindsToFetch = Arrays.asList(
+                options.keyBindForward.getKey().getTranslationKey(),
+                options.keyBindBack.getKey().getTranslationKey(),
+                options.keyBindLeft.getKey().getTranslationKey(),
+                options.keyBindRight.getKey().getTranslationKey(),
+                options.keyBindJump.getKey().getTranslationKey(),
+                options.keyBindSneak.getKey().getTranslationKey(),
+                options.keyBindSprint.getKey().getTranslationKey());
         //?} else if loader_forge || >= 1.19 {
         keybindsToFetch = Arrays.asList(
                 //? if loader_neoforge || >=26.1 {
@@ -1002,7 +1050,11 @@ public class EffectPainter {
          *///?}
 
         for (String key : keybindsToFetch) {
-            //? if loader_neoforge || >=26.1 {
+            //? if loader_forge && <=1.13.2 {
+            if (key != null && !key.trim().isEmpty()) {
+                friendlyNames.add(key.trim().toUpperCase().replace("CONTROL", "CTRL"));
+            }
+            //?} else if loader_neoforge || >=26.1 {
             String friendlyName = normalize26KeyName(key);
             if (friendlyName != null) {
                 friendlyNames.add(friendlyName);
@@ -1058,21 +1110,29 @@ public class EffectPainter {
 
     private List<String> getChatKeyNames() {
         List<String> friendlyNames = new ArrayList<>();
-        //? if loader_forge && 1.14.3 {
-        GameSettings options = Minecraft.getInstance().gameSettings;
+        //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
+        GameSettings options = MineLightsClient.getMinecraft().gameSettings;
         //?} else if loader_forge && <1.17 {
-        GameSettings options = Minecraft.getInstance().options;
+        GameSettings options = MineLightsClient.getMinecraft().options;
         //?} else if loader_neoforge || >=26.1 {
-        Options options = Minecraft.getInstance().options;
+        Options options = MineLightsClient.getMinecraft().options;
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
         String keybindToFetch = null;
 
-        //? if loader_forge && 1.14.3 {
+        //? if loader_forge && <=1.8.9 {
+        keybindToFetch = Keyboard.getKeyName(options.keyBindChat.getKeyCode());
+        //?} else if loader_forge && <=1.11.2 {
+        keybindToFetch = options.keyBindChat.getDisplayName();
+        //?} else if loader_forge && <=1.13.2 {
+        keybindToFetch = KeyBinding.getDisplayString(options.keyBindChat.getKeyDescription()).get();
+        //?} else if loader_forge && <=1.14.3 {
         keybindToFetch = options.keyBindChat.getLocalizedName();
         //?} else if loader_forge && <=1.15.2 {
         keybindToFetch = options.keyChat.getTranslatedKeyMessage();
+        //?} else if loader_forge && 1.16.1 {
+        keybindToFetch = options.keyBindChat.getKey().getTranslationKey();
         //?} else if loader_forge || >= 1.19 {
         //? if loader_neoforge || >=26.1 {
         keybindToFetch = options.keyChat.getTranslatedKeyMessage().getString();
@@ -1085,7 +1145,11 @@ public class EffectPainter {
         /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString();
         *///?}
 
-        //? if loader_neoforge || >=26.1 {
+        //? if loader_forge && <=1.13.2 {
+        if (keybindToFetch != null && !keybindToFetch.trim().isEmpty()) {
+            friendlyNames.add(keybindToFetch.trim().toUpperCase().replace("CONTROL", "CTRL"));
+        }
+        //?} else if loader_neoforge || >=26.1 {
         String friendlyName = normalize26KeyName(keybindToFetch);
         if (friendlyName != null) {
             friendlyNames.add(friendlyName);

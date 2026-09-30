@@ -1,0 +1,13 @@
+[
+  {
+    "modid": "${id}",
+    "name": "${name}",
+    "description": "${description}",
+    "version": "${version}",
+    "mcversion": "${minecraft_version}",
+    "url": "${homepage}",
+    "authorList": ["${authors}"],
+    "logoFile": "${icon}",
+    "dependencies": []
+  }
+]

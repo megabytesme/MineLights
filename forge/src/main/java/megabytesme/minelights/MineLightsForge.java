@@ -27,21 +27,45 @@ import net.minecraftforge.client.ConfigScreenHandler;
 *///?}
 //?}
 //?}
-//? if <26.1 {
+//? if loader_forge && >=1.13.2 && <26.1 {
 import net.minecraftforge.fml.ModLoadingContext;
 //?}
-import net.minecraftforge.fml.ModContainer;
+//? if loader_forge && <=1.7.10 {
+import cpw.mods.fml.common.Mod;
+//?} else {
 import net.minecraftforge.fml.common.Mod;
+//?}
+//? if loader_forge && <=1.12.2 {
+//? if loader_forge && <=1.7.10 {
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+//?} else {
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+//?}
+//?} else {
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+//?}
 //? if loader_forge && >=1.16.3 {
 import java.util.function.BiFunction;
 //?}
-//? if loader_forge && 1.14.3 {
+//? if loader_forge && <=1.14.3 {
+//? if loader_forge && <=1.7.10 {
+import cpw.mods.fml.common.gameevent.TickEvent;
+//?} else {
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+//?}
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+//? if loader_forge && <=1.12.2 {
+//? if loader_forge && <=1.7.10 {
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+//?} else {
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+//?}
+//?} else {
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+//?}
 //?} else if >=1.21.8 {
 import net.minecraftforge.event.TickEvent;
 //?} else {
@@ -54,10 +78,18 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 //?}
 //?}
 
+//? if loader_forge && <=1.12.2 {
+//? if loader_forge && <=1.7.10 {
+@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION)
+//?} else {
+@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION, clientSideOnly = true)
+//?}
+//?} else {
 @Mod(MineLightsClient.MOD_ID)
+//?}
 public final class MineLightsForge {
     private final MineLightsClient client = new MineLightsClient();
-    //? if loader_forge && 1.14.3 {
+    //? if loader_forge && <=1.14.3 {
     private static volatile boolean chatReceivedThisTick;
     //?}
 
@@ -75,7 +107,17 @@ public final class MineLightsForge {
     }
     //?}
 
-//? if >=26.1 {
+//? if loader_forge && <=1.12.2 {
+    public MineLightsForge() {
+    }
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        MineLightsClient.LOGGER.info("Constructing Forge entrypoint for MineLights.");
+        client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge");
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+    //?} else if >=26.1 {
     public MineLightsForge(FMLJavaModLoadingContext context) {
         initialize(context.getContainer());
     }
@@ -85,6 +127,8 @@ public final class MineLightsForge {
     }
     *///?}
 
+//? if loader_forge && <=1.12.2 {
+    //?} else {
     private void initialize(ModContainer modContainer) {
         MineLightsClient.LOGGER.info("Constructing Forge entrypoint for MineLights.");
         client.init(
@@ -94,7 +138,7 @@ public final class MineLightsForge {
         );
 
         //? if >=1.21.6 {
-        TickEvent.ClientTickEvent.Post.BUS.addListener(event -> client.onClientTick(Minecraft.getInstance()));
+        TickEvent.ClientTickEvent.Post.BUS.addListener(event -> client.onClientTick(MineLightsClient.getMinecraft()));
         //?} else {
         MinecraftForge.EVENT_BUS.register(this);
         //?}
@@ -109,9 +153,9 @@ public final class MineLightsForge {
             *///?}
                 return new AlertScreen(
                         //? if >=26.2 {
-                        () -> Minecraft.getInstance().setScreenAndShow(parent),
+                        () -> MineLightsClient.getMinecraft().setScreenAndShow(parent),
                         //?} else {
-                        /*() -> Minecraft.getInstance().setScreen(parent),
+                        /*() -> MineLightsClient.getMinecraft().setScreen(parent),
                         *///?}
                         literal("MineLights Config Unavailable"),
                         literal("Install a Forge-compatible Cloth Config version to open MineLights settings.")
@@ -128,8 +172,9 @@ public final class MineLightsForge {
         *///?}
         //?}
     }
+    //?}
 
-    //? if loader_forge && 1.14.3 {
+    //? if loader_forge && <=1.14.3 {
     public static boolean consumeChatReceivedThisTick() {
         boolean received = chatReceivedThisTick;
         chatReceivedThisTick = false;
@@ -146,12 +191,12 @@ public final class MineLightsForge {
     @SubscribeEvent
     //? if >=1.21.1 {
     public void onClientTick(TickEvent.ClientTickEvent.Post event) {
-        client.onClientTick(Minecraft.getInstance());
+        client.onClientTick(MineLightsClient.getMinecraft());
     }
     //?} else {
     /* public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
-            client.onClientTick(Minecraft.getInstance());
+            client.onClientTick(MineLightsClient.getMinecraft());
         }
     }
     *///?}
