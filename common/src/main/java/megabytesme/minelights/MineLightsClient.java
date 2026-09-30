@@ -18,6 +18,9 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+//? if loader_forge && <1.19 {
+import net.minecraft.network.chat.TextComponent;
+//?}
 //?} else {
 /* import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -38,6 +41,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
@@ -52,6 +57,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,6 +88,58 @@ public class MineLightsClient {
     public static String getModVersion() {
         return resolvedModVersion != null ? resolvedModVersion : MOD_VERSION;
     }
+
+    private static final Pattern MINECRAFT_VERSION_PATTERN = Pattern.compile("(?:^|\\D)(\\d+\\.\\d+(?:\\.\\d+)?(?:-pre\\d+)?)(?:$|\\D)");
+
+    private static String getMinecraftVersionString() {
+        for (Method versionAccessor : SharedConstants.class.getDeclaredMethods()) {
+            if (!Modifier.isStatic(versionAccessor.getModifiers()) || versionAccessor.getParameterCount() != 0
+                    || versionAccessor.getReturnType().isPrimitive() || versionAccessor.getReturnType() == String.class) {
+                continue;
+            }
+
+            try {
+                versionAccessor.setAccessible(true);
+                Object gameVersion = versionAccessor.invoke(null);
+                if (gameVersion == null) {
+                    continue;
+                }
+                for (Method stringAccessor : gameVersion.getClass().getMethods()) {
+                    if (stringAccessor.getParameterCount() != 0 || stringAccessor.getReturnType() != String.class) {
+                        continue;
+                    }
+                    Object value = stringAccessor.invoke(gameVersion);
+                    if (value instanceof String versionString) {
+                        Matcher matcher = MINECRAFT_VERSION_PATTERN.matcher(versionString);
+                        if (matcher.find()) {
+                            return matcher.group(1);
+                        }
+                    }
+                }
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+                // SharedConstants changed its version API between Minecraft releases.
+            }
+        }
+        throw new IllegalStateException("Could not determine the Minecraft version from SharedConstants.");
+    }
+
+    private static String normalizeModVersion(String version) {
+        if (version == null) {
+            return "";
+        }
+        int buildMetadataIndex = version.indexOf('+');
+        return buildMetadataIndex < 0 ? version : version.substring(0, buildMetadataIndex);
+    }
+
+    //? if loader_neoforge || >=26.1 {
+    private static MutableComponent literalComponent(String text) {
+        //? if loader_forge && <1.19 {
+        return new TextComponent(text);
+        //?} else {
+        /* return Component.literal(text);
+        *///?}
+    }
+    //?}
 
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
@@ -181,7 +240,31 @@ public class MineLightsClient {
             serverMonitorThread.interrupt();
         UDPClient.close();
         if (IS_WINDOWS) {
-            CommandClient.sendCommand("shutdown");
+            CommandClient.sendCommandSync("shutdown");
+            Process process = serverProcess;
+            if (process != null && process.isAlive()) {
+                try {
+                    if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                        LOGGER.warn("MineLights server did not exit after shutdown; terminating its process.");
+                        process.destroy();
+                        if (!process.waitFor(2, TimeUnit.SECONDS)) {
+                            LOGGER.warn("MineLights server did not stop after termination; forcing it to exit.");
+                            process.destroyForcibly().waitFor(2, TimeUnit.SECONDS);
+                        }
+                    }
+                    if (!process.isAlive()) {
+                        LOGGER.info("MineLights server process stopped.");
+                        serverProcess = null;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    process.destroy();
+                    if (process.isAlive()) {
+                        process.destroyForcibly();
+                    }
+                    serverProcess = null;
+                }
+            }
         }
     }
 
@@ -190,7 +273,7 @@ public class MineLightsClient {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getGameVersion().getName();
+            String gameVersion = getMinecraftVersionString();
 
             String urlString = String.format(
                     "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
@@ -208,7 +291,7 @@ public class MineLightsClient {
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
                     MinecraftClient.getInstance().execute(() -> {
                         if (MinecraftClient.getInstance().player != null) {
                             String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
@@ -230,12 +313,12 @@ public class MineLightsClient {
             LOGGER.error("Failed to check for mod updates", e);
         }
     }
-    *///?} else if >= 1.16 && < 1.19 {
+    *///?} else if >= 1.16 && < 1.19 && !loader_forge {
     /* private static void checkForUpdate() {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getGameVersion().getName();
+            String gameVersion = getMinecraftVersionString();
 
             String urlString = String.format(
                     "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
@@ -253,7 +336,7 @@ public class MineLightsClient {
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
                     MinecraftClient.getInstance().execute(() -> {
                         if (MinecraftClient.getInstance().player != null) {
                             String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
@@ -275,12 +358,12 @@ public class MineLightsClient {
         }
     }
     *///?}
-    //? if loader_neoforge && <1.21.6 {
+    //? if (loader_neoforge || loader_forge) && <1.21.6 {
     private static void checkForUpdate() {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getCurrentVersion().getId();
+            String gameVersion = getMinecraftVersionString();
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
             String loadersJson = "[\"" + resolvedModLoader + "\"]";
@@ -296,20 +379,24 @@ public class MineLightsClient {
 
             String json;
             try (InputStream in = conn.getInputStream()) { json = readAllBytes(in); }
-            JsonArray versions = JsonParser.parseString(json).getAsJsonArray();
+            JsonArray versions = new JsonParser().parse(json).getAsJsonArray();
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
                     Minecraft.getInstance().execute(() -> {
                         if (Minecraft.getInstance().player != null) {
                             String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
-                            MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                                    .append(Component.literal("A new version is available: ").withStyle(ChatFormatting.YELLOW))
-                                    .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA));
-                            MutableComponent link = Component.literal("[Click here to download]")
+                            MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                                    .append(literalComponent("A new version is available: ").withStyle(ChatFormatting.YELLOW))
+                                    .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA));
+                            MutableComponent link = literalComponent("[Click here to download]")
                                     .setStyle(Style.EMPTY
-                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            //? if >=1.21.5 {
+                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
+                                            //?} else {
+                                            /* .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
+                                            *///?}
                                             .withColor(ChatFormatting.GREEN));
                             Minecraft.getInstance().player.displayClientMessage(message, false);
                             Minecraft.getInstance().player.displayClientMessage(link, false);
@@ -326,7 +413,7 @@ public class MineLightsClient {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getGameVersion().getId();
+            String gameVersion = getMinecraftVersionString();
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
             String loadersJson = "[\"" + resolvedModLoader + "\"]";
@@ -342,11 +429,11 @@ public class MineLightsClient {
 
             String json;
             try (InputStream in = conn.getInputStream()) { json = readAllBytes(in); }
-            JsonArray versions = JsonParser.parseString(json).getAsJsonArray();
+            JsonArray versions = new JsonParser().parse(json).getAsJsonArray();
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
                     MinecraftClient.getInstance().execute(() -> {
                         if (MinecraftClient.getInstance().player != null) {
                             String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
@@ -381,11 +468,7 @@ public class MineLightsClient {
             }
             LOGGER.info("Current mod version: {}", currentVersion);
 
-            //? if loader_neoforge || >=26.1 {
-            String gameVersion = SharedConstants.getCurrentVersion().id();
-            //?} else {
-            /* String gameVersion = SharedConstants.getGameVersion().id(); */
-            //?}
+            String gameVersion = getMinecraftVersionString();
             LOGGER.info("Current Minecraft version: {}", gameVersion);
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
@@ -421,7 +504,7 @@ public class MineLightsClient {
             }
             LOGGER.info("Response body length: {}", json.length());
 
-            JsonArray versions = JsonParser.parseString(json).getAsJsonArray();
+            JsonArray versions = new JsonParser().parse(json).getAsJsonArray();
             LOGGER.info("Parsed {} versions from Modrinth", versions.size());
 
             if (versions.size() > 0) {
@@ -429,13 +512,9 @@ public class MineLightsClient {
                 String latestVersionNumber = latestVersion.get("version_number").getAsString();
                 LOGGER.info("Latest version number from Modrinth: {}", latestVersionNumber);
 
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
                     LOGGER.info("A new version of MineLights is available: {}", latestVersionNumber);
-                    //? if loader_neoforge || >=26.1 {
-                    String gameVersionId = SharedConstants.getCurrentVersion().id();
-                    //?} else {
-                    /* String gameVersionId = SharedConstants.getGameVersion().id(); */
-                    //?}
+                    String gameVersionId = getMinecraftVersionString();
                     String modrinthUrl = String.format(
                         "https://modrinth.com/mod/%s/versions?version=%s#download",
                         MODRINTH_PROJECT_ID,
@@ -489,21 +568,21 @@ public class MineLightsClient {
 
         //? if loader_neoforge || >=26.1 {
         //? if >=26.1 {
-        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA))
+        MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(literalComponent("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA))
                 .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl))));
         client.player.sendSystemMessage(message);
-        //?} else if >=1.21.6 {
-        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA))
+        //?} else if >=1.21.5 {
+        MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(literalComponent("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA))
                 .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl))));
         client.player.displayClientMessage(message, false);
         //?} else {
-        MutableComponent message = Component.literal("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("New version available: ").withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(latestVersionNumber).withStyle(ChatFormatting.AQUA));
+        MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
+                .append(literalComponent("New version available: ").withStyle(ChatFormatting.YELLOW))
+                .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA));
         message.setStyle(message.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl)));
         client.player.displayClientMessage(message, false);
         //?}
@@ -549,7 +628,7 @@ public class MineLightsClient {
             //? if <=1.21.2 {
             /* JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             *///?} else {
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
             //?}
 
             JsonArray assets = root.getAsJsonArray("assets");
@@ -888,6 +967,7 @@ public class MineLightsClient {
         proxyDiscoveredLatch = new CountDownLatch(1);
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-MainLoop");
+        lightingManagerThread.setDaemon(true);
         lightingManagerThread.start();
 
         lightingInitialized.set(true);

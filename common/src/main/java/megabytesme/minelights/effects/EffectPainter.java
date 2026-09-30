@@ -924,7 +924,7 @@ public class EffectPainter {
         //?} else {
         /* GameOptions options = MinecraftClient.getInstance().options;
         *///?}
-        // ? if >= 1.19 {
+        //? if loader_forge || >= 1.19 {
         keybindsToFetch = Arrays.asList(
                 //? if loader_neoforge || >=26.1 {
                 options.keyUp.getTranslatedKeyMessage().getString(),
@@ -944,7 +944,7 @@ public class EffectPainter {
                 options.sprintKey.getBoundKeyTranslationKey() */
                 //?}
         );
-        // ?} else if >=1.16 {
+        //?} else if >=1.16 {
         /*
          keybindsToFetch = Arrays.asList(
          options.keyForward.getBoundKeyTranslationKey(),
@@ -954,7 +954,7 @@ public class EffectPainter {
          options.keyJump.getBoundKeyTranslationKey(),
          options.keySneak.getBoundKeyTranslationKey(),
          options.keySprint.getBoundKeyTranslationKey());
-         */// ?} else {
+         *///?} else {
         /*
          keybindsToFetch = Arrays.asList(
          options.keyForward.getDefaultKeyCode().toString(),
@@ -965,7 +965,7 @@ public class EffectPainter {
          options.keySneak.getDefaultKeyCode().toString(),
          options.keySprint.getDefaultKeyCode().toString()
          );
-         */// ?}
+         *///?}
 
         for (String key : keybindsToFetch) {
             //? if loader_neoforge || >=26.1 {
@@ -1031,13 +1031,13 @@ public class EffectPainter {
         *///?}
         String keybindToFetch = null;
 
-        //? if >= 1.19 {
+        //? if loader_forge || >= 1.19 {
         //? if loader_neoforge || >=26.1 {
         keybindToFetch = options.keyChat.getTranslatedKeyMessage().getString();
         //?} else {
         /* keybindToFetch = options.chatKey.getBoundKeyTranslationKey(); */
         //?}
-        //?} else if >=1.16 {
+        //?} else if >=1.16 && !loader_forge {
         /* keybindToFetch = options.keyChat.getBoundKeyTranslationKey();
         *///?} else {
         /* keybindToFetch = options.keyChat.getDefaultKeyCode().toString();
@@ -1069,25 +1069,41 @@ public class EffectPainter {
 
     //? if loader_neoforge || >=26.1 {
     private String normalize26KeyName(String keyName) {
-        if (keyName == null || keyName.isBlank()) {
+        if (keyName == null || keyName.trim().isEmpty()) {
             return null;
         }
 
         String normalized = keyName.trim().toUpperCase().replace(' ', '_');
-        return switch (normalized) {
-            case "LEFT_SHIFT" -> "LSHIFT";
-            case "RIGHT_SHIFT" -> "RSHIFT";
-            case "LEFT_CONTROL", "LEFT_CTRL" -> "LCTRL";
-            case "RIGHT_CONTROL", "RIGHT_CTRL" -> "RCTRL";
-            case "LEFT_ALT" -> "LALT";
-            case "RIGHT_ALT" -> "RALT";
-            case "LEFT_WINDOWS", "LEFT_WIN", "LEFT_SUPER" -> "LWIN";
-            case "UP_ARROW" -> "UP";
-            case "DOWN_ARROW" -> "DOWN";
-            case "LEFT_ARROW" -> "LEFT";
-            case "RIGHT_ARROW" -> "RIGHT";
-            default -> normalized;
-        };
+        switch (normalized) {
+            case "LEFT_SHIFT":
+                return "LSHIFT";
+            case "RIGHT_SHIFT":
+                return "RSHIFT";
+            case "LEFT_CONTROL":
+            case "LEFT_CTRL":
+                return "LCTRL";
+            case "RIGHT_CONTROL":
+            case "RIGHT_CTRL":
+                return "RCTRL";
+            case "LEFT_ALT":
+                return "LALT";
+            case "RIGHT_ALT":
+                return "RALT";
+            case "LEFT_WINDOWS":
+            case "LEFT_WIN":
+            case "LEFT_SUPER":
+                return "LWIN";
+            case "UP_ARROW":
+                return "UP";
+            case "DOWN_ARROW":
+                return "DOWN";
+            case "LEFT_ARROW":
+                return "LEFT";
+            case "RIGHT_ARROW":
+                return "RIGHT";
+            default:
+                return normalized;
+        }
     }
     //?}
 

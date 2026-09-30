@@ -1,11 +1,25 @@
 package megabytesme.minelights.mixin;
 
-//? if loader_neoforge || >=26.1 {
+//? if >=26.1 {
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
-//?} else {
+//?} else if (loader_neoforge || loader_forge) && >=1.19.3 {
+/*
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+*///?} else if (loader_neoforge || loader_forge) && >=1.19 {
+/*
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+*///?} else if loader_neoforge || loader_forge {
+/* import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundChatPacket;
+*///?} else {
 /* import net.minecraft.client.network.ClientPlayNetworkHandler;
 //? if 1.14.4 || >=1.19 {
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
@@ -21,7 +35,17 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-//?} else {
+//?} else if (loader_neoforge || loader_forge) && >=1.19.3 {
+/*
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+*///?} else if (loader_neoforge || loader_forge) && >=1.19 {
+/*
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+*///?} else {
 /* import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,16 +53,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
 
-//? if loader_neoforge || >=26.1 {
+//? if >=26.1 {
 @Mixin(ClientPacketListener.class)
-//?} else {
+//?} else if loader_neoforge || loader_forge {
+/* @Mixin(ClientPacketListener.class)
+*///?} else {
 /* @Mixin(ClientPlayNetworkHandler.class)
 *///?}
 public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAccessor {
     @Unique
     private boolean chatReceivedThisTick = false;
 
-    //? if loader_neoforge || >=26.1 {
+//? if >=26.1 {
     @Inject(method = "handleSystemChat", at = @At("HEAD"))
     private void onSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;
@@ -53,7 +79,39 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     private void onDisguisedChat(ClientboundDisguisedChatPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;
     }
-    //?} else if >=1.16 && <=1.18.2 {
+    //?} else if (loader_neoforge || loader_forge) && >=1.19.3 {
+    /*
+    @Inject(method = "handleSystemChat", at = @At("HEAD"))
+    private void onSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+
+    @Inject(method = "handlePlayerChat", at = @At("HEAD"))
+    private void onPlayerChat(ClientboundPlayerChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+
+    @Inject(method = "handleDisguisedChat", at = @At("HEAD"))
+    private void onDisguisedChat(ClientboundDisguisedChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    *///?} else if (loader_neoforge || loader_forge) && >=1.19 {
+    /*
+    @Inject(method = "handleSystemChat", at = @At("HEAD"))
+    private void onSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+
+    @Inject(method = "handlePlayerChat", at = @At("HEAD"))
+    private void onPlayerChat(ClientboundPlayerChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    *///?} else if loader_neoforge || loader_forge {
+    /* @Inject(method = "handleChat", at = @At("HEAD"))
+    private void onChat(ClientboundChatPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    *///?} else if >=1.16 && <=1.18.2 {
     /* @Inject(method = "onGameMessage", at = @At("HEAD"))
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;

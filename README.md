@@ -7,9 +7,9 @@
 
 
 
-MineLights is a Minecraft Fabric, Quilt, and NeoForge mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets Minecraft versions from 1.14.3 onward on Fabric, 1.14.4 onward on Quilt, and 1.20.2 onward on NeoForge.
+MineLights is a Minecraft Fabric, Quilt, Forge, and NeoForge mod that brings your world to life with dynamic RGB lighting effects for your peripherals. It targets Minecraft versions from 1.14.3 onward on Fabric, 1.14.4 onward on Quilt, Forge releases from 1.17.1 onward, and NeoForge releases from 1.20.2 onward.
 
-###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), 1.14.4 - 26.3 (Quilt), and 1.20.2 - 26.3 (NeoForge)
+###### Currently supported: Minecraft 1.14.3 - 26.3 (Fabric), 1.14.4 - 26.3 (Quilt), 1.17.1 - 26.3 (Forge), and 1.20.2 - 26.3 (NeoForge)
 
 ## Features
 
@@ -46,6 +46,7 @@ MineLights is a Minecraft Fabric, Quilt, and NeoForge mod that brings your world
 
 - **Minecraft Fabric or Quilt**: Install the matching Fabric or Quilt Loader.
 - **Minecraft NeoForge**: Install NeoForge for the supported Minecraft version.
+- **Minecraft Forge**: Install Forge for one of the supported Minecraft versions.
 - **Mod Menu**: Required to access the in-game configuration screen.
 - **Cloth Config API**: Required to access the in-game configuration screen.
 - **No Quilt API bundle required**: MineLights runs on Quilt without QSL, QFAPI, or Fabric API.
@@ -62,7 +63,7 @@ MineLights is a Minecraft Fabric, Quilt, and NeoForge mod that brings your world
 
 ## Usage
 
-1. **Launch Minecraft:** Start the game with your Fabric, Quilt, or NeoForge profile.
+1. **Launch Minecraft:** Start the game with your Fabric, Quilt, Forge, or NeoForge profile.
 2. **Configure:**
    - In the main menu, go to **Mods > MineLights > Config** (the gear icon).
    - Enable the integrations you want to use (OpenRGB, Corsair iCUE, etc.).
