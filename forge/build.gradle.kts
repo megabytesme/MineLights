@@ -55,13 +55,15 @@ val mappingVersion = when (mcVersion) {
 }
 val mcDependency = property("mod.mc_dep").toString()
 val clothConfigVersion = property("deps.cloth_config").toString()
+val usesClothConfig = stonecutter.eval(mcVersion, ">=1.16.3") && mcVersion !in setOf("1.21.4", "26.3")
+val clothConfigModId = if (stonecutter.eval(mcVersion, ">=1.17.1")) "cloth_config" else "cloth-config"
 val clothConfigProject = if (stonecutter.eval(mcVersion, ">=1.21.5")) "cloth-config-forge" else "cloth-config"
 val clothConfigDependency = if (mcVersion == "1.16.2") {
     "maven.modrinth:9s6osm5g:tR748cRj"
 } else if (mcVersion == "1.18" || mcVersion == "1.18.1" || mcVersion == "1.18.2") {
     "maven.modrinth:9s6osm5g:ZbWG3eJW"
 } else if (mcVersion == "1.16.4" || mcVersion == "1.16.5") {
-    "maven.modrinth:9s6osm5g:31tLmbMI"
+    "maven.modrinth:9s6osm5g:i0ExoqTD"
 } else if (mcVersion == "1.17.1") {
     "maven.modrinth:9s6osm5g:GH6kNTCk"
 } else {
@@ -164,16 +166,18 @@ minecraft {
 
 dependencies {
     implementation(minecraft.dependency("net.minecraftforge:forge:$mcVersion-$forgeVersion"))
-    if (!usesLegacyForgeMetadata && mcVersion !in setOf("1.13.2", "1.16.1")) {
+    if (usesClothConfig) {
         compileOnly(clothConfigDependency)
     }
-    if (clothConfigRuntime) {
+    if (clothConfigRuntime && usesClothConfig) {
         runtimeOnly(clothConfigDependency)
     }
     if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
         compileOnly("org.spongepowered:mixin:0.8.2")
         annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
-        runtimeOnly("maven.modrinth:mixinbootstrap:hOGSWOX8")
+        if (mcVersion != "1.15.2") {
+            runtimeOnly("maven.modrinth:mixinbootstrap:hOGSWOX8")
+        }
     }
     if (stonecutter.eval(mcVersion, ">=1.21.6")) {
         annotationProcessor("net.minecraftforge:eventbus-validator:7.0.5")
@@ -189,9 +193,21 @@ java {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
-    if (stonecutter.eval(mcVersion, "<=1.16.2")) {
-        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
+    if (!usesClothConfig) {
         java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
+        java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
+    }
+    if (stonecutter.eval(mcVersion, ">=1.13.2")) {
+        java.exclude("megabytesme/minelights/MineLightsLegacyGuiFactory.java")
+    }
+    if (stonecutter.eval(mcVersion, ">=1.13.2")) {
+        java.exclude("megabytesme/minelights/MineLightsLegacyConfigScreen.java")
+    }
+    if (stonecutter.eval(mcVersion, "<1.13.2") || stonecutter.eval(mcVersion, ">=1.16.3")) {
+        java.exclude("megabytesme/minelights/MineLightsTransitionalConfigScreen.java")
+    }
+    if (stonecutter.eval(mcVersion, "<1.21.4")) {
+        java.exclude("megabytesme/minelights/MineLightsModernConfigScreen.java")
     }
     if (mcVersion == "1.13.2" || mcVersion == "1.14.2" || mcVersion == "1.14.3") {
         java.exclude("megabytesme/minelights/mixin/**")
@@ -322,6 +338,18 @@ tasks.processResources {
             val mixinConfig = destinationDir.resolve("minelights.mixins.json")
             mixinConfig.writeText(mixinConfig.readText().replaceFirst("{", "{\n  \"refmap\": \"minelights.refmap.json\","))
         }
+        if (usesClothConfig) {
+            val modsToml = destinationDir.resolve("META-INF/mods.toml")
+            modsToml.appendText("""
+
+                [[dependencies.$modId]]
+                modId = "$clothConfigModId"
+                mandatory = true
+                versionRange = "[1,)"
+                ordering = "AFTER"
+                side = "CLIENT"
+            """.trimIndent() + "\n")
+        }
         if (usesLegacyForgeMetadata) {
             destinationDir.resolve("minelights.mixins.json").delete()
             destinationDir.resolve("META-INF/mods.toml").delete()
@@ -402,6 +430,9 @@ publishMods {
         minecraftVersions.addAll(property("mod.mc_targets").toString().split(" "))
         if (mcVersion == "1.14.4") {
             requires("mixinbootstrap")
+        }
+        if (usesClothConfig) {
+            requires(if (stonecutter.eval(mcVersion, ">=1.21.5")) "cloth-config-forge" else "cloth-config")
         }
     }
 }

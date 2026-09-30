@@ -222,7 +222,9 @@ public class PlayerDataCollector {
         ChunkCoordinates playerPos = new ChunkCoordinates((int) Math.floor(player.posX), (int) Math.floor(player.posY), (int) Math.floor(player.posZ));
         //?} else if loader_forge && <=1.12.2 {
         BlockPos playerPos = new BlockPos(player.posX, player.posY, player.posZ);
-        //?} else if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
+        //?} else if loader_forge && <=1.14.3 {
+        BlockPos playerPos = new BlockPos(player.posX, player.posY, player.posZ);
+        //?} else if loader_forge && 1.16.1 {
         BlockPos playerPos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
         //?} else if loader_forge && <=1.14.4 {
         BlockPos playerPos = new BlockPos(player.x, player.y, player.z);
@@ -268,8 +270,10 @@ public class PlayerDataCollector {
         ChunkCoordinates headPos = new ChunkCoordinates((int) Math.floor(eyePos.xCoord), (int) Math.floor(eyePos.yCoord), (int) Math.floor(eyePos.zCoord));
         //?} else if loader_forge && <=1.8.9 {
         BlockPos headPos = new BlockPos(eyePos.xCoord, eyePos.yCoord, eyePos.zCoord);
-        //?} else if loader_forge && <=1.12.2 {
+        //?} else if loader_forge && <=1.10.2 {
         BlockPos headPos = new BlockPos(eyePos.xCoord, eyePos.yCoord, eyePos.zCoord);
+        //?} else if loader_forge && <=1.12.2 {
+        BlockPos headPos = new BlockPos(eyePos.x, eyePos.y, eyePos.z);
         //?} else if >=1.19.4 {
         BlockPos headPos = BlockPos.containing(eyePos.x, eyePos.y, eyePos.z);
         //?} else {
@@ -324,8 +328,8 @@ public class PlayerDataCollector {
         playerDto.setIsWithering(player.isPotionActive(MobEffects.WITHER));
         //?} else if loader_forge && <=1.13.2 {
         playerDto.setIsOnFire(player.isBurning());
-        playerDto.setIsPoisoned(player.isPotionActive(Effects.POISON));
-        playerDto.setIsWithering(player.isPotionActive(Effects.WITHER));
+        playerDto.setIsPoisoned(player.isPotionActive(MobEffects.POISON));
+        playerDto.setIsWithering(player.isPotionActive(MobEffects.WITHER));
         //?} else if loader_forge && 1.16.1 {
         playerDto.setIsOnFire(player.isBurning());
         playerDto.setIsPoisoned(player.isPotionActive(Effects.POISON));
@@ -750,7 +754,7 @@ public class PlayerDataCollector {
         }
 
         for (ItemStack stack : inventory) {
-            //? if loader_forge && <=1.12.2 {
+            //? if loader_forge && <=1.10.2 {
             if (stack.stackSize <= 0) continue;
             //?} else {
             if (stack.isEmpty()) continue;
@@ -988,7 +992,7 @@ public class PlayerDataCollector {
         Vec3 targetPos = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
         //?}
 
-        //? if loader_forge && <=1.12.2 {
+        //? if loader_forge && <=1.10.2 {
         double deltaX = targetPos.xCoord - playerPos.xCoord;
         double deltaZ = targetPos.zCoord - playerPos.zCoord;
         //?} else {

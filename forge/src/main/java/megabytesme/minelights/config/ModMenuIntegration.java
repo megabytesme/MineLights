@@ -195,13 +195,11 @@ public final class ModMenuIntegration {
                 }
             };
 
-            //? if <26.1 {
+            //? if >=1.16.3 && <26.1 {
             serverManagement.addEntry(new LiveStatusEntry("minelights.status", statusTextSupplier));
             //?} else {
-            /*serverManagement.addEntry(entryBuilder.startTextDescription(statusTextSupplier.get()).build());
-            serverManagement.addEntry(entryBuilder.startTextDescription(
-                    translatable("text.mine-lights.about.description")).build());
-            *///?}
+            serverManagement.addEntry(entryBuilder.startTextDescription(statusTextSupplier.get()).build());
+            //?}
             serverManagement.addEntry(entryBuilder
                     .startBooleanToggle(translatable("option.mine-lights.force_update.label"), MineLightsClient.CONFIG.forceServerUpdate)
                     .setDefaultValue(false)

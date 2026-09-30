@@ -100,6 +100,12 @@ public class LiveStatusEntry extends AbstractConfigListEntry<ITextComponent> {
     public void setDragging(boolean dragging) {
     }
 
+    //? if loader_forge && >=1.16.4 && <1.17 {
+    @Override
+    public void tick() {
+    }
+    //?}
+
     @Override
     public void render(MatrixStack context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX,
                        int mouseY, boolean isHovered, float delta) {

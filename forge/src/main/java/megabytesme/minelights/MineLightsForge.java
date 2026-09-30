@@ -1,19 +1,31 @@
 package megabytesme.minelights;
 
-//? if loader_forge && >=1.16.3 {
+//? if loader_forge && >=1.16.3 && <1.21.4 {
 import megabytesme.minelights.config.ModMenuIntegration;
+//?} else if loader_forge && >=1.21.5 && <26.3 {
+/* import megabytesme.minelights.config.ModMenuIntegration;
+*///?}
+//? if loader_forge && >=1.13.2 && <1.16.3 {
+import megabytesme.minelights.MineLightsTransitionalConfigScreen;
+//?}
+//? if loader_forge && >=1.21.4 {
+import megabytesme.minelights.MineLightsModernConfigScreen;
 //?}
 import net.minecraft.client.Minecraft;
+//? if loader_forge && >=1.14.2 && <1.17 {
+import net.minecraft.client.gui.screen.Screen;
+//?} else if loader_forge && >=1.17 {
+import net.minecraft.client.gui.screens.Screen;
+//?} else if loader_forge && >=1.13.2 {
+import net.minecraft.client.gui.GuiScreen;
+//?}
 //? if loader_forge && >=1.16.3 {
 //? if loader_forge && <1.17 {
 import net.minecraft.client.gui.screen.AlertScreen;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.ExtensionPoint;
 //?} else {
 import net.minecraft.client.gui.screens.AlertScreen;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 //? if <1.19 {
 import net.minecraft.network.chat.TextComponent;
@@ -21,11 +33,14 @@ import net.minecraft.network.chat.TextComponent;
 //? if >=1.19 {
 import net.minecraftforge.client.ConfigScreenHandler;
 //?} else if >=1.18 {
-/* import net.minecraftforge.client.ConfigGuiHandler;
-*///?} else {
-/* import net.minecraftforge.fmlclient.ConfigGuiHandler;
-*///?}
+import net.minecraftforge.client.ConfigGuiHandler;
+//?} else if >=1.17 {
+import net.minecraftforge.fmlclient.ConfigGuiHandler;
 //?}
+//?}
+//?}
+//? if loader_forge && >=1.13.2 && <1.17 {
+import net.minecraftforge.fml.ExtensionPoint;
 //?}
 //? if loader_forge && >=1.13.2 && <26.1 {
 import net.minecraftforge.fml.ModLoadingContext;
@@ -37,6 +52,11 @@ import net.minecraftforge.fml.common.Mod;
 //?}
 //? if loader_forge && <=1.12.2 {
 //? if loader_forge && <=1.7.10 {
+import cpw.mods.fml.common.FMLCommonHandler;
+//?} else {
+import net.minecraftforge.fml.common.FMLCommonHandler;
+//?}
+//? if loader_forge && <=1.7.10 {
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 //?} else {
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -46,7 +66,7 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 //?}
-//? if loader_forge && >=1.16.3 {
+//? if loader_forge && >=1.13.2 {
 import java.util.function.BiFunction;
 //?}
 //? if loader_forge && <=1.14.3 {
@@ -80,9 +100,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 //? if loader_forge && <=1.12.2 {
 //? if loader_forge && <=1.7.10 {
-@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION)
+@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION,
+        guiFactory = "megabytesme.minelights.MineLightsLegacyGuiFactory")
 //?} else {
-@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION, clientSideOnly = true)
+@Mod(modid = MineLightsClient.MOD_ID, name = "MineLights", version = MineLightsClient.MOD_VERSION,
+        clientSideOnly = true, guiFactory = "megabytesme.minelights.MineLightsLegacyGuiFactory")
 //?}
 //?} else {
 @Mod(MineLightsClient.MOD_ID)
@@ -116,6 +138,7 @@ public final class MineLightsForge {
         MineLightsClient.LOGGER.info("Constructing Forge entrypoint for MineLights.");
         client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge");
         MinecraftForge.EVENT_BUS.register(this);
+        FMLCommonHandler.instance().bus().register(this);
     }
     //?} else if >=26.1 {
     public MineLightsForge(FMLJavaModLoadingContext context) {
@@ -143,7 +166,43 @@ public final class MineLightsForge {
         MinecraftForge.EVENT_BUS.register(this);
         //?}
 
-        //? if loader_forge && >=1.16.3 {
+        //? if loader_forge && >=1.13.2 && <1.14.2 {
+        MineLightsClient.LOGGER.info("Registering Forge config screen factory.");
+        BiFunction<Minecraft, GuiScreen, GuiScreen> screenFactory = (minecraft, parent) ->
+                new MineLightsTransitionalConfigScreen(parent);
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
+                () -> screenFactory);
+        //?} else if loader_forge && >=1.14.2 && <1.16.3 {
+        MineLightsClient.LOGGER.info("Registering native Forge config screen factory.");
+        BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) ->
+                new MineLightsTransitionalConfigScreen(parent);
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
+                () -> screenFactory);
+        //?} else if loader_forge && >=1.16.3 && <1.17 {
+        MineLightsClient.LOGGER.info("Registering Forge config screen factory.");
+        BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) ->
+                ModMenuIntegration.createConfigScreen(parent);
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
+                () -> screenFactory);
+        //?} else if loader_forge && >=1.17 && <1.19 {
+        MineLightsClient.LOGGER.info("Registering Forge config screen factory.");
+        BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) ->
+                ModMenuIntegration.createConfigScreen(parent);
+        ModLoadingContext.get().registerExtensionPoint(ConfigGuiHandler.ConfigGuiFactory.class,
+                () -> new ConfigGuiHandler.ConfigGuiFactory(screenFactory));
+        //?} else if loader_forge && >=1.21.4 && <1.21.5 {
+        MineLightsClient.LOGGER.info("Registering native Forge config screen factory.");
+        BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) ->
+                new MineLightsModernConfigScreen(parent);
+        modContainer.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory(screenFactory));
+        //?} else if loader_forge && >=26.3 {
+        MineLightsClient.LOGGER.info("Registering native Forge config screen factory.");
+        BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) ->
+                new MineLightsModernConfigScreen(parent);
+        modContainer.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory(screenFactory));
+        //?} else if loader_forge && >=1.19 {
         MineLightsClient.LOGGER.info("Registering Forge config screen factory.");
         BiFunction<Minecraft, Screen, Screen> screenFactory = (minecraft, parent) -> {
             //? if >=26.1 {
@@ -163,13 +222,8 @@ public final class MineLightsForge {
             }
             return ModMenuIntegration.createConfigScreen(parent);
         };
-        //? if >=1.19 {
         modContainer.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(screenFactory));
-        //?} else {
-        /* ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
-                () -> screenFactory);
-        *///?}
         //?}
     }
     //?}
@@ -201,4 +255,5 @@ public final class MineLightsForge {
     }
     *///?}
     //?}
+
 }

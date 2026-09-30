@@ -39,7 +39,7 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 //?}
-//?} else if loader_neoforge || >=26.1 {
+//?} else if loader_forge || loader_neoforge || >=26.1 {
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -47,6 +47,9 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+//? if <1.19 {
+import net.minecraft.network.chat.TextComponent;
+//?}
 //?} else {
 /* import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -184,7 +187,7 @@ public class MineLightsClient {
         return buildMetadataIndex < 0 ? version : version.substring(0, buildMetadataIndex);
     }
 
-    //? if loader_neoforge || >=26.1 {
+    //? if loader_forge || loader_neoforge || >=26.1 {
     //? if loader_forge && <1.17 {
     //? if loader_forge && <=1.8.9 {
     private static IChatComponent literalComponent(String text) {
@@ -668,7 +671,7 @@ public class MineLightsClient {
             return;
         }
 
-        //? if loader_neoforge || >=26.1 {
+        //? if loader_forge || loader_neoforge || >=26.1 {
         Minecraft client = MineLightsClient.getMinecraft();
         //? if loader_forge && <=1.9.4 {
         if (client.thePlayer == null) {
@@ -696,7 +699,7 @@ public class MineLightsClient {
             return;
         }
 
-        //? if loader_neoforge || >=26.1 {
+        //? if loader_forge || loader_neoforge || >=26.1 {
         //? if loader_forge && <=1.9.4 {
         //? if loader_forge && <=1.8.9 {
         IChatComponent message = new ChatComponentText(
@@ -708,6 +711,8 @@ public class MineLightsClient {
         client.thePlayer.addChatMessage(message);
         //?}
         //?} else if loader_forge && <=1.13.2 {
+        ITextComponent message = new TextComponentString(
+                "[MineLights] New version available: " + latestVersionNumber + " - " + modrinthUrl);
         client.player.sendMessage(message);
         //?} else if loader_forge && <=1.15.2 {
         ITextComponent message = new StringTextComponent(
