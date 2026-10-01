@@ -11,6 +11,7 @@ plugins {
 val isUnobfuscatedVersion = stonecutter.eval(stonecutter.current.version, ">=26.1")
 val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3") ||
         stonecutter.current.version == "1.21.11"
+val usesJava8Runtime = stonecutter.eval(stonecutter.current.version, "<1.17")
 
 apply(plugin = if (isUnobfuscatedVersion) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
 
@@ -74,8 +75,9 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             .replace("private static String resolvedModLoader = \"fabric\";", "private static String resolvedModLoader = \"quilt\";")
             .replace(initializer, "")
             .replace(fabricServerExePath, "return getGameDir().resolve(\"MineLights\").resolve(\"MineLights.exe\");")
-        check(!quiltClient.contains("net.fabricmc.")) {
-            "Fabric loader references remain in the generated Quilt client source."
+        check(!quiltClient.contains("net.fabricmc.loader.api.FabricLoader") &&
+                !quiltClient.contains("net.fabricmc.api.ClientModInitializer")) {
+            "Fabric loader entrypoint references remain in the generated Quilt client source."
         }
         rootProject.file("src/main/java/megabytesme/minelights/MineLightsClient.java").writeText(quiltClient)
         copy {
@@ -155,6 +157,12 @@ java {
     }
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    if (usesJava8Runtime) {
+        options.release.set(8)
+    }
 }
 
 sourceSets {

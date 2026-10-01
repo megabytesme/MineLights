@@ -14,6 +14,7 @@ import net.neoforged.fml.loading.FMLPaths;
 /*import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.minecraft.client.gui.screens.Screen;
 *///?} else {
  import net.neoforged.neoforge.client.ConfigScreenHandler;
 import net.neoforged.neoforge.event.TickEvent;
@@ -35,7 +36,7 @@ public final class MineLightsNeoForge {
         //? if >=1.20.5 {
         /*MineLightsClient.LOGGER.info("Registering NeoForge config screen factory.");
         modContainer.registerExtensionPoint(IConfigScreenFactory.class,
-                (container, parent) -> ModMenuIntegration.createConfigScreen(parent));
+                new MineLightsConfigScreenFactory());
         *///?} else {
          MineLightsClient.LOGGER.info("Registering NeoForge config screen factory.");
          modContainer.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
@@ -43,6 +44,21 @@ public final class MineLightsNeoForge {
                         ModMenuIntegration.createConfigScreen(parent))); 
         //?}
     }
+
+    //? if >=1.20.5 {
+    /*
+    private static final class MineLightsConfigScreenFactory implements IConfigScreenFactory {
+        // NeoForge 20.5 passes Minecraft, while 21.1 passes ModContainer.
+        // Keep both JVM descriptors so the same supported mod build works on both API shapes.
+        public Screen createScreen(Minecraft minecraft, Screen parent) {
+            return ModMenuIntegration.createConfigScreen(parent);
+        }
+
+        public Screen createScreen(ModContainer container, Screen parent) {
+            return ModMenuIntegration.createConfigScreen(parent);
+        }
+    }
+    *///?}
 
     //? if >=1.20.5 {
     /*@SubscribeEvent

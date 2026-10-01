@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
@@ -41,6 +40,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
@@ -61,6 +64,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
@@ -84,6 +89,63 @@ public class MineLightsClient implements ClientModInitializer {
     public static String getModVersion() {
         return resolvedModVersion != null ? resolvedModVersion : MOD_VERSION;
     }
+
+    //? if >=1.16 && <1.20 {
+    private static final Pattern MINECRAFT_VERSION_PATTERN =
+            Pattern.compile("(?:^|\\D)(\\d+\\.\\d+(?:\\.\\d+)?(?:-pre\\d+)?)(?:$|\\D)");
+
+    private static String getMinecraftVersionString() {
+        for (Method versionAccessor : SharedConstants.class.getDeclaredMethods()) {
+            if (!Modifier.isStatic(versionAccessor.getModifiers()) || versionAccessor.getParameterCount() != 0
+                    || versionAccessor.getReturnType().isPrimitive() || versionAccessor.getReturnType() == String.class) {
+                continue;
+            }
+
+            try {
+                versionAccessor.setAccessible(true);
+                Object gameVersion = versionAccessor.invoke(null);
+                if (gameVersion == null) {
+                    continue;
+                }
+                for (Method stringAccessor : gameVersion.getClass().getMethods()) {
+                    if (stringAccessor.getParameterCount() != 0 || stringAccessor.getReturnType() != String.class) {
+                        continue;
+                    }
+                    Object value = stringAccessor.invoke(gameVersion);
+                    if (value instanceof String) {
+                        Matcher matcher = MINECRAFT_VERSION_PATTERN.matcher((String) value);
+                        if (matcher.find()) {
+                            return matcher.group(1);
+                        }
+                    }
+                }
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+                // SharedConstants changed its version API between Minecraft releases.
+            }
+        }
+        throw new IllegalStateException("Could not determine the Minecraft version from SharedConstants.");
+    }
+    //?}
+
+    //? if >=1.16 && <1.19 {
+    private static String getMinecraftVersionName() {
+        try {
+            return SharedConstants.getGameVersion().getName();
+        } catch (NoSuchMethodError missingVersionAccessor) {
+            return getMinecraftVersionString();
+        }
+    }
+    //?}
+
+    //? if >=1.19 && <1.21.6 {
+    private static String getMinecraftVersionId() {
+        try {
+            return SharedConstants.getGameVersion().getId();
+        } catch (NoSuchMethodError missingVersionAccessor) {
+            return getMinecraftVersionString();
+        }
+    }
+    //?}
 
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
@@ -115,6 +177,12 @@ public class MineLightsClient implements ClientModInitializer {
     public static final AtomicReference<String> downloadSpeedMBps = new AtomicReference<>("");
     private static Process serverProcess = null;
 
+    //? if >=26.1 {
+    public static Minecraft getMinecraft() {
+        return Minecraft.getInstance();
+    }
+    //?}
+
     @Override
     public void onInitializeClient() {
         String version = FabricLoader.getInstance()
@@ -123,7 +191,58 @@ public class MineLightsClient implements ClientModInitializer {
                 .orElse(MOD_VERSION);
 
         init(FabricLoader.getInstance().getConfigDir(), version, "fabric");
-        ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
+        registerClientTickCallback();
+    }
+
+    private void registerClientTickCallback() {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            Class<?> callbackType;
+            Object event;
+            try {
+                Class<?> events = Class.forName(
+                        "net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents", true, classLoader);
+                callbackType = Class.forName(
+                        "net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents$EndTick", true, classLoader);
+                event = events.getField("END_CLIENT_TICK").get(null);
+            } catch (ClassNotFoundException missingModernCallback) {
+                callbackType = Class.forName(
+                        "net.fabricmc.fabric.api.event.client.ClientTickCallback", true, classLoader);
+                event = callbackType.getField("EVENT").get(null);
+            }
+
+            Method eventCallback = null;
+            for (Method method : callbackType.getMethods()) {
+                if (method.getParameterTypes().length == 1) {
+                    eventCallback = method;
+                    break;
+                }
+            }
+            if (eventCallback == null) {
+                throw new NoSuchMethodException("Client tick callback has no one-argument method");
+            }
+            Method clientTick = getClass().getMethod("onClientTick", eventCallback.getParameterTypes()[0]);
+            Object listener = Proxy.newProxyInstance(callbackType.getClassLoader(), new Class<?>[]{callbackType},
+                    (proxy, method, args) -> {
+                        if (method.getDeclaringClass() == Object.class) {
+                            if ("equals".equals(method.getName())) return proxy == args[0];
+                            if ("hashCode".equals(method.getName())) return System.identityHashCode(proxy);
+                            if ("toString".equals(method.getName())) return "MineLightsClientTickListener";
+                        }
+                        if (args != null && args.length == 1) {
+                            try {
+                                clientTick.invoke(this, args[0]);
+                            } catch (InvocationTargetException exception) {
+                                throw exception.getCause();
+                            }
+                        }
+                        return null;
+                    });
+            Class<?> eventType = Class.forName("net.fabricmc.fabric.api.event.Event", true, classLoader);
+            eventType.getMethod("register", Object.class).invoke(event, listener);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to register the Fabric client tick callback", exception);
+        }
     }
 
     public void init(Path configDir, String modVersion, String modLoader) {
@@ -270,7 +389,7 @@ public class MineLightsClient implements ClientModInitializer {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getGameVersion().getName();
+            String gameVersion = getMinecraftVersionName();
 
             String urlString = String.format(
                     "https://api.modrinth.com/v2/project/%s/version?game_versions=%s&loaders=%s",
@@ -315,7 +434,7 @@ public class MineLightsClient implements ClientModInitializer {
         LOGGER.info("Checking for MineLights updates on Modrinth...");
         try {
             String currentVersion = resolvedModVersion;
-            String gameVersion = SharedConstants.getGameVersion().getId();
+            String gameVersion = getMinecraftVersionId();
 
             String gameVersionsJson = "[\"" + gameVersion + "\"]";
             String loadersJson = "[\"" + resolvedModLoader + "\"]";

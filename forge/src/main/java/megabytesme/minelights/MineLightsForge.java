@@ -68,6 +68,14 @@ import net.minecraftforge.fml.loading.FMLPaths;
 //?}
 //? if loader_forge && >=1.13.2 {
 import java.util.function.BiFunction;
+import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicBoolean;
+//?}
+//? if loader_forge && >=1.13.2 && <26.3 {
+import java.lang.reflect.Method;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWWindowCloseCallback;
+import org.lwjgl.glfw.GLFWWindowCloseCallbackI;
 //?}
 //? if loader_forge && <=1.14.3 {
 //? if loader_forge && <=1.7.10 {
@@ -111,6 +119,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 //?}
 public final class MineLightsForge {
     private final MineLightsClient client = new MineLightsClient();
+    //? if loader_forge && >=1.13.2 {
+    private static final AtomicBoolean closeSignalHandled = new AtomicBoolean(false);
+    //?}
+    //? if loader_forge && >=1.13.2 && <26.3 {
+    private static volatile long glfwWindowHandle;
+    private GLFWWindowCloseCallbackI mineLightsWindowCloseCallback;
+    //?}
     //? if loader_forge && <=1.14.3 {
     private static volatile boolean chatReceivedThisTick;
     //?}
@@ -161,7 +176,16 @@ public final class MineLightsForge {
         );
 
         //? if >=1.21.6 {
-        TickEvent.ClientTickEvent.Post.BUS.addListener(event -> client.onClientTick(MineLightsClient.getMinecraft()));
+        TickEvent.ClientTickEvent.Post.BUS.addListener(event -> {
+            Minecraft minecraft = MineLightsClient.getMinecraft();
+            //? if <26.3 {
+            installCloseCallback(minecraft);
+            //?}
+            if (clientShouldClose(minecraft)) {
+                client.shutdown();
+            }
+            client.onClientTick(minecraft);
+        });
         //?} else {
         MinecraftForge.EVENT_BUS.register(this);
         //?}
@@ -245,7 +269,12 @@ public final class MineLightsForge {
     @SubscribeEvent
     //? if >=1.21.1 {
     public void onClientTick(TickEvent.ClientTickEvent.Post event) {
-        client.onClientTick(MineLightsClient.getMinecraft());
+        Minecraft minecraft = MineLightsClient.getMinecraft();
+        installCloseCallback(minecraft);
+        if (clientShouldClose(minecraft)) {
+            client.shutdown();
+        }
+        client.onClientTick(minecraft);
     }
     //?} else {
     /* public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -254,6 +283,200 @@ public final class MineLightsForge {
         }
     }
     *///?}
+    //?}
+
+    //? if loader_forge && >=1.13.2 && <1.21.1 {
+    @SubscribeEvent
+    public void onClientTickClose(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+        Minecraft minecraft = MineLightsClient.getMinecraft();
+        installCloseCallback(minecraft);
+        if (clientShouldClose(minecraft)) {
+            client.shutdown();
+        }
+    }
+    //?}
+
+    //? if loader_forge && >=1.13.2 && <26.3 {
+    private void installCloseCallback(Minecraft minecraft) {
+        if (mineLightsWindowCloseCallback != null || minecraft == null) {
+            return;
+        }
+
+        long handle = glfwWindowHandle;
+        if (handle == 0L) {
+            handle = findGlfwWindowHandle(minecraft);
+            if (handle != 0L) {
+                glfwWindowHandle = handle;
+            }
+        }
+        if (handle == 0L) {
+            return;
+        }
+
+        final GLFWWindowCloseCallback[] previous = new GLFWWindowCloseCallback[1];
+        GLFWWindowCloseCallback callback = new GLFWWindowCloseCallback() {
+            @Override
+            public void invoke(long window) {
+                MineLightsClient.LOGGER.info("Stopping MineLights before the Forge window closes.");
+                closeSignalHandled.set(true);
+                try {
+                    client.shutdown();
+                } finally {
+                    if (previous[0] != null) {
+                        previous[0].invoke(window);
+                    }
+                }
+            }
+        };
+        previous[0] = GLFW.glfwSetWindowCloseCallback(handle, callback);
+        mineLightsWindowCloseCallback = callback;
+        MineLightsClient.LOGGER.debug("Installed MineLights shutdown handler for the Forge window.");
+    }
+    //?}
+
+    //? if loader_forge && >=1.13.2 {
+    private static boolean clientShouldClose(Minecraft minecraft) {
+        if (closeSignalHandled.get()) {
+            return true;
+        }
+        if (isMinecraftStopped(minecraft)) {
+            closeSignalHandled.set(true);
+            MineLightsClient.LOGGER.info("Stopping MineLights before the Forge client exits.");
+            return true;
+        }
+
+        //? if loader_forge && <26.3 {
+        long handle = glfwWindowHandle;
+        if (handle == 0L) {
+            handle = findGlfwWindowHandle(minecraft);
+            if (handle != 0L) {
+                glfwWindowHandle = handle;
+            }
+        }
+        if (handle != 0L) {
+            try {
+                if (GLFW.glfwWindowShouldClose(handle)) {
+                    closeSignalHandled.set(true);
+                    MineLightsClient.LOGGER.info("Stopping MineLights before the Forge window closes.");
+                    return true;
+                }
+            } catch (Throwable ignored) {
+                glfwWindowHandle = 0L;
+            }
+        }
+        //?}
+        return false;
+    }
+
+    private static boolean isMinecraftStopped(Minecraft minecraft) {
+        if (minecraft == null) {
+            return false;
+        }
+        for (Class<?> type = minecraft.getClass(); type != null; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (field.getType() == boolean.class
+                        && ("running".equals(field.getName()) || "field_71425_J".equals(field.getName()))) {
+                    try {
+                        field.setAccessible(true);
+                        return !field.getBoolean(minecraft);
+                    } catch (Throwable ignored) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    //?}
+
+    //? if loader_forge && >=1.13.2 && <26.3 {
+    private static long findGlfwWindowHandle(Minecraft minecraft) {
+        if (minecraft == null) {
+            return 0L;
+        }
+        for (Class<?> type = minecraft.getClass(); type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (method.getParameterTypes().length == 0
+                        && method.getReturnType().getSimpleName().toLowerCase().contains("window")) {
+                    try {
+                        method.setAccessible(true);
+                        long handle = extractGlfwWindowHandle(method.invoke(minecraft));
+                        if (handle != 0L) {
+                            return handle;
+                        }
+                    } catch (Throwable ignored) {
+                        // Continue with other mapped accessors and fields.
+                    }
+                }
+            }
+            for (Field field : type.getDeclaredFields()) {
+                if (field.getType().getSimpleName().toLowerCase().contains("window")) {
+                    try {
+                        field.setAccessible(true);
+                        long handle = extractGlfwWindowHandle(field.get(minecraft));
+                        if (handle != 0L) {
+                            return handle;
+                        }
+                    } catch (Throwable ignored) {
+                        // Continue with other mapped accessors and fields.
+                    }
+                }
+            }
+        }
+        return 0L;
+    }
+
+    private static long extractGlfwWindowHandle(Object window) {
+        if (window == null) {
+            return 0L;
+        }
+        for (Class<?> type = window.getClass(); type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                String name = method.getName().toLowerCase();
+                if (method.getParameterTypes().length == 0
+                        && ("gethandle".equals(name) || "getwindow".equals(name))
+                        && (method.getReturnType() == long.class || method.getReturnType() == Long.class)) {
+                    try {
+                        method.setAccessible(true);
+                        long handle = ((Number) method.invoke(window)).longValue();
+                        if (isVisibleGlfwWindow(handle)) {
+                            return handle;
+                        }
+                    } catch (Throwable ignored) {
+                        // Try other window members.
+                    }
+                }
+            }
+            for (Field field : type.getDeclaredFields()) {
+                if (field.getType() == long.class || field.getType() == Long.class) {
+                    try {
+                        field.setAccessible(true);
+                        long handle = ((Number) field.get(window)).longValue();
+                        if (isVisibleGlfwWindow(handle)) {
+                            return handle;
+                        }
+                    } catch (Throwable ignored) {
+                        // Try other window members.
+                    }
+                }
+            }
+        }
+        return 0L;
+    }
+
+    private static boolean isVisibleGlfwWindow(long handle) {
+        if (handle == 0L) {
+            return false;
+        }
+        try {
+            return GLFW.glfwGetWindowAttrib(handle, GLFW.GLFW_VISIBLE) == GLFW.GLFW_TRUE;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
     //?}
 
 }

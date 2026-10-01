@@ -224,6 +224,7 @@ public class MineLightsClient {
     private boolean titleScreenHooked = false;
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
+    private static final AtomicBoolean shutdownStarted = new AtomicBoolean(false);
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
 
@@ -258,6 +259,9 @@ public class MineLightsClient {
         MineLightsClient.configDir = configDir;
         MineLightsClient.resolvedModVersion = modVersion;
         MineLightsClient.resolvedModLoader = modLoader;
+        if ("forge".equalsIgnoreCase(modLoader) || "neoforge".equalsIgnoreCase(modLoader)) {
+            preloadFmlShutdownClasses();
+        }
         if (shutdownHookRegistered.compareAndSet(false, true)) {
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown, "MineLights-Shutdown"));
         }
@@ -280,6 +284,21 @@ public class MineLightsClient {
                 Thread.currentThread().interrupt();
             }
         }, "MineLights-Initializer-Waiter").start();
+    }
+
+    private static void preloadFmlShutdownClasses() {
+        ClassLoader classLoader = MineLightsClient.class.getClassLoader();
+        String[] classNames = {
+                "megabytesme.minelights.network.CommandClient",
+                "megabytesme.minelights.rgb.YeelightController$YeelightDevice"
+        };
+        for (String className : classNames) {
+            try {
+                Class.forName(className, false, classLoader);
+            } catch (ClassNotFoundException | LinkageError e) {
+                LOGGER.warn("Could not preload Forge shutdown class {}.", className, e);
+            }
+        }
     }
 
     //? if loader_neoforge || >=26.1 {
@@ -314,6 +333,9 @@ public class MineLightsClient {
     }
 
     public void shutdown() {
+        if (!shutdownStarted.compareAndSet(false, true)) {
+            return;
+        }
         if (lightingManagerThread != null)
             lightingManagerThread.interrupt();
         if (discoveryThread != null)

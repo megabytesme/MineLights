@@ -166,6 +166,11 @@ minecraft {
 
 dependencies {
     implementation(minecraft.dependency("net.minecraftforge:forge:$mcVersion-$forgeVersion"))
+    if (stonecutter.eval(mcVersion, ">=1.13.2")) {
+        // Minecraft supplies GLFW at runtime; make its window API available to Forge source sets at compile time.
+        val lwjglVersion = if (stonecutter.eval(mcVersion, ">=26.3")) "3.4.1" else "3.3.1"
+        compileOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion")
+    }
     if (usesClothConfig) {
         compileOnly(clothConfigDependency)
     }

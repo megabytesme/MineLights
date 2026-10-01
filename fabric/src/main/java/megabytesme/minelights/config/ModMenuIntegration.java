@@ -91,6 +91,25 @@ public class ModMenuIntegration implements ModMenuApi {
     }
     *///?}
 
+    //? if >=1.19 && <1.20 {
+    private static String stableCategoryName(String key) {
+        String translated = translatable(key).getString();
+        if (!translated.equals(key)) {
+            return translated;
+        }
+        return switch (key) {
+            case "category.mine-lights.server_management" -> "Server Management";
+            case "category.mine-lights.general" -> "General";
+            case "category.mine-lights.integrations" -> "Integrations";
+            case "category.mine-lights.devices" -> "Devices";
+            case "category.mine-lights.player_status" -> "Player Status";
+            case "category.mine-lights.environment" -> "Environment";
+            case "category.mine-lights.about" -> "About";
+            default -> key;
+        };
+    }
+    //?}
+
     private Screen buildConfigScreen(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
@@ -176,9 +195,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(
-                    //? if >=1.19 {
-                    translatable("category.mine-lights.server_management")
-                    //?} else if <1.19 {
+                    //? if >=1.19 && <1.20 {
+                    literal(stableCategoryName("category.mine-lights.server_management"))
+                    //?} else if >=1.20 {
+                    /*translatable("category.mine-lights.server_management")
+                    *///?} else if <1.19 {
                     /*new TranslatableText("category.mine-lights.server_management")
                     *///?}
                     //? if <1.16 {
@@ -371,9 +392,11 @@ public class ModMenuIntegration implements ModMenuApi {
         }
         
         ConfigCategory general = builder.getOrCreateCategory(
-                //? if >=1.19 {
-                translatable("category.mine-lights.general")
-                //?} else if <1.19 {
+                //? if >=1.19 && <1.20 {
+                literal(stableCategoryName("category.mine-lights.general"))
+                //?} else if >=1.20 {
+                /*translatable("category.mine-lights.general")
+                *///?} else if <1.19 {
                 /*new TranslatableText("category.mine-lights.general")
                 *///?}
                 //? if <1.16 {
@@ -438,9 +461,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory integrations = builder.getOrCreateCategory(
-                //? if >=1.19 {
-                translatable("category.mine-lights.integrations")
-                //?} else if <1.19 {
+                //? if >=1.19 && <1.20 {
+                literal(stableCategoryName("category.mine-lights.integrations"))
+                //?} else if >=1.20 {
+                /*translatable("category.mine-lights.integrations")
+                *///?} else if <1.19 {
                 /*new TranslatableText("category.mine-lights.integrations")
                 *///?}
                 //? if <1.16 {
@@ -616,9 +641,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory devices = builder.getOrCreateCategory(
-                //? if >=1.19 {
-                translatable("category.mine-lights.devices")
-                //?} else if <1.19 {
+                //? if >=1.19 && <1.20 {
+                literal(stableCategoryName("category.mine-lights.devices"))
+                //?} else if >=1.20 {
+                /*translatable("category.mine-lights.devices")
+                *///?} else if <1.19 {
                 /*new TranslatableText("category.mine-lights.devices")
                 *///?}
                 //? if <1.16 {
@@ -722,9 +749,11 @@ public class ModMenuIntegration implements ModMenuApi {
         }
 
         ConfigCategory playerStatus = builder.getOrCreateCategory(
-                //? if >=1.19 {
-                translatable("category.mine-lights.player_status")
-                //?} else if <1.19 {
+                //? if >=1.19 && <1.20 {
+                literal(stableCategoryName("category.mine-lights.player_status"))
+                //?} else if >=1.20 {
+                /*translatable("category.mine-lights.player_status")
+                *///?} else if <1.19 {
                 /*new TranslatableText("category.mine-lights.player_status")
                 *///?}
                 //? if <1.16 {
@@ -987,9 +1016,11 @@ public class ModMenuIntegration implements ModMenuApi {
                 .build());
 
         ConfigCategory environment = builder.getOrCreateCategory(
-                //? if >=1.19 {
-                translatable("category.mine-lights.environment")
-                //?} else if <1.19 {
+                //? if >=1.19 && <1.20 {
+                literal(stableCategoryName("category.mine-lights.environment"))
+                //?} else if >=1.20 {
+                /*translatable("category.mine-lights.environment")
+                *///?} else if <1.19 {
                 /*new TranslatableText("category.mine-lights.environment")
                 *///?}
                 //? if <1.16 {
@@ -1165,9 +1196,11 @@ public class ModMenuIntegration implements ModMenuApi {
 
         ConfigCategory aboutCategory = builder
                 .getOrCreateCategory(
-                        //? if >=1.19 {
-                        translatable("category.mine-lights.about")
-                        //?} else if <1.19 {
+                        //? if >=1.19 && <1.20 {
+                        literal(stableCategoryName("category.mine-lights.about"))
+                        //?} else if >=1.20 {
+                        /*translatable("category.mine-lights.about")
+                        *///?} else if <1.19 {
                         /*new TranslatableText("category.mine-lights.about")
                         *///?}
                         //? if <1.16 {
