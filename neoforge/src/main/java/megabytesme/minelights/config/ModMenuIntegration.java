@@ -284,10 +284,12 @@ public final class ModMenuIntegration {
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                 .build());
+        //? if >=26.1 {
         playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLocatorBar"), MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
                 .build());
+        //?}
         playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLowHealthWarning"), MineLightsClient.CONFIG.enableLowHealthWarning)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableLowHealthWarning = newValue)
@@ -346,11 +348,13 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.enableWeatherEffects.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
                 .build());
+        //? if >=1.21.9 {
         environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableEndFlashEffect"), MineLightsClient.CONFIG.enableEndFlashEffect)
                 .setDefaultValue(true)
                 .setTooltip(translatable("option.mine-lights.enableEndFlashEffect.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableEndFlashEffect = newValue)
                 .build());
+        //?}
         environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableOnFireEffect"), MineLightsClient.CONFIG.enableOnFireEffect)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableOnFireEffect = newValue)

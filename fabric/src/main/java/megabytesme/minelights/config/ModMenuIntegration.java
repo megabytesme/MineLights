@@ -848,7 +848,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                 .build());
 
-        //? if >=1.21.8 {
+        //? if >=26.1 {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(translatable("option.mine-lights.enableLocatorBar"),
                                 MineLightsClient.CONFIG.enableLocatorBar)

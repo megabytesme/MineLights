@@ -36,13 +36,14 @@ public final class MineLightsModernConfigScreen extends Screen {
     @Override
     protected void init() {
         List<Option> options = optionsForPage(page);
-        int optionPageCount = Math.max(1, (options.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        int optionPageSize = pageSizeFor(page);
+        int optionPageCount = pageCountFor(page);
         int selectedOptionPage = Math.min(optionPage, optionPageCount - 1);
         int buttonWidth = Math.min(440, this.width - 40);
         int left = (this.width - buttonWidth) / 2;
         int top = 42;
-        int startIndex = selectedOptionPage * PAGE_SIZE;
-        int endIndex = Math.min(startIndex + PAGE_SIZE, options.size());
+        int startIndex = selectedOptionPage * optionPageSize;
+        int endIndex = Math.min(startIndex + optionPageSize, options.size());
 
         for (int index = startIndex; index < endIndex; index++) {
             Option option = options.get(index);
@@ -51,22 +52,22 @@ public final class MineLightsModernConfigScreen extends Screen {
                 option.change.run();
                 MineLightsClient.saveConfig();
                 show(new MineLightsModernConfigScreen(parent, page, selectedOptionPage));
-            });
+            }, option.active);
         }
 
         int navY = this.height - 28;
-        int pageCount = 5;
-        addButton("< " + pageName(page), left, navY, 100,
-                () -> show(new MineLightsModernConfigScreen(parent,
-                        selectedOptionPage > 0 ? page : Math.max(0, page - 1),
-                        selectedOptionPage > 0 ? selectedOptionPage - 1 : page - 1 >= 0
-                                ? Math.max(0, (optionsForPage(page - 1).size() - 1) / PAGE_SIZE) : 0)),
+        int previousPage = selectedOptionPage > 0 ? page : Math.max(0, page - 1);
+        int previousOptionPage = selectedOptionPage > 0
+                ? selectedOptionPage - 1
+                : page > 0 ? pageCountFor(page - 1) - 1 : 0;
+        addButton("< Previous", left, navY, 100,
+                () -> show(new MineLightsModernConfigScreen(parent, previousPage, previousOptionPage)),
                 selectedOptionPage > 0 || page > 0);
-        addButton(pageName(page) + " >", left + buttonWidth - 100, navY, 100,
-                () -> show(new MineLightsModernConfigScreen(parent,
-                        selectedOptionPage + 1 < optionPageCount ? page : Math.min(pageCount - 1, page + 1),
-                        selectedOptionPage + 1 < optionPageCount ? selectedOptionPage + 1 : 0)),
-                selectedOptionPage + 1 < optionPageCount || page + 1 < pageCount);
+        int nextPage = selectedOptionPage + 1 < optionPageCount ? page : Math.min(5, page + 1);
+        int nextOptionPage = selectedOptionPage + 1 < optionPageCount ? selectedOptionPage + 1 : 0;
+        addButton("Next >", left + buttonWidth - 100, navY, 100,
+                () -> show(new MineLightsModernConfigScreen(parent, nextPage, nextOptionPage)),
+                selectedOptionPage + 1 < optionPageCount || page + 1 < 6);
         addButton("Done", this.width / 2 - 45, navY, 90, () -> closeToParent());
     }
 
@@ -127,7 +128,9 @@ public final class MineLightsModernConfigScreen extends Screen {
                 toggle(options, "Hunger bar", () -> MineLightsClient.CONFIG.enableHungerBar, value -> MineLightsClient.CONFIG.enableHungerBar = value);
                 toggle(options, "Saturation bar", () -> MineLightsClient.CONFIG.enableSaturationBar, value -> MineLightsClient.CONFIG.enableSaturationBar = value);
                 toggle(options, "Experience bar", () -> MineLightsClient.CONFIG.enableExperienceBar, value -> MineLightsClient.CONFIG.enableExperienceBar = value);
+                //? if >=26.1 {
                 toggle(options, "Locator bar", () -> MineLightsClient.CONFIG.enableLocatorBar, value -> MineLightsClient.CONFIG.enableLocatorBar = value);
+                //?}
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass, value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
                 cycle(options, "Compass priority", () -> MineLightsClient.CONFIG.compassPriority.toString(), () -> {
@@ -149,7 +152,9 @@ public final class MineLightsModernConfigScreen extends Screen {
                     MineLightsClient.CONFIG.minBrightness = next > 1.0F ? 0.0F : next;
                 });
                 toggle(options, "Weather effects", () -> MineLightsClient.CONFIG.enableWeatherEffects, value -> MineLightsClient.CONFIG.enableWeatherEffects = value);
+                //? if >=1.21.9 {
                 toggle(options, "End flash effect", () -> MineLightsClient.CONFIG.enableEndFlashEffect, value -> MineLightsClient.CONFIG.enableEndFlashEffect = value);
+                //?}
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect, value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect, value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects, value -> MineLightsClient.CONFIG.enablePortalEffects = value);
@@ -173,6 +178,14 @@ public final class MineLightsModernConfigScreen extends Screen {
                     }
                 }
                 break;
+            case 5:
+                aboutText(options, "MineLights", "Version " + MineLightsClient.getModVersion(),
+                        "RGB lighting integrations for Minecraft Java Edition.", "Copyright \u00a9 2026 MegaBytesMe",
+                        "Project links and support",
+                        "Source code: github.com/megabytesme/MineLights",
+                        "Report issues: github.com/megabytesme/MineLights/issues",
+                        "Support development: ko-fi.com/megabytesme");
+                break;
             default:
                 break;
         }
@@ -185,7 +198,23 @@ public final class MineLightsModernConfigScreen extends Screen {
             case 1: return "Integrations";
             case 2: return "Player status";
             case 3: return "Environment";
-            default: return "Devices";
+            case 4: return "Devices";
+            default: return "About";
+        }
+    }
+
+    private static int pageSizeFor(int selectedPage) {
+        return selectedPage == 5 ? 4 : PAGE_SIZE;
+    }
+
+    private int pageCountFor(int selectedPage) {
+        int optionPageSize = pageSizeFor(selectedPage);
+        return Math.max(1, (optionsForPage(selectedPage).size() + optionPageSize - 1) / optionPageSize);
+    }
+
+    private static void aboutText(List<Option> options, String... lines) {
+        for (String line : lines) {
+            options.add(new Option(line, () -> "", () -> { }, false));
         }
     }
 
@@ -201,11 +230,17 @@ public final class MineLightsModernConfigScreen extends Screen {
         private final String name;
         private final Supplier<String> value;
         private final Runnable change;
+        private final boolean active;
 
         private Option(String name, Supplier<String> value, Runnable change) {
+            this(name, value, change, true);
+        }
+
+        private Option(String name, Supplier<String> value, Runnable change, boolean active) {
             this.name = name;
             this.value = value;
             this.change = change;
+            this.active = active;
         }
 
         private String label() {

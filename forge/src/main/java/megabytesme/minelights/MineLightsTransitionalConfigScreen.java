@@ -57,12 +57,13 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
     protected void init() {
     *///?}
         List<Option> options = optionsForPage(page);
-        optionPageCount = Math.max(1, (options.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        int pageSize = pageSizeFor(page);
+        optionPageCount = pageCountFor(page);
         optionPage = Math.min(optionPage, optionPageCount - 1);
         int buttonWidth = Math.min(440, this.width - 40);
         int left = (this.width - buttonWidth) / 2;
-        int start = optionPage * PAGE_SIZE;
-        int end = Math.min(start + PAGE_SIZE, options.size());
+        int start = optionPage * pageSize;
+        int end = Math.min(start + pageSize, options.size());
 
         for (int index = start; index < end; index++) {
             Option option = options.get(index);
@@ -71,7 +72,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 option.change.run();
                 MineLightsClient.saveConfig();
                 open(new MineLightsTransitionalConfigScreen(parent, page, optionPage));
-            }, true);
+            }, option.active);
         }
 
         int navY = this.height - 28;
@@ -80,17 +81,17 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 open(new MineLightsTransitionalConfigScreen(parent, page, optionPage - 1));
             } else if (page > 0) {
                 int previousPage = page - 1;
-                int lastOptionPage = Math.max(0, (optionsForPage(previousPage).size() - 1) / PAGE_SIZE);
+                int lastOptionPage = pageCountFor(previousPage) - 1;
                 open(new MineLightsTransitionalConfigScreen(parent, previousPage, lastOptionPage));
             }
         }, optionPage > 0 || page > 0);
         addMenuButton(101, left + buttonWidth - 100, navY, 100, "Next >", () -> {
             if (optionPage + 1 < optionPageCount) {
                 open(new MineLightsTransitionalConfigScreen(parent, page, optionPage + 1));
-            } else if (page < 4) {
+            } else if (page < 5) {
                 open(new MineLightsTransitionalConfigScreen(parent, page + 1, 0));
             }
-        }, optionPage + 1 < optionPageCount || page < 4);
+        }, optionPage + 1 < optionPageCount || page < 5);
         addMenuButton(102, this.width / 2 - 45, navY, 90, "Done", this::closeToParent, true);
     }
 
@@ -178,7 +179,6 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 toggle(options, "Hunger bar", () -> MineLightsClient.CONFIG.enableHungerBar, value -> MineLightsClient.CONFIG.enableHungerBar = value);
                 toggle(options, "Saturation bar", () -> MineLightsClient.CONFIG.enableSaturationBar, value -> MineLightsClient.CONFIG.enableSaturationBar = value);
                 toggle(options, "Experience bar", () -> MineLightsClient.CONFIG.enableExperienceBar, value -> MineLightsClient.CONFIG.enableExperienceBar = value);
-                toggle(options, "Locator bar", () -> MineLightsClient.CONFIG.enableLocatorBar, value -> MineLightsClient.CONFIG.enableLocatorBar = value);
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass, value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
                 cycle(options, "Compass priority", () -> MineLightsClient.CONFIG.compassPriority.toString(), () -> {
@@ -200,7 +200,6 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                     MineLightsClient.CONFIG.minBrightness = next > 1.0F ? 0.0F : next;
                 });
                 toggle(options, "Weather effects", () -> MineLightsClient.CONFIG.enableWeatherEffects, value -> MineLightsClient.CONFIG.enableWeatherEffects = value);
-                toggle(options, "End flash effect", () -> MineLightsClient.CONFIG.enableEndFlashEffect, value -> MineLightsClient.CONFIG.enableEndFlashEffect = value);
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect, value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect, value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects, value -> MineLightsClient.CONFIG.enablePortalEffects = value);
@@ -221,10 +220,33 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                     }
                 }
                 break;
+            case 5:
+                aboutText(options, "MineLights", "Version " + MineLightsClient.getModVersion(),
+                        "RGB lighting integrations for Minecraft Java Edition.", "Copyright \u00a9 2026 MegaBytesMe",
+                        "Source code: github.com/megabytesme/MineLights",
+                        "Report issues: github.com/megabytesme/MineLights/issues",
+                        "Support development: ko-fi.com/megabytesme");
+                break;
             default:
                 break;
         }
         return options;
+    }
+
+    private int pageSizeFor(int selectedPage) {
+        return selectedPage == 5 ? 4 : PAGE_SIZE;
+    }
+
+    private int pageCountFor(int selectedPage) {
+        List<Option> options = optionsForPage(selectedPage);
+        int pageSize = pageSizeFor(selectedPage);
+        return Math.max(1, (options.size() + pageSize - 1) / pageSize);
+    }
+
+    private static void aboutText(List<Option> options, String... lines) {
+        for (String line : lines) {
+            options.add(new Option(line, () -> "", () -> { }, false));
+        }
     }
 
     private static void toggle(List<Option> options, String label, BooleanSupplier value, Consumer<Boolean> setter) {
@@ -239,11 +261,17 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
         private final String name;
         private final Supplier<String> value;
         private final Runnable change;
+        private final boolean active;
 
         private Option(String name, Supplier<String> value, Runnable change) {
+            this(name, value, change, true);
+        }
+
+        private Option(String name, Supplier<String> value, Runnable change, boolean active) {
             this.name = name;
             this.value = value;
             this.change = change;
+            this.active = active;
         }
 
         private String label() {

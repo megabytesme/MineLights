@@ -488,69 +488,8 @@ public class MineLightsClient {
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
                 if (!normalizeModVersion(currentVersion).equals(normalizeModVersion(latestVersionNumber))) {
-                    //? if loader_forge && <=1.7.2 {
                     String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
-                    pendingUpdateVersion.set(latestVersionNumber);
-                    pendingUpdateUrl.set(modrinthUrl);
-                    pendingUpdateNotification.set(true);
-                    //?} else {
-                    //? if loader_forge && <=1.13.2 {
-                    MineLightsClient.getMinecraft().addScheduledTask(() -> {
-                    //?} else {
-                    MineLightsClient.getMinecraft().execute(() -> {
-                    //?}
-                        //? if loader_forge && <=1.9.4 {
-                        if (MineLightsClient.getMinecraft().thePlayer != null) {
-                        //?} else {
-                        /* if (MineLightsClient.getMinecraft().player != null) {
-                        *///?}
-                            String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
-                            //? if loader_forge && <=1.9.4 {
-                            //? if loader_forge && <=1.8.9 {
-                            MineLightsClient.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(
-                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl));
-                            //?} else {
-                            MineLightsClient.getMinecraft().thePlayer.addChatMessage(new TextComponentString(
-                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl));
-                            //?}
-                            //?} else if loader_forge && <=1.13.2 {
-                            MineLightsClient.getMinecraft().player.sendMessage(new TextComponentString(
-                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl));
-                            //?} else if loader_forge && <=1.15.2 {
-                            MineLightsClient.getMinecraft().player.sendMessage(new StringTextComponent(
-                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl));
-                            //?} else if loader_forge && 1.16.1 {
-                            MineLightsClient.getMinecraft().player.sendMessage(new StringTextComponent(
-                                    "[MineLights] A new version is available: " + latestVersionNumber + " - " + modrinthUrl),
-                                    java.util.UUID.randomUUID());
-                            //?} else if loader_forge && <1.17 {
-                            IFormattableTextComponent message = literalComponent("[MineLights] ").withStyle(TextFormatting.GOLD)
-                                    .append(literalComponent("A new version is available: ").withStyle(TextFormatting.YELLOW))
-                                    .append(literalComponent(latestVersionNumber).withStyle(TextFormatting.AQUA));
-                            IFormattableTextComponent link = literalComponent("[Click here to download]")
-                                    .setStyle(Style.EMPTY
-                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
-                                            .withColor(TextFormatting.GREEN));
-                            MineLightsClient.getMinecraft().player.sendMessage(message, java.util.UUID.randomUUID());
-                            MineLightsClient.getMinecraft().player.sendMessage(link, java.util.UUID.randomUUID());
-                            //?} else {
-                            MutableComponent message = literalComponent("[MineLights] ").withStyle(ChatFormatting.GOLD)
-                                    .append(literalComponent("A new version is available: ").withStyle(ChatFormatting.YELLOW))
-                                    .append(literalComponent(latestVersionNumber).withStyle(ChatFormatting.AQUA));
-                            MutableComponent link = literalComponent("[Click here to download]")
-                                    .setStyle(Style.EMPTY
-                                            //? if >=1.21.5 {
-                                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(modrinthUrl)))
-                                            //?} else {
-                                            /* .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, modrinthUrl))
-                                            *///?}
-                                            .withColor(ChatFormatting.GREEN));
-                            MineLightsClient.getMinecraft().player.displayClientMessage(message, false);
-                            MineLightsClient.getMinecraft().player.displayClientMessage(link, false);
-                            //?}
-                        }
-                    });
-                    //?}
+                    queueUpdateNotification(latestVersionNumber, modrinthUrl);
                 }
             }
         } catch (Exception e) {
