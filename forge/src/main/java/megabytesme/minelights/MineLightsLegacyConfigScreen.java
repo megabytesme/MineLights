@@ -189,6 +189,8 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                 });
                 toggle(options, "Weather effects", () -> MineLightsClient.CONFIG.enableWeatherEffects,
                         value -> MineLightsClient.CONFIG.enableWeatherEffects = value);
+                toggle(options, "Mirror DRAM rain direction", () -> MineLightsClient.CONFIG.mirrorRamRainDirection,
+                        value -> MineLightsClient.CONFIG.mirrorRamRainDirection = value);
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect,
                         value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect,

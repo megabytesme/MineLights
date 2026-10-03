@@ -348,6 +348,11 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.enableWeatherEffects.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
                 .build());
+        environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.mirrorRamRainDirection"), MineLightsClient.CONFIG.mirrorRamRainDirection)
+                .setDefaultValue(false)
+                .setTooltip(translatable("option.mine-lights.mirrorRamRainDirection.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.mirrorRamRainDirection = newValue)
+                .build());
         //? if >=1.21.9 {
         environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableEndFlashEffect"), MineLightsClient.CONFIG.enableEndFlashEffect)
                 .setDefaultValue(true)

@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "局部光",
   "option.mine-lights.enableWeatherEffects": "启用天气效果",
   "option.mine-lights.enableWeatherEffects.tooltip": "添加下雨和雷暴的灯光效果。",
+  "option.mine-lights.mirrorRamRainDirection": "镜像 DRAM 雨滴方向",
+  "option.mine-lights.mirrorRamRainDirection.tooltip": "反转内存条上雨滴动画的方向。",
   "option.mine-lights.enableEndFlashEffect": "启用末地闪光效果",
   "option.mine-lights.enableEndFlashEffect.tooltip": "复刻在末地维度中发生的紫色闪光效果。",
   "option.mine-lights.enableOnFireEffect": "启用着火效果",

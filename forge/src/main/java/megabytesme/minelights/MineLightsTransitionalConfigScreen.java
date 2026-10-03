@@ -200,6 +200,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                     MineLightsClient.CONFIG.minBrightness = next > 1.0F ? 0.0F : next;
                 });
                 toggle(options, "Weather effects", () -> MineLightsClient.CONFIG.enableWeatherEffects, value -> MineLightsClient.CONFIG.enableWeatherEffects = value);
+                toggle(options, "Mirror DRAM rain direction", () -> MineLightsClient.CONFIG.mirrorRamRainDirection, value -> MineLightsClient.CONFIG.mirrorRamRainDirection = value);
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect, value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect, value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects, value -> MineLightsClient.CONFIG.enablePortalEffects = value);

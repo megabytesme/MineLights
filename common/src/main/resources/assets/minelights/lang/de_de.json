@@ -58,6 +58,8 @@
   "enum.mine-lights.dimmingMode.local_light": "Umgebungslicht",
   "option.mine-lights.enableWeatherEffects": "Wettereffekte aktivieren",
   "option.mine-lights.enableWeatherEffects.tooltip": "Fügt Regen- und Gewitter-Lichteffekte hinzu.",
+  "option.mine-lights.mirrorRamRainDirection": "DRAM-Regenrichtung spiegeln",
+  "option.mine-lights.mirrorRamRainDirection.tooltip": "Kehrt die Richtung der Regenanimation auf RAM-Modulen um.",
   "option.mine-lights.enableEndFlashEffect": "Endblitz-Effekt aktivieren",
   "option.mine-lights.enableEndFlashEffect.tooltip": "Repliziert den violetten Blitzeffekt, der in der End-Dimension auftritt.",
   "option.mine-lights.enableOnFireEffect": "„Brennen“-Effekt aktivieren",

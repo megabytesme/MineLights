@@ -152,6 +152,7 @@ public final class MineLightsModernConfigScreen extends Screen {
                     MineLightsClient.CONFIG.minBrightness = next > 1.0F ? 0.0F : next;
                 });
                 toggle(options, "Weather effects", () -> MineLightsClient.CONFIG.enableWeatherEffects, value -> MineLightsClient.CONFIG.enableWeatherEffects = value);
+                toggle(options, "Mirror DRAM rain direction", () -> MineLightsClient.CONFIG.mirrorRamRainDirection, value -> MineLightsClient.CONFIG.mirrorRamRainDirection = value);
                 //? if >=1.21.9 {
                 toggle(options, "End flash effect", () -> MineLightsClient.CONFIG.enableEndFlashEffect, value -> MineLightsClient.CONFIG.enableEndFlashEffect = value);
                 //?}

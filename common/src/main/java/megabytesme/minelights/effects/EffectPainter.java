@@ -521,6 +521,9 @@ public class EffectPainter {
         if (ramKeys.isEmpty())
             return;
 
+        boolean mirrorDirection = MineLightsClient.CONFIG.mirrorRamRainDirection;
+        int direction = mirrorDirection ? -1 : 1;
+
         if (now > deviceState.lastRamRaindropSpawn + deviceState.nextRamRaindropDelay) {
             deviceState.ramRaindrops.add(new RamRaindrop(color, now));
             deviceState.lastRamRaindropSpawn = now;
@@ -543,14 +546,15 @@ public class EffectPainter {
                 continue;
             }
 
-            if (drop.position >= 0 && drop.position < ramKeys.size()) {
-                ramKeyColors.put(ramKeys.get(drop.position), drop.color);
+            int headPosition = mirrorDirection ? ramKeys.size() - 1 - drop.position : drop.position;
+            if (headPosition >= 0 && headPosition < ramKeys.size()) {
+                ramKeyColors.put(ramKeys.get(headPosition), drop.color);
             }
-            int tail1Pos = drop.position - 1;
+            int tail1Pos = headPosition - direction;
             if (tail1Pos >= 0 && tail1Pos < ramKeys.size()) {
                 ramKeyColors.putIfAbsent(ramKeys.get(tail1Pos), drop.tailColor);
             }
-            int tail2Pos = drop.position - 2;
+            int tail2Pos = headPosition - 2 * direction;
             if (tail2Pos >= 0 && tail2Pos < ramKeys.size()) {
                 ramKeyColors.putIfAbsent(ramKeys.get(tail2Pos), drop.tailColor2);
             }

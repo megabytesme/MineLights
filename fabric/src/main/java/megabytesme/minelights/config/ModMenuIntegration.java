@@ -1121,6 +1121,33 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableWeatherEffects = newValue)
                 .build());
+        environment.addEntry(entryBuilder
+                .startBooleanToggle(
+                        //? if >=1.19 {
+                        translatable("option.mine-lights.mirrorRamRainDirection")
+                        //?} else if <1.19 {
+                        /*new TranslatableText("option.mine-lights.mirrorRamRainDirection")
+                        *///?}
+                        //? if <1.16 {
+                        /* .getString()
+                        *///? }
+                        ,
+                        MineLightsClient.CONFIG.mirrorRamRainDirection)
+                .setDefaultValue(false)
+                //? if >=1.16 {
+                .setTooltip(
+                    //? if >=1.19 {
+                    translatable("option.mine-lights.mirrorRamRainDirection.tooltip")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("option.mine-lights.mirrorRamRainDirection.tooltip")
+                    *///?}
+                )
+                //?}
+                //? if <1.16 {
+                /* .setTooltip(new TranslatableText("option.mine-lights.mirrorRamRainDirection.tooltip").getString()) */
+                //?}
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.mirrorRamRainDirection = newValue)
+                .build());
         //? if >=1.21.9 {
         environment.addEntry(entryBuilder
                 .startBooleanToggle(
