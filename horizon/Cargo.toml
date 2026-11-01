@@ -1,0 +1,13 @@
+[package]
+name = "minelights-horizon"
+version = "0.1.0"
+edition = "2024"
+license = "CC-BY-NC-SA-4.0"
+publish = false
+description = "MineLights native mod for Horizon"
+
+[lib]
+path = "mixins/minelights/direct.rs"
+
+[dependencies]
+serde_json = "1"

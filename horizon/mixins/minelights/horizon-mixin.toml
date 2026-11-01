@@ -1,0 +1,116 @@
+[mod]
+id = "minelights"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+horizon_revision = "9d979caa48a3bb58203319b9ea044db58c38e0d8"
+
+[[module]]
+id = "runtime"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights"
+source = "runtime.rs"
+
+[[module]]
+id = "config"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_config"
+source = "config.rs"
+
+[[module]]
+id = "effects"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_effects"
+source = "effects.rs"
+
+[[module]]
+id = "player_data"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_player_data"
+source = "player_data.rs"
+
+[[module]]
+id = "bridge"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_bridge"
+source = "bridge.rs"
+
+[[module]]
+id = "waypoint_access"
+file = "crates/horizon-client/src/locator_bar.rs"
+name = "minelights_access"
+source = "waypoints.rs"
+
+[[module]]
+id = "end_flash_access"
+file = "crates/horizon-client/src/game/end.rs"
+name = "minelights_access"
+source = "end_flash.rs"
+
+[[module]]
+id = "direct_devices"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_direct"
+source = "direct.rs"
+
+[[module]]
+id = "translations"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_lang"
+source = "translations.rs"
+
+[[injection]]
+id = "list"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_mods"
+helper = "list.rs"
+bindings = [
+  { name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" },
+]
+
+[[injection]]
+id = "frame"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_frame"
+helper = "frame.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "shutdown"
+kind = "HEAD"
+target = "horizon_client::game::Game<'_>::save_for_exit"
+helper = "shutdown.rs"
+
+[[injection]]
+id = "begin_shutdown"
+kind = "HEAD"
+target = "horizon_client::game::saving::Game<'_>::begin_closing_save"
+helper = "begin_shutdown.rs"
+bindings = [
+  { name = "quit", ty = "bool", value = "quit" },
+]
+
+[[injection]]
+id = "settings"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_settings"
+helper = "settings.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "buttons", ty = "&mut Vec<String>", value = "buttons" },
+]
+
+[[injection]]
+id = "settings_click"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_settings_click"
+helper = "settings_click.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "button", ty = "usize", value = "button" },
+]
