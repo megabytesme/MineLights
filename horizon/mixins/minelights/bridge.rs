@@ -1,7 +1,5 @@
-#[cfg(windows)]
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{Read, Write},
     net::{TcpStream, UdpSocket},
     path::PathBuf,
@@ -17,6 +15,7 @@ use std::{
 use super::minelights::{DeviceLayout, Frame, trailing_number};
 use super::minelights_config::Settings;
 use super::minelights_direct::DirectOutputs;
+use super::minelights_server;
 
 const FRAME_PORT: u16 = 63212;
 
@@ -31,13 +30,21 @@ struct LedColor {
 pub(super) const ACTION_REFRESH: u32 = 1;
 pub(super) const ACTION_RESTART: u32 = 2;
 pub(super) const ACTION_RESTART_ADMIN: u32 = 4;
-pub(super) const ACTION_UPDATE: u32 = 8;
+pub(super) const ACTION_CHECK_UPDATE: u32 = 8;
+
+pub(super) enum Notice {
+    MissingServer,
+    Update(Vec<String>),
+    Manual(Vec<String>),
+}
 
 #[derive(Clone)]
 pub(super) struct Bridge {
     pub(super) layouts: Arc<RwLock<Vec<DeviceLayout>>>,
     pub(super) active: Arc<AtomicBool>,
     pub(super) auto_start: Arc<AtomicBool>,
+    pub(super) in_world: Arc<AtomicBool>,
+    pub(super) notices: Arc<Mutex<VecDeque<Notice>>>,
     pub(super) settings: Arc<RwLock<Settings>>,
     pub(super) actions: Arc<AtomicU32>,
     pub(super) sender: SyncSender<Frame>,
@@ -46,6 +53,7 @@ pub(super) struct Bridge {
 pub(super) static BRIDGE: OnceLock<Bridge> = OnceLock::new();
 static STARTED_SERVER: AtomicBool = AtomicBool::new(false);
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
+static MANAGED_SERVER_BUSY: AtomicBool = AtomicBool::new(false);
 static SERVER_LIFECYCLE: Mutex<()> = Mutex::new(());
 
 pub(super) fn bridge_for(game: &super::Game<'_>, settings: &Settings) -> &'static Bridge {
@@ -57,13 +65,17 @@ pub(super) fn bridge_for(game: &super::Game<'_>, settings: &Settings) -> &'stati
     let bridge = BRIDGE.get_or_init(|| {
         let layouts = Arc::new(RwLock::new(Vec::new()));
         let active = Arc::new(AtomicBool::new(true));
-        let worker_auto_start = Arc::new(AtomicBool::new(settings.auto_start_server));
+        let worker_auto_start = Arc::new(AtomicBool::new(settings.allow_reviewed_server));
+        let in_world = Arc::new(AtomicBool::new(false));
+        let notices = Arc::new(Mutex::new(VecDeque::new()));
         let worker_settings = Arc::new(RwLock::new(settings.clone()));
         let actions = Arc::new(AtomicU32::new(0));
         let (sender, receiver) = mpsc::sync_channel::<Frame>(1);
         let worker_layouts = Arc::clone(&layouts);
         let worker_active = Arc::clone(&active);
         let worker_auto = Arc::clone(&worker_auto_start);
+        let worker_in_world = Arc::clone(&in_world);
+        let worker_notices = Arc::clone(&notices);
         let worker_config = Arc::clone(&worker_settings);
         let worker_actions = Arc::clone(&actions);
         thread::Builder::new()
@@ -74,6 +86,8 @@ pub(super) fn bridge_for(game: &super::Game<'_>, settings: &Settings) -> &'stati
                     worker_layouts,
                     worker_active,
                     worker_auto,
+                    worker_in_world,
+                    worker_notices,
                     worker_config,
                     worker_actions,
                     server_path,
@@ -84,6 +98,8 @@ pub(super) fn bridge_for(game: &super::Game<'_>, settings: &Settings) -> &'stati
             layouts,
             active,
             auto_start: worker_auto_start,
+            in_world,
+            notices,
             settings: worker_settings,
             actions,
             sender,
@@ -91,7 +107,7 @@ pub(super) fn bridge_for(game: &super::Game<'_>, settings: &Settings) -> &'stati
     });
     bridge
         .auto_start
-        .store(settings.auto_start_server, Ordering::Relaxed);
+        .store(settings.allow_reviewed_server, Ordering::Relaxed);
     bridge.active.store(true, Ordering::Release);
     if let Ok(mut current) = bridge.settings.write() {
         *current = settings.clone();
@@ -105,6 +121,8 @@ fn bridge_worker(
     layouts: Arc<RwLock<Vec<DeviceLayout>>>,
     active: Arc<AtomicBool>,
     auto_start: Arc<AtomicBool>,
+    in_world: Arc<AtomicBool>,
+    notices: Arc<Mutex<VecDeque<Notice>>>,
     settings: Arc<RwLock<Settings>>,
     actions: Arc<AtomicU32>,
     server_path: Option<PathBuf>,
@@ -113,7 +131,10 @@ fn bridge_worker(
     let mut direct = DirectOutputs::default();
     let mut next_handshake = Instant::now();
     let mut next_yeelight_discovery = Instant::now();
-    let mut last_launch_attempt = Instant::now() - Duration::from_secs(30);
+    let mut last_launch_attempt = Instant::now() - Duration::from_secs(600);
+    let mut was_in_world = false;
+    let mut missing_reported = false;
+    let mut update_checked = false;
     let mut server_led_ids = HashSet::new();
     loop {
         if active.load(Ordering::Acquire) {
@@ -130,30 +151,52 @@ fn bridge_worker(
             if requested & ACTION_RESTART_ADMIN != 0 {
                 let _ = send_server_command("restart_admin");
             }
-            if requested & ACTION_UPDATE != 0 {
-                if download_server(server_path.as_deref(), true) {
-                    let _ = start_installed_server(server_path.as_deref());
-                }
-                next_handshake = Instant::now();
+            if requested & ACTION_CHECK_UPDATE != 0 && cfg!(windows) {
+                check_updates_async(Arc::clone(&notices), true);
             }
             if Instant::now() >= next_handshake {
-                if auto_start.load(Ordering::Relaxed)
-                    && Instant::now().duration_since(last_launch_attempt) >= Duration::from_secs(10)
-                    && !server_is_running()
-                {
-                    last_launch_attempt = Instant::now();
-                    let mut launched = start_installed_server(server_path.as_deref());
-                    if !launched && download_server(server_path.as_deref(), false) {
-                        launched = start_installed_server(server_path.as_deref());
-                    }
-                    if launched {
-                        last_launch_attempt = Instant::now();
-                    }
-                }
                 let config = settings
                     .read()
                     .map(|current| current.clone())
                     .unwrap_or_default();
+                let now_in_world = in_world.load(Ordering::Acquire);
+                if now_in_world && !was_in_world {
+                    missing_reported = false;
+                }
+                was_in_world = now_in_world;
+                if cfg!(windows) && now_in_world && config.check_server_updates && !update_checked {
+                    update_checked = true;
+                    check_updates_async(Arc::clone(&notices), false);
+                }
+                let running = server_is_running();
+                if cfg!(windows)
+                    && now_in_world
+                    && config.notify_missing_server
+                    && !running
+                    && !server_path.as_deref().is_some_and(|path| path.is_file())
+                    && !missing_reported
+                {
+                    missing_reported = true;
+                    if let Ok(mut pending) = notices.lock() {
+                        pending.push_back(Notice::MissingServer);
+                    }
+                }
+                if auto_start.load(Ordering::Relaxed)
+                    && now_in_world
+                    && cfg!(windows)
+                    && Instant::now().duration_since(last_launch_attempt)
+                        >= Duration::from_secs(600)
+                    && !running
+                {
+                    last_launch_attempt = Instant::now();
+                    if let Some(path) = server_path.clone() {
+                        start_reviewed_server_async(
+                            path,
+                            Arc::clone(&auto_start),
+                            Arc::clone(&notices),
+                        );
+                    }
+                }
                 let mut devices = perform_handshake(&config).unwrap_or_default();
                 if config.enable_openrgb {
                     if !direct.has_openrgb() {
@@ -228,16 +271,69 @@ fn bridge_worker(
     }
 }
 
-fn start_installed_server(path: Option<&std::path::Path>) -> bool {
+fn start_reviewed_server_async(
+    path: PathBuf,
+    permission: Arc<AtomicBool>,
+    notices: Arc<Mutex<VecDeque<Notice>>>,
+) {
+    if MANAGED_SERVER_BUSY
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    if thread::Builder::new().name("MineLights-Reviewed-Server".into()).spawn(move || {
+        struct BusyGuard;
+        impl Drop for BusyGuard {
+            fn drop(&mut self) { MANAGED_SERVER_BUSY.store(false, Ordering::Release); }
+        }
+        let _guard = BusyGuard;
+        if !path.exists() {
+            let _ = minelights_server::download_pinned(&path, permission.load(Ordering::Acquire));
+        }
+        if !permission.load(Ordering::Acquire) || SHUTTING_DOWN.load(Ordering::Acquire) { return; }
+        if path.is_file() && minelights_server::is_reviewed_binary(&path) {
+            let _ = start_installed_server(Some(&path), &permission);
+        } else if let Ok(mut pending) = notices.lock() {
+            let message = if path.is_file() {
+                "[MineLights] The installed server does not match the reviewed hash. Start it manually, or remove that file to allow a verified download."
+            } else {
+                "[MineLights] The reviewed server could not be downloaded and verified. Install and start it yourself: https://github.com/megabytesme/MineLights-Server/releases"
+            };
+            pending.push_back(Notice::Manual(vec![message.into()]));
+        }
+    }).is_err() {
+        MANAGED_SERVER_BUSY.store(false, Ordering::Release);
+    }
+}
+
+fn check_updates_async(notices: Arc<Mutex<VecDeque<Notice>>>, manual: bool) {
+    let _ = thread::Builder::new().name("MineLights-Server-Update-Check".into()).spawn(move || {
+        let messages = match minelights_server::check_for_update() {
+            Ok(Some(update)) => minelights_server::update_messages(&update),
+            Ok(None) if manual => vec![format!("[MineLights] No server release newer than the reviewed {} was found.", minelights_server::SERVER_VERSION)],
+            Err(_) if manual => vec!["[MineLights] Could not check for server updates. See https://github.com/megabytesme/MineLights-Server/releases".into()],
+            _ => return,
+        };
+        if let Ok(mut pending) = notices.lock() {
+            pending.push_back(if manual { Notice::Manual(messages) } else { Notice::Update(messages) });
+        }
+    });
+}
+
+fn start_installed_server(path: Option<&std::path::Path>, permission: &AtomicBool) -> bool {
     let Ok(_lifecycle) = SERVER_LIFECYCLE.lock() else {
         return false;
     };
-    if SHUTTING_DOWN.load(Ordering::Acquire) {
+    if SHUTTING_DOWN.load(Ordering::Acquire) || !permission.load(Ordering::Acquire) {
         return false;
     }
     let Some(path) = path.filter(|path| path.is_file()) else {
         return false;
     };
+    if !minelights_server::is_reviewed_binary(path) || !permission.load(Ordering::Acquire) {
+        return false;
+    }
     if server_is_running() {
         return false;
     }
@@ -285,146 +381,6 @@ pub(super) fn minelights_shutdown() {
     };
     if STARTED_SERVER.swap(false, Ordering::AcqRel) {
         let _ = send_server_command("shutdown");
-    }
-}
-
-fn download_server(path: Option<&std::path::Path>, force: bool) -> bool {
-    let Some(path) = path.filter(|path| force || !path.is_file()) else {
-        return false;
-    };
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        const NO_WINDOW: u32 = 0x0800_0000;
-        const RELEASE_API: &str =
-            "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
-        let run_curl = |args: &[&std::ffi::OsStr]| {
-            std::process::Command::new("curl.exe")
-                .args(args)
-                .creation_flags(NO_WINDOW)
-                .output()
-        };
-        let api = run_curl(&[
-            std::ffi::OsStr::new("--fail"),
-            std::ffi::OsStr::new("--silent"),
-            std::ffi::OsStr::new("--show-error"),
-            std::ffi::OsStr::new("--location"),
-            std::ffi::OsStr::new("--header"),
-            std::ffi::OsStr::new("Accept: application/vnd.github+json"),
-            std::ffi::OsStr::new(RELEASE_API),
-        ]);
-        let Ok(api) = api else { return false };
-        if !api.status.success() {
-            return false;
-        }
-        let Ok(release) = serde_json::from_slice::<serde_json::Value>(&api.stdout) else {
-            return false;
-        };
-        let Some(asset) = release
-            .get("assets")
-            .and_then(serde_json::Value::as_array)
-            .and_then(|assets| assets.first())
-        else {
-            return false;
-        };
-        let Some(url) = asset
-            .get("browser_download_url")
-            .and_then(serde_json::Value::as_str)
-        else {
-            return false;
-        };
-        let digest = asset
-            .get("digest")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("")
-            .strip_prefix("sha256:")
-            .unwrap_or("");
-        if std::fs::create_dir_all(path.parent().unwrap_or_else(|| std::path::Path::new(".")))
-            .is_err()
-        {
-            return false;
-        }
-        let mut temporary = path.to_path_buf();
-        temporary.set_file_name("MineLights.exe.new");
-        let download = run_curl(&[
-            std::ffi::OsStr::new("--fail"),
-            std::ffi::OsStr::new("--silent"),
-            std::ffi::OsStr::new("--show-error"),
-            std::ffi::OsStr::new("--location"),
-            std::ffi::OsStr::new("--user-agent"),
-            std::ffi::OsStr::new("MineLights-Horizon/0.1"),
-            std::ffi::OsStr::new("--output"),
-            temporary.as_os_str(),
-            std::ffi::OsStr::new(url),
-        ]);
-        if !download.is_ok_and(|result| result.status.success()) || !temporary.is_file() {
-            let _ = std::fs::remove_file(&temporary);
-            return false;
-        }
-        if !digest.is_empty() {
-            let hash = std::process::Command::new("certutil.exe")
-                .arg("-hashfile")
-                .arg(&temporary)
-                .arg("SHA256")
-                .creation_flags(NO_WINDOW)
-                .output();
-            let actual = hash
-                .ok()
-                .filter(|result| result.status.success())
-                .and_then(|result| String::from_utf8(result.stdout).ok())
-                .and_then(|output| {
-                    output
-                        .lines()
-                        .map(str::trim)
-                        .find(|line| {
-                            line.len() == 64 && line.bytes().all(|b| b.is_ascii_hexdigit())
-                        })
-                        .map(str::to_owned)
-                });
-            if actual
-                .as_deref()
-                .is_none_or(|actual| !actual.eq_ignore_ascii_case(digest))
-            {
-                let _ = std::fs::remove_file(&temporary);
-                return false;
-            }
-        }
-        let mut backup = None;
-        if path.is_file() {
-            let _ = send_server_command("shutdown");
-            for _ in 0..50 {
-                if !server_is_running() {
-                    break;
-                }
-                thread::sleep(Duration::from_millis(100));
-            }
-            let stamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_nanos();
-            let previous = path.with_file_name(format!("MineLights.exe.previous-{stamp}"));
-            if std::fs::rename(path, &previous).is_err() {
-                let _ = std::fs::remove_file(&temporary);
-                return false;
-            }
-            backup = Some(previous);
-        }
-        if std::fs::rename(&temporary, path).is_err() {
-            if let Some(previous) = backup {
-                let _ = std::fs::rename(previous, path);
-            }
-            let _ = std::fs::remove_file(&temporary);
-            return false;
-        }
-        if let Some(previous) = backup {
-            let _ = std::fs::remove_file(previous);
-        }
-        true
-    }
-    #[cfg(not(windows))]
-    {
-        let _ = path;
-        false
     }
 }
 
@@ -525,6 +481,9 @@ pub(super) fn standardize_key(key: &str) -> String {
     if let Some(stripped) = name.strip_prefix("KEY: ") {
         name = stripped.to_owned();
     }
+    if name.contains("PROGRAMMABLE") {
+        return format!("G{}", trailing_number(&name));
+    }
     if name.contains("DRAM") || name.contains("CORSAIR PRO LED") || name.contains("RAM") {
         let number = trailing_number(&name);
         if name.contains("CORSAIR PRO LED") {
@@ -545,9 +504,6 @@ pub(super) fn standardize_key(key: &str) -> String {
         } else {
             format!("UNDERGLOW_{number}")
         };
-    }
-    if name.contains("PROGRAMMABLE") {
-        return format!("G{}", trailing_number(&name));
     }
     if name.contains("CUSTOM") || name.contains("WHEEL") {
         let number = trailing_number(&name);

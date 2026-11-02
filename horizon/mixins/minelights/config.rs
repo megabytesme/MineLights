@@ -25,7 +25,12 @@ pub(super) struct Settings {
     pub(super) chat_pulse: bool,
     pub(super) always_show_compass: bool,
     pub(super) locator_bar: bool,
-    pub(super) auto_start_server: bool,
+    // A new field deliberately does not inherit the old, default-on setting.
+    pub(super) allow_reviewed_server: bool,
+    pub(super) notify_missing_server: bool,
+    pub(super) check_server_updates: bool,
+    #[serde(skip)]
+    pub(super) server_confirmation_pending: bool,
     pub(super) compass_priority: u8,
     pub(super) enable_corsair: bool,
     pub(super) enable_asus: bool,
@@ -64,7 +69,10 @@ impl Default for Settings {
             chat_pulse: true,
             always_show_compass: false,
             locator_bar: true,
-            auto_start_server: true,
+            allow_reviewed_server: false,
+            notify_missing_server: true,
+            check_server_updates: true,
+            server_confirmation_pending: false,
             compass_priority: 0,
             enable_corsair: true,
             enable_asus: true,
@@ -82,7 +90,7 @@ impl Default for Settings {
     }
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 38;
+pub(super) const STATIC_SETTING_COUNT: usize = 40;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -106,6 +114,7 @@ pub(super) fn persist_settings(game: &super::Game<'_>, settings: Settings) {
 }
 
 pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String> {
+    let server_version = super::minelights_server::SERVER_VERSION;
     let mut labels = vec![
         format!("Lighting output: {}", on_off(settings.enabled)),
         format!("Experience bar: {}", on_off(settings.experience_bar)),
@@ -145,10 +154,14 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             on_off(settings.always_show_compass)
         ),
         format!("Waypoint locator bar: {}", on_off(settings.locator_bar)),
-        format!(
-            "Auto-start/download MineLights Server: {}",
-            on_off(settings.auto_start_server)
-        ),
+        if settings.server_confirmation_pending {
+            format!("CONFIRM: download and run verified MineLights Server {server_version}")
+        } else {
+            format!(
+                "Download and run reviewed Server {server_version}: {} (click for details)",
+                on_off(settings.allow_reviewed_server)
+            )
+        },
         format!(
             "Compass priority: {}",
             [
@@ -175,10 +188,22 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
         "Refresh devices".into(),
         "Restart MineLights Server".into(),
         "Restart MineLights Server as administrator".into(),
-        "Update MineLights Server".into(),
+        "Check for MineLights Server updates".into(),
         "Clear disabled devices".into(),
+        format!(
+            "Notify when MineLights Server is missing: {}",
+            on_off(settings.notify_missing_server)
+        ),
+        format!(
+            "Check for MineLights Server updates: {}",
+            on_off(settings.check_server_updates)
+        ),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
+        // The old translations describe different, less restrictive behaviour.
+        if index == 20 || index == 36 || index >= 38 {
+            continue;
+        }
         if let Some(translated) = super::minelights_lang::setting_label(language, index) {
             if index < 33 {
                 if let Some((_, value)) = label.rsplit_once(": ") {
@@ -205,7 +230,22 @@ pub(super) fn on_off(value: bool) -> &'static str {
 }
 
 pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
+    if index != 20 {
+        settings.server_confirmation_pending = false;
+    }
     match index {
+        20 => {
+            if settings.allow_reviewed_server {
+                settings.allow_reviewed_server = false;
+                settings.server_confirmation_pending = false;
+            } else if settings.server_confirmation_pending {
+                settings.allow_reviewed_server = true;
+                settings.server_confirmation_pending = false;
+            } else {
+                settings.server_confirmation_pending = true;
+            }
+            return;
+        }
         7 => {
             settings.dimming_mode = (settings.dimming_mode + 1) % 3;
             return;
@@ -243,7 +283,6 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         17 => &mut settings.chat_pulse,
         18 => &mut settings.always_show_compass,
         19 => &mut settings.locator_bar,
-        20 => &mut settings.auto_start_server,
         22 => &mut settings.enable_corsair,
         23 => &mut settings.enable_asus,
         24 => &mut settings.enable_logitech,
@@ -255,6 +294,8 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         30 => &mut settings.enable_picopi,
         31 => &mut settings.enable_openrgb,
         32 => &mut settings.enable_yeelight,
+        38 => &mut settings.notify_missing_server,
+        39 => &mut settings.check_server_updates,
         _ => return,
     };
     *value = !*value;

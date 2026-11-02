@@ -14,7 +14,8 @@ const MOD_ID: &str = "minelights";
 
 pub(super) use super::minelights_bridge::minelights_shutdown;
 use super::minelights_bridge::{
-    ACTION_REFRESH, ACTION_RESTART, ACTION_RESTART_ADMIN, ACTION_UPDATE, BRIDGE, Bridge, bridge_for,
+    ACTION_CHECK_UPDATE, ACTION_REFRESH, ACTION_RESTART, ACTION_RESTART_ADMIN, BRIDGE, Bridge,
+    Notice, bridge_for,
 };
 use super::minelights_config::{
     SETTINGS, STATIC_SETTING_COUNT, on_off, persist_settings, settings_for, settings_labels,
@@ -129,6 +130,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
         if let Some(bridge) = BRIDGE.get() {
             bridge.active.store(false, Ordering::Release);
             bridge.auto_start.store(false, Ordering::Relaxed);
+            bridge.in_world.store(false, Ordering::Release);
             let layouts = bridge.layouts.read().map(|v| v.clone()).unwrap_or_default();
             let mut frame = Frame::default();
             for led in layouts.iter().flat_map(|layout| layout.leds.iter()) {
@@ -148,6 +150,30 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
     let config = settings_for(game);
     let bridge = bridge_for(game, &config);
     let player = snapshot(game, &config);
+    bridge.in_world.store(player.in_game, Ordering::Release);
+    if player.in_game {
+        if let Ok(mut notices) = bridge.notices.lock() {
+            while let Some(notice) = notices.pop_front() {
+                match notice {
+                    Notice::MissingServer if config.notify_missing_server => {
+                        game.native_chat("[MineLights] Server not detected. Download MineLights.exe from https://github.com/megabytesme/MineLights-Server/releases and run it yourself.");
+                        game.native_chat("[MineLights] Alternatively, opt in to the reviewed Server download and launch in Mods settings.");
+                    }
+                    Notice::Update(lines) if config.check_server_updates => {
+                        for line in lines {
+                            game.native_chat(&line);
+                        }
+                    }
+                    Notice::Manual(lines) => {
+                        for line in lines {
+                            game.native_chat(&line);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
     let layouts = bridge.layouts.read().map(|v| v.clone()).unwrap_or_default();
     let now = Instant::now();
     let mut painter = PAINTER
@@ -219,6 +245,9 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
     let mut settings = state
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if button != 20 {
+        settings.server_confirmation_pending = false;
+    }
     if button == 37 {
         settings.disabled_devices.clear();
         if let Some(bridge) = BRIDGE.get() {
@@ -230,12 +259,15 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
                 ACTION_REFRESH,
                 ACTION_RESTART,
                 ACTION_RESTART_ADMIN,
-                ACTION_UPDATE,
+                ACTION_CHECK_UPDATE,
             ][button - 33];
             bridge.actions.fetch_or(action, Ordering::Release);
         }
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
+        if button == 20 && settings.server_confirmation_pending {
+            game.native_chat(&format!("[MineLights] Confirm in Mods settings to download MineLights Server {} from GitHub, verify its pinned SHA-256, and run it with your account permissions. Choose another setting to cancel.", super::minelights_server::SERVER_VERSION));
+        }
     } else if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {
             if let Some(layout) = layouts.get(button - STATIC_SETTING_COUNT) {

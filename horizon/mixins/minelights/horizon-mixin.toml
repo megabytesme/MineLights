@@ -1,6 +1,6 @@
 [mod]
 id = "minelights"
-version = "0.1.0"
+version = "0.1.1"
 priority = 100
 
 [compatibility]
@@ -35,6 +35,12 @@ id = "bridge"
 file = "crates/horizon-client/src/game.rs"
 name = "minelights_bridge"
 source = "bridge.rs"
+
+[[module]]
+id = "server"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_server"
+source = "server.rs"
 
 [[module]]
 id = "waypoint_access"
