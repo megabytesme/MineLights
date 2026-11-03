@@ -1,10 +1,10 @@
 [mod]
 id = "minelights"
-version = "0.1.1"
+version = "0.1.2"
 priority = 100
 
 [compatibility]
-horizon_revision = "9d979caa48a3bb58203319b9ea044db58c38e0d8"
+  horizon_revision = "294448014fba585f8d5d09dd8886f482493b6417"
 
 [[module]]
 id = "runtime"

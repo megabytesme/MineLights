@@ -2,7 +2,7 @@
 fn minelights_list(mods: &mut Vec<crate::game::native_hooks::NativeMod>) {
     mods.push(crate::game::native_hooks::NativeMod {
         id: "minelights".into(),
-        title: "MineLights 0.1.1".into(),
+        title: "MineLights 0.1.2".into(),
         description: "RGB lighting; local device connections, optional update checks and opt-in verified server download".into(),
         keys: Vec::new(),
     });
