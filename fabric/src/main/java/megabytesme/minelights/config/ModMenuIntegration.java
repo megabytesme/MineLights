@@ -128,10 +128,10 @@ public class ModMenuIntegration implements ModMenuApi {
             MineLightsClient.saveConfig();
             boolean needsRefresh = false;
 
-            if (MineLightsClient.CONFIG.forceServerUpdate) {
+            if (MineLightsClient.CONFIG.requestServerUpdateCheck) {
                 new Thread(MineLightsClient::checkForServerUpdate,
                         "MineLights-Manual-Update-Check").start();
-                MineLightsClient.CONFIG.forceServerUpdate = false;
+                MineLightsClient.CONFIG.requestServerUpdateCheck = false;
             }
             if (MineLightsClient.CONFIG.refreshDevices) {
                 MineLightsClient.CONFIG.refreshDevices = false;
@@ -212,52 +212,15 @@ public class ModMenuIntegration implements ModMenuApi {
             //?} else {
             /* Supplier<Text> statusTextSupplier = () -> {
             *///?}
-                MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
-                switch (status) {
-                    case DOWNLOADING:
-                        long soFarMB = MineLightsClient.downloadBytesSoFar.get() / (1024 * 1024);
-                        long totalMB = MineLightsClient.downloadTotalBytes.get() / (1024 * 1024);
-                        String eta = MineLightsClient.downloadEta.get();
-                        String speed = MineLightsClient.downloadSpeedMBps.get();
-                        //? if >=1.19 {
-                        return translatable(
-                                "minelights.status.downloading",
-                                soFarMB, totalMB, MineLightsClient.downloadProgress.get(), eta, speed);
-                        //?} else if <1.19 {
-                        /*return new TranslatableText(
-                                "minelights.status.downloading",
-                                soFarMB, totalMB, MineLightsClient.downloadProgress.get(), eta, speed);
-                        *///?}
-                    case VERIFYING:
-                        //? if >=1.19 {
-                        return translatable("minelights.status.verifying");
-                        //?} else if <1.19 {
-                        /*return new TranslatableText("minelights.status.verifying");
-                        *///?}
-                    case SUCCESS:
-                        //? if >=1.19 {
-                        return translatable("minelights.status.success");
-                        //?} else if <1.19 {
-                        /*return new TranslatableText("minelights.status.success");
-                        *///?}
-                    case FAILED:
-                        //? if >=1.19 {
-                        return translatable("minelights.status.failed", MineLightsClient.downloadError.get());
-                        //?} else if <1.19 {
-                        /*return new TranslatableText("minelights.status.failed", MineLightsClient.downloadError.get());
-                        *///?}
-                    case IDLE:
-                    default:
-                        //? if >=1.19 {
-                        return MineLightsClient.isServerRunning()
-                                ? translatable("minelights.status.running")
-                                : translatable("minelights.status.not_running");
-                        //?} else if <1.19 {
-                        /*return MineLightsClient.isServerRunning()
-                                ? new TranslatableText("minelights.status.running")
-                                : new TranslatableText("minelights.status.not_running");
-                        *///?}
-                }
+                //? if >=1.19 {
+                return MineLightsClient.isServerRunning()
+                        ? translatable("minelights.status.running")
+                        : translatable("minelights.status.not_running");
+                //?} else if <1.19 {
+                /*return MineLightsClient.isServerRunning()
+                        ? new TranslatableText("minelights.status.running")
+                        : new TranslatableText("minelights.status.not_running");
+                *///?}
             };
 
             serverManagement.addEntry(new LiveStatusEntry("minelights.status", statusTextSupplier));
@@ -273,7 +236,7 @@ public class ModMenuIntegration implements ModMenuApi {
                             /* .getString()
                             *///? }
                             ,
-                            MineLightsClient.CONFIG.forceServerUpdate
+                            MineLightsClient.CONFIG.requestServerUpdateCheck
                     )
                     .setDefaultValue(false)
                     //? if >=1.16 {
@@ -288,11 +251,36 @@ public class ModMenuIntegration implements ModMenuApi {
                     //? if <1.16 {
                     /* .setTooltip(new TranslatableText("option.mine-lights.force_update.tooltip").getString()) */
                     //?}
-                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.forceServerUpdate = newValue)
+                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.requestServerUpdateCheck = newValue)
                     .build()
             );
 
             if (MineLightsClient.IS_WINDOWS) {
+                serverManagement.addEntry(entryBuilder
+                        .startBooleanToggle(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.manualServerManagement")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.manualServerManagement")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                                ,
+                                MineLightsClient.CONFIG.manualServerManagement)
+                        .setDefaultValue(false)
+                        .setTooltip(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.manualServerManagement.tooltip")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.manualServerManagement.tooltip")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                        )
+                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.manualServerManagement = newValue)
+                        .build());
                 serverManagement.addEntry(entryBuilder
                         .startBooleanToggle(
                                 //? if >=1.19 {
@@ -320,6 +308,56 @@ public class ModMenuIntegration implements ModMenuApi {
                         //?}
                         .setSaveConsumer(
                                 newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
+                        .build());
+                serverManagement.addEntry(entryBuilder
+                        .startBooleanToggle(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.notifyMissingServer")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.notifyMissingServer")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                                ,
+                                MineLightsClient.CONFIG.notifyMissingServer)
+                        .setDefaultValue(true)
+                        .setTooltip(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.notifyMissingServer.tooltip")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.notifyMissingServer.tooltip")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                        )
+                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.notifyMissingServer = newValue)
+                        .build());
+                serverManagement.addEntry(entryBuilder
+                        .startBooleanToggle(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.checkServerUpdates")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.checkServerUpdates")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                                ,
+                                MineLightsClient.CONFIG.checkServerUpdates)
+                        .setDefaultValue(true)
+                        .setTooltip(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.checkServerUpdates.tooltip")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.checkServerUpdates.tooltip")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                        )
+                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.checkServerUpdates = newValue)
                         .build());
             }
 

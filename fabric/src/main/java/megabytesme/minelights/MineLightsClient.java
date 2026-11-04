@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,11 +57,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,7 +68,7 @@ import java.util.regex.Pattern;
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.3.8";
+    public static final String MOD_VERSION = "2.3.8.5";
     private static Path configDir = Paths.get(".");
     private static String resolvedModVersion = MOD_VERSION;
     private static String resolvedModLoader = "fabric";
@@ -151,7 +149,7 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
-    private boolean titleScreenHooked = false;
+    private static final String SERVER_RELEASES_URL = "https://github.com/megabytesme/MineLights-Server/releases";
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
 
@@ -162,22 +160,10 @@ public class MineLightsClient implements ClientModInitializer {
     private static final AtomicReference<String> pendingUpdateVersion = new AtomicReference<>(null);
     private static final AtomicReference<String> pendingUpdateUrl = new AtomicReference<>(null);
     private static final AtomicBoolean pendingUpdateNotification = new AtomicBoolean(false);
+    private static final AtomicBoolean hasCheckedForMissingServer = new AtomicBoolean(false);
+    private static final ConcurrentLinkedQueue<List<String>> pendingServerMessages = new ConcurrentLinkedQueue<>();
+    private static final AtomicBoolean serverDownloadInProgress = new AtomicBoolean(false);
 
-    public enum DownloadStatus {
-        IDLE,
-        DOWNLOADING,
-        VERIFYING,
-        SUCCESS,
-        FAILED
-    }
-
-    public static final AtomicReference<DownloadStatus> downloadStatus = new AtomicReference<>(DownloadStatus.IDLE);
-    public static final AtomicInteger downloadProgress = new AtomicInteger(0);
-    public static final AtomicReference<String> downloadError = new AtomicReference<>("");
-    public static final AtomicLong downloadBytesSoFar = new AtomicLong(0);
-    public static final AtomicLong downloadTotalBytes = new AtomicLong(0);
-    public static final AtomicReference<String> downloadEta = new AtomicReference<>("");
-    public static final AtomicReference<String> downloadSpeedMBps = new AtomicReference<>("");
     private static Process serverProcess = null;
 
     //? if >=26.1 {
@@ -248,6 +234,20 @@ public class MineLightsClient implements ClientModInitializer {
         }
     }
 
+    private static final class ServerRelease {
+        private final String version;
+        private final String changelog;
+        private final String downloadUrl;
+        private final String expectedHash;
+
+        private ServerRelease(String version, String changelog, String downloadUrl, String expectedHash) {
+            this.version = version;
+            this.changelog = changelog;
+            this.downloadUrl = downloadUrl;
+            this.expectedHash = expectedHash;
+        }
+    }
+
     public void init(Path configDir, String modVersion, String modLoader) {
         if (!initialized.compareAndSet(false, true)) {
             return;
@@ -287,17 +287,9 @@ public class MineLightsClient implements ClientModInitializer {
     //?} else {
     /* public void onClientTick(MinecraftClient client) {
     *///?}
-        //? if >=26.2 {
-        if (client.gui.screen() instanceof TitleScreen && !titleScreenHooked) {
-        //?} else if >=26.1 {
-        /* if (client.screen instanceof TitleScreen && !titleScreenHooked) {
-        *///?} else {
-        /* if (client.currentScreen instanceof TitleScreen && !titleScreenHooked) {
-        *///?}
-            titleScreenHooked = true;
-            if (IS_WINDOWS && !hasPerformedServerCheck.getAndSet(true)) {
-                new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Update-Check").start();
-            }
+        if (IS_WINDOWS && (!CONFIG.manualServerManagement || CONFIG.checkServerUpdates)
+                && hasPerformedServerCheck.compareAndSet(false, true)) {
+            new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Update-Check").start();
         }
 
         if (hasCheckedForUpdate.compareAndSet(false, true)) {
@@ -305,6 +297,7 @@ public class MineLightsClient implements ClientModInitializer {
         }
 
         flushPendingUpdateNotification();
+        flushPendingServerNotification();
     }
 
     private static void queueUpdateNotification(String version, String url) {
@@ -618,82 +611,309 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     public static void checkForServerUpdate() {
-        if (downloadStatus.get() == DownloadStatus.DOWNLOADING) {
+        if (!IS_WINDOWS) {
+            return;
+        }
+
+        if (!CONFIG.manualServerManagement) {
+            checkForServerUpdateAutomatically();
+            return;
+        }
+
+        Path serverExePath = getServerExePath();
+        if (!Files.isRegularFile(serverExePath)) {
+            LOGGER.info("MineLights Server is not installed; skipping the update check.");
             return;
         }
 
         try {
-            Path serverExePath = getServerExePath();
-            URI apiUri = URI.create(GITHUB_API_URL);
-            HttpURLConnection conn = (HttpURLConnection) apiUri.toURL().openConnection();
-            conn.setRequestProperty("Accept", "application/vnd.github+json");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-
-            String json;
-            try (InputStream in = conn.getInputStream()) {
-                json = readAllBytes(in);
+            ServerRelease release = getLatestServerRelease();
+            if (release == null) {
+                queueServerNotification(Collections.singletonList(
+                        "[MineLights] Could not check for server updates. See " + SERVER_RELEASES_URL));
+                return;
             }
 
-            //? if <=1.21.2 {
-            /* JsonObject root = new JsonParser().parse(json).getAsJsonObject();
-            *///?} else {
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-            //?}
-
-            JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.size() == 0)
+            if (release.expectedHash.isEmpty()) {
+                LOGGER.warn("MineLights Server release does not publish a SHA-256 digest; skipping update notice.");
+                queueServerNotification(Collections.singletonList(
+                        "[MineLights] Could not verify the latest server release. See " + SERVER_RELEASES_URL));
                 return;
+            }
 
-            JsonObject asset = assets.get(0).getAsJsonObject();
-            String expectedHash = asset.has("digest") ? asset.get("digest").getAsString().replace("sha256:", "") : "";
+            String localHash = sha256(serverExePath);
+            if (localHash.equalsIgnoreCase(release.expectedHash)) {
+                LOGGER.info("MineLights Server is up to date ({}).", release.version);
+                queueServerNotification(Collections.singletonList(
+                        "[MineLights] MineLights Server is up to date (" + release.version + ")."));
+                return;
+            }
 
-            boolean needsDownload = false;
-            if (!Files.exists(serverExePath)) {
-                needsDownload = true;
-            } else {
-                String localHash = sha256(serverExePath);
-                if (!expectedHash.isEmpty() && !localHash.equalsIgnoreCase(expectedHash)) {
-                    LOGGER.info("MineLights.exe is outdated or corrupted. An update is required.");
-                    needsDownload = true;
-                } else if (expectedHash.isEmpty()) {
-                    LOGGER.warn("Could not verify server hash from GitHub API, assuming it's up to date.");
-                } else {
-                    LOGGER.info("MineLights.exe is up to date.");
+            List<String> messages = new ArrayList<>();
+            messages.add("[MineLights] MineLights Server " + release.version + " is available. Update it manually:");
+            messages.add("[MineLights] " + SERVER_RELEASES_URL);
+            messages.add("[MineLights] Close Minecraft, then replace " + getServerInstallLocation() + ".");
+            appendServerChangelog(messages, release.changelog);
+            queueServerNotification(messages);
+            LOGGER.info("MineLights Server {} is available; queued a manual update notice.", release.version);
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for MineLights Server updates", e);
+            queueServerNotification(Collections.singletonList(
+                    "[MineLights] Could not check for server updates. See " + SERVER_RELEASES_URL));
+        }
+    }
+
+    private static void checkForServerUpdateAutomatically() {
+        try {
+            ServerRelease release = getLatestServerRelease();
+            if (release == null) {
+                return;
+            }
+
+            Path serverExePath = getServerExePath();
+            boolean needsUpdate = !Files.isRegularFile(serverExePath);
+            if (!needsUpdate) {
+                if (release.expectedHash.isEmpty()) {
+                    LOGGER.warn("Could not verify MineLights Server from GitHub; assuming it is up to date.");
+                    return;
+                }
+                needsUpdate = !sha256(serverExePath).equalsIgnoreCase(release.expectedHash);
+            }
+            if (!needsUpdate) {
+                LOGGER.info("MineLights Server is up to date ({}).", release.version);
+                return;
+            }
+            if (!serverDownloadInProgress.compareAndSet(false, true)) {
+                return;
+            }
+
+            Thread downloadThread = new Thread(() -> {
+                try {
+                    LOGGER.info("Downloading MineLights Server {}.", release.version);
+                    downloadAndInstallServer(release, serverExePath, true);
+                } catch (Exception exception) {
+                    LOGGER.error("Failed to download or install MineLights Server", exception);
+                } finally {
+                    serverDownloadInProgress.set(false);
+                }
+            }, "MineLights-Server-Auto-Updater");
+            downloadThread.setDaemon(true);
+            downloadThread.start();
+        } catch (Exception e) {
+            LOGGER.error("Failed to check for MineLights Server updates", e);
+        }
+    }
+
+    private static ServerRelease getLatestServerRelease() throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) URI.create(GITHUB_API_URL).toURL().openConnection();
+        connection.setRequestProperty("Accept", "application/vnd.github+json");
+        connection.setRequestProperty("User-Agent", "MineLights-Mod/" + getModVersion());
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(10000);
+
+        try {
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("GitHub API responded with HTTP " + responseCode);
+            }
+
+            JsonObject release = new JsonParser().parse(readAllBytes(connection.getInputStream())).getAsJsonObject();
+            JsonArray assets = release.getAsJsonArray("assets");
+            if (assets == null || assets.size() == 0) {
+                LOGGER.warn("MineLights Server release metadata has no assets.");
+                return null;
+            }
+
+            JsonObject selectedAsset = null;
+            for (int i = 0; i < assets.size(); i++) {
+                JsonObject asset = assets.get(i).getAsJsonObject();
+                String name = asset.has("name") ? asset.get("name").getAsString() : "";
+                if ("MineLights.exe".equalsIgnoreCase(name)) {
+                    selectedAsset = asset;
+                    break;
+                }
+                if (selectedAsset == null && name.toLowerCase().endsWith(".exe")) {
+                    selectedAsset = asset;
+                }
+            }
+            if (selectedAsset == null || !selectedAsset.has("browser_download_url")) {
+                LOGGER.warn("MineLights Server release metadata has no executable asset.");
+                return null;
+            }
+
+            String version = release.has("tag_name") ? release.get("tag_name").getAsString() : "the latest release";
+            String changelog = release.has("body") && !release.get("body").isJsonNull()
+                    ? release.get("body").getAsString() : "";
+            String hash = selectedAsset.has("digest") && !selectedAsset.get("digest").isJsonNull()
+                    ? selectedAsset.get("digest").getAsString().replace("sha256:", "") : "";
+            String downloadUrl = selectedAsset.get("browser_download_url").getAsString();
+            return new ServerRelease(version, changelog, downloadUrl, hash);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static void downloadAndInstallServer(ServerRelease release, Path serverExePath,
+            boolean restartAfterInstall) throws IOException {
+        Path temporaryPath = serverExePath.resolveSibling("MineLights.exe.new");
+        try {
+            downloadServerRelease(release, temporaryPath);
+
+            if (Files.isRegularFile(serverExePath) && isServerRunning()) {
+                LOGGER.info("Stopping MineLights Server before replacing its executable.");
+                CommandClient.sendCommand("shutdown");
+                Process process = serverProcess;
+                if (process != null) {
+                    try {
+                        process.waitFor(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrupted while stopping MineLights Server", e);
+                    }
+                }
+                long shutdownDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+                while (isServerRunning() && System.nanoTime() < shutdownDeadline) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrupted while stopping MineLights Server", e);
+                    }
+                }
+                if (isServerRunning()) {
+                    throw new IOException("MineLights Server did not stop; its executable was left unchanged.");
                 }
             }
 
-            if (needsDownload) {
-                Path tempExePath = serverExePath.getParent().resolve("MineLights.exe.new");
-                new Thread(() -> {
-                    if (performServerDownload(tempExePath)) {
-                        LOGGER.info("Shutting down MineLights server for update...");
-                        CommandClient.sendCommand("shutdown");
-                        if (serverProcess != null) {
-                            try {
-                                serverProcess.waitFor(5, TimeUnit.SECONDS);
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                            }
-                        }
+            Files.createDirectories(serverExePath.getParent());
+            try {
+                Files.move(temporaryPath, serverExePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                        java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                Files.move(temporaryPath, serverExePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
 
-                        try {
-                            Files.deleteIfExists(serverExePath);
-                            Files.move(tempExePath, serverExePath);
-                            LOGGER.info("MineLights.exe updated successfully.");
-                            lightingInitialized.set(false);
-                            isManualRestart = true;
-                            startServerProcess();
-                        } catch (IOException e) {
-                            LOGGER.error("Failed to replace MineLights.exe", e);
-                        }
-                    }
-                }, "MineLights-Background-Downloader").start();
+            LOGGER.info("MineLights Server {} installed successfully.", release.version);
+            lightingInitialized.set(false);
+            if (restartAfterInstall) {
+                isManualRestart = true;
+                startServerProcess();
+            }
+        } finally {
+            Files.deleteIfExists(temporaryPath);
+        }
+    }
+
+    private static void downloadServerRelease(ServerRelease release, Path destination) throws IOException {
+        Files.createDirectories(destination.getParent());
+        HttpURLConnection connection = (HttpURLConnection) URI.create(release.downloadUrl).toURL().openConnection();
+        connection.setRequestProperty("User-Agent", "MineLights-Mod/" + getModVersion());
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(30000);
+        try {
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("MineLights Server download responded with HTTP " + responseCode);
+            }
+            try (InputStream input = connection.getInputStream();
+                    java.io.OutputStream output = Files.newOutputStream(destination)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+            }
+            if (!release.expectedHash.isEmpty()
+                    && !sha256(destination).equalsIgnoreCase(release.expectedHash)) {
+                throw new IOException("MineLights Server SHA-256 did not match the release digest.");
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to check for server update", e);
-            downloadError.set(e.getMessage());
-            downloadStatus.set(DownloadStatus.FAILED);
+            Files.deleteIfExists(destination);
+            if (e instanceof IOException) {
+                throw (IOException) e;
+            }
+            throw new IOException("Failed to download MineLights Server", e);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static void appendServerChangelog(List<String> messages, String changelog) {
+        if (changelog == null || changelog.trim().isEmpty()) {
+            messages.add("[MineLights] No release notes were provided.");
+            return;
+        }
+
+        int added = 0;
+        for (String line : changelog.split("\\R")) {
+            String clean = line.replaceAll("[\\p{Cntrl}]", "").trim();
+            clean = clean.replaceFirst("^(#{1,6}\\s*|[-*+]\\s*)", "");
+            if (clean.isEmpty()) {
+                continue;
+            }
+            if (clean.length() > 150) {
+                clean = clean.substring(0, 147) + "...";
+            }
+            messages.add("[MineLights] Change: " + clean);
+            if (++added == 5) {
+                messages.add("[MineLights] Full release notes: " + SERVER_RELEASES_URL);
+                return;
+            }
+        }
+        if (added == 0) {
+            messages.add("[MineLights] No release notes were provided.");
+        }
+    }
+
+    private static void queueServerNotification(List<String> messages) {
+        pendingServerMessages.add(new ArrayList<>(messages));
+    }
+
+    public static void sendChatMessage(String message) {
+        if (message != null && !message.trim().isEmpty()) {
+            queueServerNotification(Collections.singletonList(message));
+        }
+    }
+
+    public static void sendChatMessages(List<String> messages) {
+        if (messages != null && !messages.isEmpty()) {
+            queueServerNotification(messages);
+        }
+    }
+
+    private static void flushPendingServerNotification() {
+        //? if >=26.1 {
+        Minecraft client = Minecraft.getInstance();
+        //?} else {
+        /* MinecraftClient client = MinecraftClient.getInstance(); */
+        //?}
+        if (client.player == null) {
+            hasCheckedForMissingServer.set(false);
+            return;
+        }
+
+        if (IS_WINDOWS && CONFIG.notifyMissingServer && CONFIG.manualServerManagement
+                && hasCheckedForMissingServer.compareAndSet(false, true)
+                && !Files.isRegularFile(getServerExePath()) && !isServerRunning()) {
+            queueServerNotification(java.util.Arrays.asList(
+                    "[MineLights] MineLights Server is not installed. Device lighting needs the server.",
+                    "[MineLights] Download it from " + SERVER_RELEASES_URL,
+                    "[MineLights] Put MineLights.exe at " + getServerInstallLocation() + " in your game directory."));
+        }
+
+        List<String> messages;
+        while ((messages = pendingServerMessages.poll()) != null) {
+            for (String text : messages) {
+                //? if <=1.15.2 {
+                client.player.sendMessage(new net.minecraft.text.LiteralText(text));
+                //?} else if >=26.1 {
+                client.player.sendSystemMessage(Component.literal(text));
+                //?} else if >=1.19 {
+                /* client.player.sendMessage(Text.literal(text), false); */
+                //?} else {
+                /* client.player.sendMessage(new net.minecraft.text.LiteralText(text)); */
+                //?}
+            }
         }
     }
 
@@ -721,120 +941,30 @@ public class MineLightsClient implements ClientModInitializer {
         return bytesToHex(digest.digest());
     }
 
-    private static boolean performServerDownload(Path destination) {
-        if (!downloadStatus.compareAndSet(DownloadStatus.IDLE, DownloadStatus.DOWNLOADING) &&
-                !downloadStatus.compareAndSet(DownloadStatus.FAILED, DownloadStatus.DOWNLOADING) &&
-                !downloadStatus.compareAndSet(DownloadStatus.SUCCESS, DownloadStatus.DOWNLOADING)) {
-            return false;
-        }
-
-        downloadProgress.set(0);
-        downloadError.set("");
-
-        try {
-            URL apiUrl = URI.create(GITHUB_API_URL).toURL();
-            HttpURLConnection conn = (HttpURLConnection) apiUrl.openConnection();
-            conn.setRequestProperty("Accept", "application/vnd.github+json");
-
-            String json;
-            try (InputStream in = conn.getInputStream()) {
-                json = readAllBytes(in);
-            }
-
-            //? if <=1.21.2 {
-             JsonObject root = new JsonParser().parse(json).getAsJsonObject();
-            //?} else {
-            /*JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-            *///?}
-            JsonArray assets = root.getAsJsonArray("assets");
-            if (assets.size() == 0)
-                throw new IOException("No assets found in release");
-
-            JsonObject asset = assets.get(0).getAsJsonObject();
-            String downloadUrl = asset.get("browser_download_url").getAsString();
-            String expectedHash = asset.has("digest") ? asset.get("digest").getAsString().replace("sha256:", "") : "";
-
-            Files.createDirectories(destination.getParent());
-            URL url = URI.create(downloadUrl).toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", "MineLights-Mod-Downloader/1.0");
-
-            long totalFileSize = connection.getContentLengthLong();
-            long totalBytesRead = 0;
-            downloadTotalBytes.set(totalFileSize);
-            downloadBytesSoFar.set(0);
-            long startTime = System.nanoTime();
-
-            try (InputStream inputStream = connection.getInputStream();
-                FileOutputStream outputStream = new FileOutputStream(destination.toFile())) {
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                long lastBytesRead = 0;
-                long lastTimeCheck = startTime;
-
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
-                    downloadBytesSoFar.set(totalBytesRead);
-
-                    if (totalFileSize > 0) {
-                        downloadProgress.set((int) ((totalBytesRead * 100) / totalFileSize));
-                    }
-
-                    double secondsElapsed = (System.nanoTime() - startTime) / 1_000_000_000.0;
-                    if (secondsElapsed > 0 && totalFileSize > 0) {
-                        double bytesPerSecond = totalBytesRead / secondsElapsed;
-                        long secondsRemaining = (long) ((totalFileSize - totalBytesRead) / bytesPerSecond);
-                        downloadEta.set(formatEta(secondsRemaining));
-                    }
-
-                    long now = System.nanoTime();
-                    double intervalSeconds = (now - lastTimeCheck) / 1_000_000_000.0;
-                    if (intervalSeconds >= 1.0) {
-                        long bytesInInterval = totalBytesRead - lastBytesRead;
-                        double mbps = bytesInInterval / (1024.0 * 1024.0) / intervalSeconds;
-                        downloadSpeedMBps.set(String.format("%.2f", mbps));
-                        lastBytesRead = totalBytesRead;
-                        lastTimeCheck = now;
-                    }
-                }
-            }
-
-            downloadStatus.set(DownloadStatus.VERIFYING);
-            String actualHash = sha256(destination);
-            if (!expectedHash.isEmpty() && !actualHash.equalsIgnoreCase(expectedHash)) {
-                throw new IOException("Hash mismatch! Expected " + expectedHash + " but got " + actualHash);
-            }
-
-            LOGGER.info("Server executable downloaded successfully.");
-            downloadStatus.set(DownloadStatus.SUCCESS);
-            return true;
-
-        } catch (Exception e) {
-            LOGGER.error("Failed during background download or verification", e);
-            downloadError.set(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-            downloadStatus.set(DownloadStatus.FAILED);
-            return false;
-        }
-    }
-
-    private static String formatEta(long seconds) {
-        long mins = seconds / 60;
-        long secs = seconds % 60;
-        return String.format("%dm %ds", mins, secs);
-    }
-
     private void initializeServerConnection() {
         discoveryThread = new Thread(new DiscoveryListener(), "MineLights-Discovery");
         discoveryThread.setDaemon(true);
         discoveryThread.start();
 
+        updateServerMonitorSetting();
+    }
+
+    /** Applies changes to the user-controlled automatic server start setting immediately. */
+    public static synchronized void updateServerMonitorSetting() {
+        if (!IS_WINDOWS || CONFIG == null) {
+            return;
+        }
+
         if (CONFIG.autoStartServer) {
-            serverMonitorThread = new Thread(MineLightsClient::serverMonitorLoop, "MineLights-Server-Monitor");
-            serverMonitorThread.setDaemon(true);
-            serverMonitorThread.start();
-        } else {
-            new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Initial-Check").start();
+            if (serverMonitorThread == null || !serverMonitorThread.isAlive()
+                    || serverMonitorThread.isInterrupted()) {
+                serverMonitorThread = new Thread(MineLightsClient::serverMonitorLoop, "MineLights-Server-Monitor");
+                serverMonitorThread.setDaemon(true);
+                serverMonitorThread.start();
+            }
+        } else if (serverMonitorThread != null) {
+            serverMonitorThread.interrupt();
+            serverMonitorThread = null;
         }
     }
 
@@ -873,15 +1003,27 @@ public class MineLightsClient implements ClientModInitializer {
 
                 Path serverExePath = getServerExePath();
 
-                if (!Files.exists(serverExePath)) {
-                    if (downloadStatus.get() != DownloadStatus.DOWNLOADING) {
-                        LOGGER.warn("MineLights.exe not found. Performing synchronous download.");
-                        if (!performServerDownload(serverExePath)) {
-                            LOGGER.error("Download failed. Will retry after 30 seconds.");
-                            Thread.sleep(30000);
-                        }
-                    } else {
+                if (!Files.isRegularFile(serverExePath)) {
+                    if (CONFIG.manualServerManagement) {
+                        Thread.sleep(10000);
+                        continue;
+                    }
+                    if (!serverDownloadInProgress.compareAndSet(false, true)) {
                         Thread.sleep(1000);
+                        continue;
+                    }
+                    try {
+                        ServerRelease release = getLatestServerRelease();
+                        if (release == null) {
+                            Thread.sleep(30000);
+                        } else {
+                            downloadAndInstallServer(release, serverExePath, true);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to automatically download MineLights Server", e);
+                        Thread.sleep(30000);
+                    } finally {
+                        serverDownloadInProgress.set(false);
                     }
                     continue;
                 }
@@ -989,6 +1131,14 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static Path getServerExePath() {
         return getGameDir().resolve("mods").resolve("MineLights").resolve("MineLights.exe");
+    }
+
+    private static String getServerInstallLocation() {
+        try {
+            return getGameDir().relativize(getServerExePath()).toString().replace('\\', '/');
+        } catch (IllegalArgumentException e) {
+            return getServerExePath().toAbsolutePath().toString();
+        }
     }
 
     private static Path getGameDir() {

@@ -6,7 +6,11 @@
 
 use std::{
     collections::HashMap,
-    sync::{Mutex, OnceLock, atomic::Ordering, mpsc::TrySendError},
+    sync::{
+        Mutex, OnceLock,
+        atomic::{AtomicBool, Ordering},
+        mpsc::TrySendError,
+    },
     time::{Duration, Instant},
 };
 
@@ -122,6 +126,7 @@ pub(super) fn trailing_number(value: &str) -> String {
 }
 
 static PAINTER: OnceLock<Mutex<Painter>> = OnceLock::new();
+pub(super) static PENDING_SERVER_CONFIRMATION_REMINDER_SENT: AtomicBool = AtomicBool::new(false);
 
 /// Called from Horizon's native frame hook. Game state stays on the render
 /// thread; only immutable LED frames cross to the background network worker.
@@ -151,6 +156,14 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
     let bridge = bridge_for(game, &config);
     let player = snapshot(game, &config);
     bridge.in_world.store(player.in_game, Ordering::Release);
+    if config.server_confirmation_pending {
+        if player.in_game && !PENDING_SERVER_CONFIRMATION_REMINDER_SENT.swap(true, Ordering::AcqRel)
+        {
+            game.native_chat("[MineLights] Reviewed server autostart is still off because confirmation is incomplete. Use /minelights confirm server-autostart to enable it, or /minelights set server-autostart off to cancel.");
+        }
+    } else {
+        PENDING_SERVER_CONFIRMATION_REMINDER_SENT.store(false, Ordering::Release);
+    }
     if player.in_game {
         if let Ok(mut notices) = bridge.notices.lock() {
             while let Some(notice) = notices.pop_front() {
@@ -266,7 +279,13 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
         if button == 20 && settings.server_confirmation_pending {
-            game.native_chat(&format!("[MineLights] Confirm in Mods settings to download MineLights Server {} from GitHub, verify its pinned SHA-256, and run it with your account permissions. Choose another setting to cancel.", super::minelights_server::SERVER_VERSION));
+            game.native_chat(&format!("[MineLights] Reviewed server autostart is still off. Confirm with /minelights confirm server-autostart to download MineLights Server {} from GitHub, verify its pinned SHA-256, and run it with your account permissions; or cancel with /minelights set server-autostart off.", super::minelights_server::SERVER_VERSION));
+            if BRIDGE
+                .get()
+                .is_some_and(|bridge| bridge.in_world.load(Ordering::Acquire))
+            {
+                PENDING_SERVER_CONFIRMATION_REMINDER_SENT.store(true, Ordering::Release);
+            }
         }
     } else if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {

@@ -55,19 +55,11 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
 
 ### Installation
 
-- On Fabric, Quilt, Forge or NeoForge, place the mod in your mods folder, then start Minecraft. Wait 20+- seconds, and your RGB will be detected! *(112MB+- download for the RGB Server on Windows on first launch).*
+- On Fabric, Quilt, Forge or NeoForge, place the mod in your mods folder, then start Minecraft. On Windows, MineLights downloads MineLights Server when needed and checks for updates by default. To install it yourself, enable **Manage MineLights Server manually** in MineLights' server settings. This disables automatic downloads and replacements; configurable chat notices explain how to install or update the server. Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge and NeoForge, or the game's `MineLights` folder for Quilt. The mod can start an installed server automatically.
   
 **Installing MineLights version 2.2**: Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
 **Installing MineLights version 2.1 or below**: Follow the guide in the release changelog.
-
-### Horizon setup
-
-Install the native mod with Horizon's launcher, then build it into the game. Configure it under **Options > Mods > MineLights > Settings**. OpenRGB and Yeelight can connect directly; other supported devices use MineLights Server on Windows.
-
-You can [download MineLights Server](https://github.com/megabytesme/MineLights-Server/releases) and run it yourself. Alternatively, enable **Download and run reviewed Server** in MineLights' settings and confirm the prompt. This option is off by default; it downloads only the server version and SHA-256 pinned in the mod, and verifies the file before running it. An existing server that doesn't match the pin will not be overwritten or started automatically.
-
-MineLights can notify you in chat when the server is missing or a newer stable server release is available. Both notices can be disabled in the settings. An update notice links to the release page; it does not download or run the update.
 
 ### OpenRGB setup (optional)
 

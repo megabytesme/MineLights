@@ -1,6 +1,7 @@
 [package]
 name = "minelights-horizon"
-version = "0.1.2"
+# Cargo's SemVer accepts three numeric components; the published mod version is 2.3.8.5 in horizon-mixin.toml.
+version = "2.3.8+5"
 edition = "2024"
 license = "CC-BY-NC-SA-4.0"
 publish = false

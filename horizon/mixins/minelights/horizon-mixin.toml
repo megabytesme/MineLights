@@ -1,10 +1,10 @@
 [mod]
 id = "minelights"
-version = "0.1.2"
+version = "2.3.8.5"
 priority = 100
 
 [compatibility]
-  horizon_revision = "294448014fba585f8d5d09dd8886f482493b6417"
+  horizon_revision = "67dad0d1a5adca139b426c8114e74a33b376ba64"
 
 [[module]]
 id = "runtime"
@@ -17,6 +17,12 @@ id = "config"
 file = "crates/horizon-client/src/game.rs"
 name = "minelights_config"
 source = "config.rs"
+
+[[module]]
+id = "commands"
+file = "crates/horizon-client/src/game.rs"
+name = "minelights_commands"
+source = "commands.rs"
 
 [[module]]
 id = "effects"
@@ -73,6 +79,26 @@ target = "horizon_client::game::native_hooks::Game<'_>::native_mods"
 helper = "list.rs"
 bindings = [
   { name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" },
+]
+
+[[injection]]
+id = "commands_list"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_commands"
+helper = "commands_list.rs"
+bindings = [
+  { name = "commands", ty = "&mut Vec<&'static str>", value = "&mut *commands" },
+]
+
+[[injection]]
+id = "commands_run"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_command"
+helper = "commands_run.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "command", ty = "&str", value = "command" },
+  { name = "ran", ty = "&mut bool", value = "&mut *ran" },
 ]
 
 [[injection]]

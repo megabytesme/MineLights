@@ -34,27 +34,12 @@ import net.minecraft.client.network.packet.ChatMessageS2CPacket;
 *///?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-//? if >=26.1 {
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-//?} else if (loader_neoforge || loader_forge) && >=1.19.3 {
-/*
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-*///?} else if (loader_neoforge || loader_forge) && >=1.19 {
-/*
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-*///?} else {
-/* import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-*///?}
 
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
+import megabytesme.minelights.network.MineLightsCommands;
 
 //? if loader_forge && <1.17 {
 @Mixin(ClientPlayNetHandler.class)
@@ -68,6 +53,75 @@ import megabytesme.minelights.accessor.ChatReceivedAccessor;
 public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAccessor {
     @Unique
     private boolean chatReceivedThisTick = false;
+
+//? if >=26.1 {
+    @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "sendCommand", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptCommand(String command, CallbackInfo ci) {
+        if (MineLightsCommands.handleCommand(command)) {
+            ci.cancel();
+        }
+    }
+//?} else if loader_forge || loader_neoforge {
+    //? if >=1.19 {
+    @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "sendCommand", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptCommand(String command, CallbackInfo ci) {
+        if (MineLightsCommands.handleCommand(command)) {
+            ci.cancel();
+        }
+    }
+    //?} else if >=1.17 {
+    @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+    //?} else {
+    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+    //?}
+//?} else {
+    //? if >=1.19 {
+    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "sendChatCommand", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptCommand(String command, CallbackInfo ci) {
+        if (MineLightsCommands.handleCommand(command)) {
+            ci.cancel();
+        }
+    }
+    //?} else {
+    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
+    private void minelights$interceptChat(String message, CallbackInfo ci) {
+        if (MineLightsCommands.handleSlashMessage(message)) {
+            ci.cancel();
+        }
+    }
+    //?}
+//?}
 
 //? if loader_forge && <1.17 {
     @Inject(method = "handleChat", at = @At("HEAD"))

@@ -65,9 +65,9 @@ public final class ModMenuIntegration {
             MineLightsClient.saveConfig();
             boolean needsRefresh = false;
 
-            if (MineLightsClient.CONFIG.forceServerUpdate) {
+            if (MineLightsClient.CONFIG.requestServerUpdateCheck) {
                 new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Manual-Update-Check").start();
-                MineLightsClient.CONFIG.forceServerUpdate = false;
+                MineLightsClient.CONFIG.requestServerUpdateCheck = false;
             }
             if (MineLightsClient.CONFIG.refreshDevices) {
                 MineLightsClient.CONFIG.refreshDevices = false;
@@ -119,27 +119,9 @@ public final class ModMenuIntegration {
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(translatable("category.mine-lights.server_management"));
             Supplier<Component> statusTextSupplier = () -> {
-                MineLightsClient.DownloadStatus status = MineLightsClient.downloadStatus.get();
-                switch (status) {
-                    case DOWNLOADING:
-                        long soFarMB = MineLightsClient.downloadBytesSoFar.get() / (1024 * 1024);
-                        long totalMB = MineLightsClient.downloadTotalBytes.get() / (1024 * 1024);
-                        String eta = MineLightsClient.downloadEta.get();
-                        String speed = MineLightsClient.downloadSpeedMBps.get();
-                        return translatable("minelights.status.downloading",
-                                soFarMB, totalMB, MineLightsClient.downloadProgress.get(), eta, speed);
-                    case VERIFYING:
-                        return translatable("minelights.status.verifying");
-                    case SUCCESS:
-                        return translatable("minelights.status.success");
-                    case FAILED:
-                        return translatable("minelights.status.failed", MineLightsClient.downloadError.get());
-                    case IDLE:
-                    default:
-                        return MineLightsClient.isServerRunning()
-                                ? translatable("minelights.status.running")
-                                : translatable("minelights.status.not_running");
-                }
+                return MineLightsClient.isServerRunning()
+                        ? translatable("minelights.status.running")
+                        : translatable("minelights.status.not_running");
             };
 
             //? if <26.1 {
@@ -150,16 +132,36 @@ public final class ModMenuIntegration {
                     translatable("text.mine-lights.about.description")).build());
             *///?}
             serverManagement.addEntry(entryBuilder
-                    .startBooleanToggle(translatable("option.mine-lights.force_update.label"), MineLightsClient.CONFIG.forceServerUpdate)
+                    .startBooleanToggle(translatable("option.mine-lights.force_update.label"), MineLightsClient.CONFIG.requestServerUpdateCheck)
                     .setDefaultValue(false)
                     .setTooltip(translatable("option.mine-lights.force_update.tooltip"))
-                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.forceServerUpdate = newValue)
+                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.requestServerUpdateCheck = newValue)
                     .build());
+            if (MineLightsClient.IS_WINDOWS) {
+                serverManagement.addEntry(entryBuilder
+                        .startBooleanToggle(translatable("option.mine-lights.manualServerManagement"), MineLightsClient.CONFIG.manualServerManagement)
+                        .setDefaultValue(false)
+                        .setTooltip(translatable("option.mine-lights.manualServerManagement.tooltip"))
+                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.manualServerManagement = newValue)
+                        .build());
+            }
             serverManagement.addEntry(entryBuilder
                     .startBooleanToggle(translatable("option.mine-lights.autoStartServer"), MineLightsClient.CONFIG.autoStartServer)
                     .setDefaultValue(true)
                     .setTooltip(translatable("option.mine-lights.autoStartServer.tooltip"))
                     .setSaveConsumer(newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
+                    .build());
+            serverManagement.addEntry(entryBuilder
+                    .startBooleanToggle(translatable("option.mine-lights.notifyMissingServer"), MineLightsClient.CONFIG.notifyMissingServer)
+                    .setDefaultValue(true)
+                    .setTooltip(translatable("option.mine-lights.notifyMissingServer.tooltip"))
+                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.notifyMissingServer = newValue)
+                    .build());
+            serverManagement.addEntry(entryBuilder
+                    .startBooleanToggle(translatable("option.mine-lights.checkServerUpdates"), MineLightsClient.CONFIG.checkServerUpdates)
+                    .setDefaultValue(true)
+                    .setTooltip(translatable("option.mine-lights.checkServerUpdates.tooltip"))
+                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.checkServerUpdates = newValue)
                     .build());
             serverManagement.addEntry(entryBuilder.startTextDescription(literal("")).build());
             serverManagement.addEntry(entryBuilder

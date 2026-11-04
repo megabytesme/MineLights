@@ -1,3 +1,25 @@
+# MineLights 2.3.8.5
+
+This release adds an opt-in manual management mode for MineLights Server on Windows. Automatic downloads and updates remain enabled by default.
+
+## Changes
+
+- Added a manual server management option that disables automatic downloads and replacement. When enabled, configurable in-game notices explain how to install or update the server, including release notes.
+- Automatic server download and update behaviour remains the default for Java clients.
+- Added Horizon support for Minecraft 26.3 and aligned its mod version with the Java loaders at 2.3.8.5.
+- Added `/minelights` commands across Horizon, Fabric, Quilt, Forge, and NeoForge for reading and changing settings, managing devices, and running server actions.
+- Added an in-world chat reminder while Horizon's reviewed-server autostart confirmation is pending, with commands to confirm or cancel it.
+- MineLights Server 2.3.5 binds its command, handshake, and lighting listeners to loopback. It remains protocol-compatible with existing Java clients.
+
+## Installation / Upgrade
+
+- In manual server management mode, download MineLights Server from the [release page](https://github.com/megabytesme/MineLights-Server/releases) on Windows if you use devices that need it.
+- Put `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge, and NeoForge, or the game's `MineLights` folder for Quilt.
+- The mod can start an installed server automatically. By default, it downloads missing servers and updates to the latest release.
+- OpenRGB and Yeelight can connect directly and do not need MineLights Server.
+
+---
+
 # MineLights 2.3.8.4
 
 This release adds Forge configuration menus, refined settings across Minecraft versions, improved reliability of the mod update checker, and fixes issues with the config screen on NeoForge.

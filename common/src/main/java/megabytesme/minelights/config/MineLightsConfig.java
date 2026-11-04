@@ -8,10 +8,13 @@ public class MineLightsConfig {
     public transient boolean restartProxy = false;
     public transient boolean restartProxyAsAdmin = false;
     public transient boolean clearDisabledDevices = false;
-    public transient boolean forceServerUpdate = false;
+    public transient boolean requestServerUpdateCheck = false;
 
     public boolean enableMod = true;
     public boolean autoStartServer = true;
+    public boolean manualServerManagement = false;
+    public boolean notifyMissingServer = true;
+    public boolean checkServerUpdates = true;
 
     public boolean enableCorsair = true;
     public boolean enableAsus = true;

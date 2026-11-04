@@ -159,7 +159,15 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
         switch (selectedPage) {
             case 0:
                 toggle(options, "Enable MineLights", () -> MineLightsClient.CONFIG.enableMod, value -> MineLightsClient.CONFIG.enableMod = value);
+                if (MineLightsClient.IS_WINDOWS) {
+                    toggle(options, "Manage MineLights Server manually", () -> MineLightsClient.CONFIG.manualServerManagement,
+                            value -> MineLightsClient.CONFIG.manualServerManagement = value);
+                }
                 toggle(options, "Start MineLights Server automatically", () -> MineLightsClient.CONFIG.autoStartServer, value -> MineLightsClient.CONFIG.autoStartServer = value);
+                if (MineLightsClient.IS_WINDOWS) {
+                    toggle(options, "Notify when MineLights Server is missing", () -> MineLightsClient.CONFIG.notifyMissingServer, value -> MineLightsClient.CONFIG.notifyMissingServer = value);
+                    toggle(options, "Check MineLights Server for updates", () -> MineLightsClient.CONFIG.checkServerUpdates, value -> MineLightsClient.CONFIG.checkServerUpdates = value);
+                }
                 break;
             case 1:
                 toggle(options, "Corsair", () -> MineLightsClient.CONFIG.enableCorsair, value -> MineLightsClient.CONFIG.enableCorsair = value);
