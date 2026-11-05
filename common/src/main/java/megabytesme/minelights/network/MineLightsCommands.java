@@ -22,15 +22,26 @@ import java.lang.reflect.Field;
 
 /** Client-side chat commands for the settings and actions exposed by MineLights. */
 public final class MineLightsCommands {
-    private static final String[] SETTING_NAMES = {
+    private static final String[] SETTING_NAMES = settingsNames();
+
+    private static String[] settingsNames() {
+        String[] base = {
             "enabled", "auto-start-server", "manual-server-management", "notify-missing-server",
             "check-server-updates", "corsair", "asus", "logitech", "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
             "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
             "compass-priority", "low-health-warning", "biome-effects", "dimming-mode", "min-brightness",
             "weather-effects", "mirror-ram-rain-direction", "end-flash-effect", "fire-effect", "water-effect",
-            "portal-effects", "movement-keys", "chat-key-pulse"
-    };
+            "portal-effects", "movement-keys", "chat-key-pulse", "absorption-overlay",
+            "merge-saturation-into-hunger", "restore-lighting-outside-world"
+        };
+        List<String> all = new ArrayList<String>();
+        for (String name : base) {
+            if (!name.equals("locator-bar") || EffectSettings.isAvailable("locator-bar-keys")) all.add(name);
+        }
+        for (String name : EffectSettings.NAMES) if (EffectSettings.isAvailable(name)) all.add(name);
+        return all.toArray(new String[0]);
+    }
 
     private MineLightsCommands() {
     }
@@ -170,6 +181,11 @@ public final class MineLightsCommands {
             builder.suggest("standard-first");
             builder.suggest("lodestone-first");
             builder.suggest("recovery-first");
+        } else if ("experience-locator-mode".equals(normalizeName(setting))) {
+            builder.suggest("auto");
+            builder.suggest("experience");
+            builder.suggest("locator");
+            builder.suggest("both");
         } else if ("min-brightness".equals(normalizeName(setting))) {
             builder.suggest("0%");
             builder.suggest("20%");
@@ -314,6 +330,7 @@ public final class MineLightsCommands {
         lines.add("[MineLights] /minelights openrgb <list|add <host> [port]|remove <host> [port]>");
         lines.add("[MineLights] OpenRGB uses its own native protocol without MineLights V2 TLS or authentication; add only trusted endpoints.");
         lines.add("[MineLights] Dimming: local, sky, off. Brightness accepts 0–100 percent. Compass priority accepts priority, standard-first, lodestone-first, recovery-first.");
+        lines.add("[MineLights] Effect keys use comma-separated names; colors use #RRGGBB. Use none to clear a list or profile.");
         MineLightsClient.sendChatMessages(lines);
     }
 
@@ -341,6 +358,7 @@ public final class MineLightsCommands {
             return booleanValue.booleanValue() ? "on" : "off";
         }
         MineLightsConfig config = MineLightsClient.CONFIG;
+        if (EffectSettings.contains(name)) return EffectSettings.get(config, name);
         if ("dimming-mode".equals(name)) {
             return config.dimmingMode == null ? "local" : config.dimmingMode.name().toLowerCase(Locale.ROOT).replace('_', '-');
         }
@@ -366,6 +384,8 @@ public final class MineLightsCommands {
             MineLightsClient.CONFIG.compassPriority = parseCompassPriority(rawValue);
         } else if ("min-brightness".equals(name)) {
             MineLightsClient.CONFIG.minBrightness = parseBrightness(rawValue);
+        } else if (EffectSettings.contains(name)) {
+            EffectSettings.set(MineLightsClient.CONFIG, name, rawValue);
         } else {
             throw new IllegalArgumentException("Unknown setting '" + name + "'. Use /minelights list to see settings.");
         }
@@ -374,7 +394,7 @@ public final class MineLightsCommands {
         if ("auto-start-server".equals(name)) {
             MineLightsClient.updateServerMonitorSetting();
         }
-        if (isIntegrationSetting(name)) {
+        if (isIntegrationSetting(name) || "led-overrides".equals(name)) {
             MineLightsClient.refreshLightingManager();
         }
         MineLightsClient.sendChatMessage("[MineLights] " + name + " = " + getValue(name));
@@ -407,6 +427,9 @@ public final class MineLightsCommands {
             case "compass-effect": return Boolean.valueOf(config.enableCompassEffect);
             case "always-show-compass": return Boolean.valueOf(config.alwaysShowCompass);
             case "low-health-warning": return Boolean.valueOf(config.enableLowHealthWarning);
+            case "absorption-overlay": return Boolean.valueOf(config.enableAbsorptionOverlay);
+            case "merge-saturation-into-hunger": return Boolean.valueOf(config.mergeSaturationIntoHunger);
+            case "restore-lighting-outside-world": return Boolean.valueOf(config.restoreLightingOutsideWorld);
             case "biome-effects": return Boolean.valueOf(config.enableBiomeEffects);
             case "weather-effects": return Boolean.valueOf(config.enableWeatherEffects);
             case "mirror-ram-rain-direction": return Boolean.valueOf(config.mirrorRamRainDirection);
@@ -447,6 +470,9 @@ public final class MineLightsCommands {
             case "compass-effect": config.enableCompassEffect = value; break;
             case "always-show-compass": config.alwaysShowCompass = value; break;
             case "low-health-warning": config.enableLowHealthWarning = value; break;
+            case "absorption-overlay": config.enableAbsorptionOverlay = value; break;
+            case "merge-saturation-into-hunger": config.mergeSaturationIntoHunger = value; break;
+            case "restore-lighting-outside-world": config.restoreLightingOutsideWorld = value; break;
             case "biome-effects": config.enableBiomeEffects = value; break;
             case "weather-effects": config.enableWeatherEffects = value; break;
             case "mirror-ram-rain-direction": config.mirrorRamRainDirection = value; break;

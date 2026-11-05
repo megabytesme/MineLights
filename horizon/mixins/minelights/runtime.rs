@@ -69,10 +69,12 @@ pub(super) struct Snapshot {
     pub(super) below: String,
     pub(super) head: String,
     pub(super) health: f32,
+    pub(super) absorption: f32,
     pub(super) hunger: i32,
     pub(super) saturation: f32,
     pub(super) air: i32,
     pub(super) experience: f32,
+    pub(super) hud_bar: u8,
     pub(super) rain: f32,
     pub(super) biome_precipitation: bool,
     pub(super) biome_snowing: bool,
@@ -95,11 +97,12 @@ pub(super) struct Snapshot {
     pub(super) movement_keys: Vec<String>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub(super) struct Waypoint {
     pub(super) yaw_degrees: i16,
     pub(super) color: Color,
     pub(super) pitch: i8,
+    pub(super) distance: f32,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -197,15 +200,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
         return;
     }
     painter.last_paint = now;
-    let mut frame = painter.render(player, &layouts, config.clone(), now);
-    for layout in layouts
-        .iter()
-        .filter(|layout| device_disabled(&config, &layout.unique_id, layout.legacy_id.as_deref()))
-    {
-        for led in &layout.leds {
-            frame.keys.insert(*led, Color::BLACK);
-        }
-    }
+    let frame = painter.render(player, &layouts, config.clone(), now);
     send_frame_if_needed(bridge, &mut painter, frame, now);
 }
 
@@ -277,6 +272,8 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
             ][button - 33];
             bridge.actions.fetch_or(action, Ordering::Release);
         }
+    } else if button == 47 {
+        game.native_chat("[MineLights] Set effect keys and colors with /minelights set <setting> <value>. Use comma-separated keys and #RRGGBB colors; /minelights list shows every setting.");
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
         if button == 20 && settings.server_confirmation_pending {
@@ -301,13 +298,13 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
 
 #[cfg(test)]
 mod tests {
-    use super::super::minelights_bridge::standardize_key;
+    use minelights_engine::standardize_key;
     use super::super::minelights_effects::biome_color;
     use super::Color;
 
     #[test]
     fn standardizes_device_key_names_like_the_java_client() {
-        assert_eq!(standardize_key("Left Control"), "LEFT_CTRL");
+        assert_eq!(standardize_key("Left Control"), "LCTRL");
         assert_eq!(standardize_key("RAM 3"), "RAM_3");
         assert_eq!(standardize_key("Programmable Key 12"), "G12");
     }

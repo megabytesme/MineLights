@@ -1,3 +1,5 @@
+use minelights_engine::standardize_key;
+
 use std::{
     collections::{HashMap, HashSet},
     io::{BufRead, BufReader, Read, Write},
@@ -60,6 +62,18 @@ impl DirectOutputs {
         self.openrgb.clear();
     }
 
+    pub fn set_openrgb_state(
+        &mut self,
+        in_world: bool,
+        restore: bool,
+        disabled: &[String],
+        profile: &str,
+    ) {
+        for client in &mut self.openrgb {
+            client.set_state(in_world || !restore, disabled, profile);
+        }
+    }
+
     pub fn discover_yeelights(&mut self) {
         self.disconnect_yeelights();
         self.yeelights = YeelightDevice::discover();
@@ -73,11 +87,49 @@ impl DirectOutputs {
     }
 
     pub fn layouts(&self) -> Vec<DirectLayout> {
+        self.layouts_with_overrides(&[])
+    }
+
+    pub fn layouts_with_overrides(&self, overrides: &[String]) -> Vec<DirectLayout> {
         let mut result = self
             .openrgb
             .iter()
             .flat_map(OpenRgbClient::layouts)
             .collect::<Vec<_>>();
+        for layout in &mut result {
+            for entry in overrides {
+                let Some((device, assignment)) = entry.rsplit_once('|') else {
+                    continue;
+                };
+                let Some((index, name)) = assignment.split_once('=') else {
+                    continue;
+                };
+                if !layout
+                    .display_name
+                    .to_ascii_lowercase()
+                    .contains(&device.trim().to_ascii_lowercase())
+                {
+                    continue;
+                }
+                let Some(id) = index
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
+                    .and_then(|index| layout.leds.get(index))
+                    .copied()
+                else {
+                    continue;
+                };
+                for ids in layout.keys.values_mut() {
+                    ids.retain(|existing| *existing != id);
+                }
+                layout
+                    .keys
+                    .entry(standardize_key(name))
+                    .or_default()
+                    .push(id);
+            }
+        }
         result.extend(self.yeelights.iter().enumerate().map(|(index, device)| {
             let led = YEELIGHT_LED_BASE.saturating_add(index as u32);
             let display_name = if device.name.is_empty() {
@@ -96,13 +148,24 @@ impl DirectOutputs {
         result
     }
 
-    pub fn update(&mut self, frame: &HashMap<u32, [u8; 3]>) {
+    pub fn update(&mut self, frame: &HashMap<u32, [u8; 3]>, disabled: &[String]) {
         self.openrgb.retain_mut(|client| client.update(frame));
         for (index, device) in self.yeelights.iter_mut().enumerate() {
-            let color = frame
+            let name = if device.name.is_empty() {
+                device.id.as_str()
+            } else {
+                device.name.as_str()
+            };
+            let unique_id = format!("Yeelight|{name}");
+            if disabled.iter().any(|entry| entry == &unique_id) {
+                continue;
+            }
+            let Some(color) = frame
                 .get(&YEELIGHT_LED_BASE.saturating_add(index as u32))
                 .copied()
-                .unwrap_or([0, 0, 0]);
+            else {
+                continue;
+            };
             device.set_color(color);
         }
     }
@@ -113,6 +176,15 @@ struct OpenRgbDevice {
     led_count: usize,
     display_name: String,
     key_leds: Vec<(usize, String)>,
+    original: Option<OriginalMode>,
+    owned: bool,
+}
+
+struct OriginalMode {
+    index: u32,
+    data: Vec<u8>,
+    per_led: bool,
+    colors: Vec<u8>,
 }
 
 struct OpenRgbClient {
@@ -121,6 +193,8 @@ struct OpenRgbClient {
     endpoint_slot: usize,
     stream: TcpStream,
     devices: Vec<OpenRgbDevice>,
+    protocol_version: u32,
+    profile_loaded: bool,
 }
 
 impl OpenRgbClient {
@@ -183,14 +257,18 @@ impl OpenRgbClient {
                 &protocol_version.to_le_bytes(),
             )?;
             let info = read_response(&mut stream)?;
-            let (display_name, led_count, key_leds) =
+            let (display_name, led_count, key_leds, original) =
                 parse_openrgb_device(&info, protocol_version)?;
-            send_packet(&mut stream, controller_id, 1100, &[])?;
+            for (index, name) in &key_leds {
+                eprintln!("[MineLights] OpenRGB {display_name} LED {index}: {name}");
+            }
             devices.push(OpenRgbDevice {
                 controller_id,
                 led_count,
                 display_name,
                 key_leds,
+                original,
+                owned: false,
             });
         }
         Ok(Self {
@@ -199,7 +277,50 @@ impl OpenRgbClient {
             endpoint_slot,
             stream,
             devices,
+            protocol_version,
+            profile_loaded: false,
         })
+    }
+
+    fn set_state(&mut self, take_over: bool, disabled: &[String], profile: &str) {
+        let mut has_disabled = false;
+        for device in &mut self.devices {
+            let id = format!(
+                "OpenRGB|{}:{}|{}|{}",
+                self.endpoint_host, self.endpoint_port, device.controller_id, device.display_name
+            );
+            let is_disabled = disabled.iter().any(|entry| entry == &id);
+            has_disabled |= is_disabled;
+            let should_own = take_over && !is_disabled;
+            if should_own && !device.owned {
+                let capture = send_packet(
+                    &mut self.stream,
+                    device.controller_id,
+                    1,
+                    &self.protocol_version.to_le_bytes(),
+                )
+                .and_then(|_| read_response(&mut self.stream))
+                .and_then(|bytes| parse_openrgb_device(&bytes, self.protocol_version));
+                if let Ok((_, _, _, original)) = capture {
+                    device.original = original;
+                }
+                if send_packet(&mut self.stream, device.controller_id, 1100, &[]).is_ok() {
+                    device.owned = true;
+                }
+            } else if !should_own && device.owned {
+                restore_device(&mut self.stream, device);
+                device.owned = false;
+            }
+        }
+        if take_over {
+            self.profile_loaded = false;
+        } else if !self.profile_loaded && !has_disabled && !profile.trim().is_empty() {
+            let mut payload = profile.trim().as_bytes().to_vec();
+            payload.push(0);
+            if send_packet(&mut self.stream, 0, 152, &payload).is_ok() {
+                self.profile_loaded = true;
+            }
+        }
     }
 
     fn layouts(&self) -> Vec<DirectLayout> {
@@ -246,6 +367,9 @@ impl OpenRgbClient {
 
     fn update(&mut self, frame: &HashMap<u32, [u8; 3]>) -> bool {
         for (device_index, device) in self.devices.iter().enumerate() {
+            if !device.owned {
+                continue;
+            }
             if device.led_count == 0 || device.key_leds.is_empty() {
                 continue;
             }
@@ -290,6 +414,34 @@ impl OpenRgbClient {
     }
 }
 
+impl Drop for OpenRgbClient {
+    fn drop(&mut self) {
+        for device in &mut self.devices {
+            if device.owned {
+                restore_device(&mut self.stream, device);
+            }
+        }
+    }
+}
+
+fn restore_device(stream: &mut TcpStream, device: &OpenRgbDevice) {
+    let Some(original) = &device.original else {
+        return;
+    };
+    let mut mode = Vec::with_capacity(8 + original.data.len());
+    mode.extend_from_slice(&((8 + original.data.len()) as u32).to_le_bytes());
+    mode.extend_from_slice(&original.index.to_le_bytes());
+    mode.extend_from_slice(&original.data);
+    let _ = send_packet(stream, device.controller_id, 1101, &mode);
+    if original.per_led && !original.colors.is_empty() {
+        let mut colors = Vec::with_capacity(6 + original.colors.len());
+        colors.extend_from_slice(&((6 + original.colors.len()) as u32).to_le_bytes());
+        colors.extend_from_slice(&((original.colors.len() / 4) as u16).to_le_bytes());
+        colors.extend_from_slice(&original.colors);
+        let _ = send_packet(stream, device.controller_id, 1050, &colors);
+    }
+}
+
 struct Cursor<'a> {
     bytes: &'a [u8],
     offset: usize,
@@ -331,7 +483,7 @@ impl<'a> Cursor<'a> {
 fn parse_openrgb_device(
     bytes: &[u8],
     protocol: u32,
-) -> Result<(String, usize, Vec<(usize, String)>), String> {
+) -> Result<(String, usize, Vec<(usize, String)>, Option<OriginalMode>), String> {
     let mut cursor = Cursor::new(bytes);
     let _device_type = cursor.u32()?;
     let _device_index = cursor.u32()?;
@@ -343,8 +495,10 @@ fn parse_openrgb_device(
         let _ = cursor.string()?;
     }
     let mode_count = usize::from(cursor.u16()?);
-    let _ = cursor.u32()?;
-    for _ in 0..mode_count {
+    let active_mode = cursor.u32()?;
+    let mut original = None;
+    for mode_index in 0..mode_count {
+        let mode_start = cursor.offset;
         let _ = cursor.string()?;
         for _ in 0..4 {
             let _ = cursor.u32()?;
@@ -360,11 +514,18 @@ fn parse_openrgb_device(
         if protocol >= 3 {
             let _ = cursor.u32()?;
         }
-        for _ in 0..2 {
-            let _ = cursor.u32()?;
-        }
+        let _ = cursor.u32()?;
+        let color_mode = cursor.u32()?;
         let color_count = usize::from(cursor.u16()?);
         let _ = cursor.take(color_count.saturating_mul(4))?;
+        if mode_index as u32 == active_mode {
+            original = Some(OriginalMode {
+                index: active_mode,
+                data: bytes[mode_start..cursor.offset].to_vec(),
+                per_led: color_mode == 1,
+                colors: Vec::new(),
+            });
+        }
     }
     let zone_count = usize::from(cursor.u16()?);
     let mut total_leds = 0usize;
@@ -393,13 +554,14 @@ fn parse_openrgb_device(
     let mut key_leds = Vec::new();
     for index in 0..led_count {
         let led_name = cursor.string()?;
-        if !led_name.is_empty() {
-            key_leds.push((index, led_name));
-        }
+        key_leds.push((index, led_name));
         let _ = cursor.u32()?;
     }
     let color_count = usize::from(cursor.u16()?);
-    let _ = cursor.take(color_count.saturating_mul(4))?;
+    let colors = cursor.take(color_count.saturating_mul(4))?;
+    if let Some(mode) = &mut original {
+        mode.colors = colors.to_vec();
+    }
     if protocol >= 5 {
         let alternate_names = usize::from(cursor.u16()?);
         for _ in 0..alternate_names {
@@ -407,7 +569,7 @@ fn parse_openrgb_device(
         }
         let _ = cursor.u32()?;
     }
-    Ok((name, total_leds.max(led_count), key_leds))
+    Ok((name, total_leds.max(led_count), key_leds, original))
 }
 
 fn send_packet(
@@ -449,67 +611,6 @@ fn read_u32_at(bytes: &[u8], offset: usize) -> Result<u32, String> {
         .get(offset..end)
         .ok_or("OpenRGB response omitted a 32-bit value")?;
     Ok(u32::from_le_bytes(value.try_into().unwrap()))
-}
-
-fn standardize_key(raw: &str) -> String {
-    let mut name = raw
-        .trim()
-        .to_ascii_uppercase()
-        .replace("CONTROL", "CTRL")
-        .replace("WINDOWS", "WIN");
-    if let Some(value) = name.strip_prefix("KEY: ") {
-        name = value.to_owned();
-    }
-    let suffix: String = name
-        .chars()
-        .rev()
-        .take_while(|c| c.is_ascii_digit())
-        .collect::<Vec<_>>()
-        .into_iter()
-        .rev()
-        .collect();
-    if name.contains("DRAM") || name.contains("CORSAIR PRO LED") || name.contains("RAM") {
-        if name.contains("CORSAIR PRO LED") {
-            if let Ok(index) = suffix.parse::<u32>() {
-                return format!("RAM_{}", index.saturating_add(1));
-            }
-        }
-        return if suffix.is_empty() {
-            "RAM".into()
-        } else {
-            format!("RAM_{suffix}")
-        };
-    }
-    if name.contains("LEDSTRIPE") || name.contains("UNDERGLOW") {
-        return if suffix.is_empty() {
-            "UNDERGLOW".into()
-        } else {
-            format!("UNDERGLOW_{suffix}")
-        };
-    }
-    if name.contains("PROGRAMMABLE") {
-        return format!("G{suffix}");
-    }
-    if name.contains("CUSTOM") || name.contains("WHEEL") {
-        return if suffix.is_empty() {
-            "WHEEL".into()
-        } else {
-            format!("WHEEL_{suffix}")
-        };
-    }
-    if name.contains("PLAYER") {
-        return if suffix.is_empty() {
-            "PLAYER".into()
-        } else {
-            format!("PLAYER_{suffix}")
-        };
-    }
-    name.split_whitespace()
-        .collect::<Vec<_>>()
-        .join("_")
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
-        .collect()
 }
 
 struct YeelightDevice {
@@ -718,6 +819,31 @@ mod tests {
     }
 
     #[test]
+    fn excluded_yeelight_does_not_receive_a_black_or_color_update() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let device = YeelightDevice {
+            id: "test".into(),
+            name: String::new(),
+            address: listener.local_addr().unwrap(),
+            stream: None,
+            last_color: None,
+            command_id: 1,
+        };
+        let mut outputs = DirectOutputs {
+            openrgb: Vec::new(),
+            yeelights: vec![device],
+        };
+        let frame = HashMap::from([(YEELIGHT_LED_BASE, [0, 0, 0])]);
+        outputs.update(&frame, &["Yeelight|test".into()]);
+
+        assert_eq!(
+            listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[test]
     fn rejects_truncated_openrgb_device_data() {
         assert!(parse_openrgb_device(&[0, 1, 2], 5).is_err());
     }
@@ -751,16 +877,126 @@ mod tests {
         packet.extend_from_slice(&0u16.to_le_bytes());
         packet.extend_from_slice(&0u16.to_le_bytes());
         packet.extend_from_slice(&0u32.to_le_bytes());
-        let (name, count, keys) = parse_openrgb_device(&packet, 5).unwrap();
+        let (name, count, keys, _) = parse_openrgb_device(&packet, 5).unwrap();
         assert_eq!(name, "Keyboard");
         assert_eq!(count, 2);
         assert_eq!(keys, vec![(0, "Key: Q".into()), (1, "Key: W".into())]);
     }
 
     #[test]
+    fn captures_original_openrgb_mode_and_colors() {
+        fn string(out: &mut Vec<u8>, value: &str) {
+            out.extend_from_slice(&((value.len() + 1) as u16).to_le_bytes());
+            out.extend_from_slice(value.as_bytes());
+            out.push(0);
+        }
+        let mut packet = vec![0; 8];
+        for value in ["Keyboard", "", "", "", ""] {
+            string(&mut packet, value);
+        }
+        packet.extend_from_slice(&1u16.to_le_bytes());
+        packet.extend_from_slice(&0u32.to_le_bytes());
+        let mut saved_mode = Vec::new();
+        string(&mut saved_mode, "Static");
+        for index in 0..9 {
+            saved_mode.extend_from_slice(&(if index == 8 { 1u32 } else { 0u32 }).to_le_bytes());
+        }
+        saved_mode.extend_from_slice(&0u16.to_le_bytes());
+        packet.extend_from_slice(&saved_mode);
+        packet.extend_from_slice(&0u16.to_le_bytes());
+        packet.extend_from_slice(&1u16.to_le_bytes());
+        string(&mut packet, "Q");
+        packet.extend_from_slice(&0u32.to_le_bytes());
+        packet.extend_from_slice(&1u16.to_le_bytes());
+        packet.extend_from_slice(&[1, 2, 3, 4]);
+        let (_, _, _, original) = parse_openrgb_device(&packet, 0).unwrap();
+        let original = original.unwrap();
+        assert_eq!(original.data, saved_mode);
+        assert!(original.per_led);
+        assert_eq!(original.colors, [1, 2, 3, 4]);
+    }
+
+    #[test]
     fn standardizes_corsair_led_indices_like_java() {
         assert_eq!(standardize_key("Corsair Pro LED 0"), "RAM_1");
-        assert_eq!(standardize_key("Key: left control"), "LEFT_CTRL");
+        assert_eq!(standardize_key("Key: left control"), "LCTRL");
         assert_eq!(standardize_key("Key: Page-Down"), "PAGEDOWN");
+        assert_eq!(standardize_key("Key: Number Pad +"), "NUMPAD_ADD");
+        assert_eq!(standardize_key("Key: \\ (ISO)"), "ISO_BACKSLASH");
+    }
+
+    #[test]
+    fn excluded_openrgb_device_is_not_taken_over_and_overrides_keep_led_index() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let stream = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (mut peer, _) = listener.accept().unwrap();
+        peer.set_read_timeout(Some(Duration::from_millis(100)))
+            .unwrap();
+        let mut output = DirectOutputs::default();
+        output.openrgb.push(OpenRgbClient {
+            endpoint_host: "127.0.0.1".into(),
+            endpoint_port: 6742,
+            endpoint_slot: 0,
+            stream,
+            protocol_version: 5,
+            profile_loaded: false,
+            devices: vec![OpenRgbDevice {
+                controller_id: 3,
+                led_count: 2,
+                display_name: "Keyboard".into(),
+                key_leds: vec![(0, "Q".into()), (1, "Q".into())],
+                original: None,
+                owned: false,
+            }],
+        });
+        let layout = output
+            .layouts_with_overrides(&["Keyboard|1=F1".into()])
+            .remove(0);
+        assert_eq!(layout.keys["Q"], vec![OPENRGB_LED_BASE]);
+        assert_eq!(layout.keys["F1"], vec![OPENRGB_LED_BASE + 1]);
+        output.set_openrgb_state(true, true, &[layout.unique_id], "");
+        let mut byte = [0];
+        assert!(
+            peer.read(&mut byte).is_err(),
+            "excluded device was contacted"
+        );
+    }
+
+    #[test]
+    fn releasing_owned_openrgb_device_restores_its_saved_mode() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let stream = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (mut peer, _) = listener.accept().unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let mut client = OpenRgbClient {
+            endpoint_host: "127.0.0.1".into(),
+            endpoint_port: 6742,
+            endpoint_slot: 0,
+            stream,
+            protocol_version: 5,
+            profile_loaded: false,
+            devices: vec![OpenRgbDevice {
+                controller_id: 3,
+                led_count: 1,
+                display_name: "Keyboard".into(),
+                key_leds: vec![(0, "Q".into())],
+                owned: true,
+                original: Some(OriginalMode {
+                    index: 2,
+                    data: vec![7, 8],
+                    per_led: true,
+                    colors: vec![1, 2, 3, 4],
+                }),
+            }],
+        };
+        client.set_state(false, &[], "");
+        let mut header = [0u8; 16];
+        peer.read_exact(&mut header).unwrap();
+        assert_eq!(u32::from_le_bytes(header[8..12].try_into().unwrap()), 1101);
+        let mut mode = vec![0; u32::from_le_bytes(header[12..16].try_into().unwrap()) as usize];
+        peer.read_exact(&mut mode).unwrap();
+        assert_eq!(u32::from_le_bytes(mode[4..8].try_into().unwrap()), 2);
+        peer.read_exact(&mut header).unwrap();
+        assert_eq!(u32::from_le_bytes(header[8..12].try_into().unwrap()), 1050);
     }
 }

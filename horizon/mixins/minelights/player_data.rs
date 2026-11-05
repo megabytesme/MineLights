@@ -245,15 +245,29 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
                 ((packed_color >> 8) & 0xFF) as u8,
                 (packed_color & 0xFF) as u8,
             );
-            let _distance = (dx * dx + dy * dy + dz * dz).sqrt();
+            let distance = (dx * dx + dy * dy + dz * dz).sqrt() as f32;
             Some(Waypoint {
                 yaw_degrees: yaw.round() as i16,
                 color,
                 pitch,
+                distance,
             })
         })
         .collect();
     let chat_key = friendly_key_name(game.settings.keys.get("key.chat"));
+    let spectator = game.spectator();
+    let contextual = horizon_client::locator_bar::ContextualBar::next(
+        game.waypoints.has_waypoints(),
+        !spectator && game.jumpable_mount(),
+        game.mount_jumping(),
+        !game.creative && !spectator,
+        game.experience_recent(),
+    );
+    let hud_bar = match contextual {
+        horizon_client::locator_bar::ContextualBar::Experience => 0,
+        horizon_client::locator_bar::ContextualBar::Locator => 1,
+        _ => 2,
+    };
     Snapshot {
         in_game: true,
         dimension,
@@ -262,10 +276,12 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
         below: block_name(x, y - 1, z),
         head: block_name(x, head_y, z),
         health: player.health.health(),
+        absorption: player.health.absorption(),
         hunger: player.health.food.food,
         saturation: player.health.food.saturation,
         air: player.air,
         experience: game.experience.progress,
+        hud_bar,
         rain,
         biome_precipitation,
         biome_snowing,

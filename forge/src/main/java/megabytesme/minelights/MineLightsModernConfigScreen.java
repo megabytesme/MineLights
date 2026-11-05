@@ -138,7 +138,7 @@ public final class MineLightsModernConfigScreen extends Screen {
                 toggle(options, "Hunger bar", () -> MineLightsClient.CONFIG.enableHungerBar, value -> MineLightsClient.CONFIG.enableHungerBar = value);
                 toggle(options, "Saturation bar", () -> MineLightsClient.CONFIG.enableSaturationBar, value -> MineLightsClient.CONFIG.enableSaturationBar = value);
                 toggle(options, "Experience bar", () -> MineLightsClient.CONFIG.enableExperienceBar, value -> MineLightsClient.CONFIG.enableExperienceBar = value);
-                //? if >=26.1 {
+                //? if >=1.21.6 {
                 toggle(options, "Locator bar", () -> MineLightsClient.CONFIG.enableLocatorBar, value -> MineLightsClient.CONFIG.enableLocatorBar = value);
                 //?}
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
@@ -148,6 +148,12 @@ public final class MineLightsModernConfigScreen extends Screen {
                     MineLightsClient.CONFIG.compassPriority = values[(MineLightsClient.CONFIG.compassPriority.ordinal() + 1) % values.length];
                 });
                 toggle(options, "Low-health warning", () -> MineLightsClient.CONFIG.enableLowHealthWarning, value -> MineLightsClient.CONFIG.enableLowHealthWarning = value);
+                toggle(options, "Absorption overlay", () -> MineLightsClient.CONFIG.enableAbsorptionOverlay, value -> MineLightsClient.CONFIG.enableAbsorptionOverlay = value);
+                toggle(options, "Merge saturation into hunger", () -> MineLightsClient.CONFIG.mergeSaturationIntoHunger, value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value);
+                toggle(options, "Restore OpenRGB outside worlds", () -> MineLightsClient.CONFIG.restoreLightingOutsideWorld, value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value);
+                cycle(options, "Low-health threshold", () -> String.format("%.0f", MineLightsClient.CONFIG.lowHealthThreshold), () -> MineLightsClient.CONFIG.lowHealthThreshold = MineLightsClient.CONFIG.lowHealthThreshold >= 20.0F ? 1.0F : Math.min(20.0F, MineLightsClient.CONFIG.lowHealthThreshold + 1.0F));
+                cycle(options, "Saturation tint strength", () -> String.format("%.1f", MineLightsClient.CONFIG.saturationTintStrength), () -> MineLightsClient.CONFIG.saturationTintStrength = MineLightsClient.CONFIG.saturationTintStrength >= 1.0F ? 0.0F : Math.min(1.0F, MineLightsClient.CONFIG.saturationTintStrength + 0.1F));
+                options.add(new Option("Keys and colors: /minelights set", () -> "", () -> { }, false));
                 toggle(options, "Highlight movement keys", () -> MineLightsClient.CONFIG.highlightMovementKeys, value -> MineLightsClient.CONFIG.highlightMovementKeys = value);
                 toggle(options, "Pulse chat key", () -> MineLightsClient.CONFIG.pulseChatKey, value -> MineLightsClient.CONFIG.pulseChatKey = value);
                 break;

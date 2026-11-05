@@ -100,15 +100,20 @@ public class PlayerDataCollector {
 
         playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
+        playerDto.setAbsorption(player.getAbsorptionAmount());
         //? if >=26.1 {
         playerDto.setHunger(player.getFoodData().getFoodLevel());
         playerDto.setSaturation(player.getFoodData().getSaturationLevel());
         playerDto.setAir(player.getAirSupply());
+        playerDto.setAirBarVisible(player.isUnderWater() || player.getAirSupply() < player.getMaxAirSupply());
         //?} else {
         /* playerDto.setHunger(player.getHungerManager().getFoodLevel());
         playerDto.setSaturation(player.getHungerManager().getSaturationLevel());
         //? if >1.14.3 {
         playerDto.setAir(player.getAir());
+        //? if >=1.16 {
+        playerDto.setAirBarVisible(player.isSubmergedInWater() || player.getAir() < player.getMaxAir());
+        //?}
         //?} else {
         playerDto.setAir(300);
         //?} */
@@ -189,8 +194,14 @@ public class PlayerDataCollector {
         //?}
         //? if >=26.1 {
         playerDto.setWaypoints(collectWaypoints(client, player, world));
+        playerDto.setHudBar(PlayerHudBar.read(client));
         //?} else {
-        /* playerDto.setWaypoints(new ArrayList<>()); */
+        /* //? if >=1.21.6 {
+        playerDto.setWaypoints(collectWaypointsYarn(client, player));
+        playerDto.setHudBar(readHudBar(client));
+        //?} else {
+        playerDto.setWaypoints(new ArrayList<>());
+        //?} */
         //?}
 
         //? if >=26.1 {
@@ -351,6 +362,97 @@ public class PlayerDataCollector {
         return (r << 16) | (g << 8) | b;
     }
     //?}
+
+    //? if >=1.21.6 && <26.1 {
+    /*private static List<WaypointDto> collectWaypointsYarn(MinecraftClient client, ClientPlayerEntity player) {
+        List<WaypointDto> waypoints = new ArrayList<>();
+        Entity camera = client.getCameraEntity();
+        if (camera == null || player.networkHandler == null) {
+            return waypoints;
+        }
+        //? if >=1.21.9 {
+        World cameraWorld = camera.getEntityWorld();
+        net.minecraft.client.render.RenderTickCounter tickCounter = client.getRenderTickCounter();
+        net.minecraft.world.tick.TickManager tickManager = cameraWorld.getTickManager();
+        net.minecraft.world.waypoint.EntityTickProgress tickProgress =
+                entity -> tickCounter.getTickProgress(!tickManager.shouldSkipTick(entity));
+        //?} else {
+        World cameraWorld = camera.getWorld();
+        //?}
+
+        player.networkHandler.getWaypointHandler().forEachWaypoint(camera, waypoint -> {
+            if (waypoint.getSource().left().map(uuid -> uuid.equals(camera.getUuid())).orElse(false)) {
+                return;
+            }
+            WaypointDto dto = new WaypointDto();
+            //? if >=1.21.9 {
+            dto.setRelativeYaw(waypoint.getRelativeYaw(cameraWorld, client.gameRenderer.getCamera(), tickProgress));
+            //?} else {
+            dto.setRelativeYaw(waypoint.getRelativeYaw(cameraWorld, client.gameRenderer.getCamera()));
+            //?}
+            int color = waypoint.getConfig().color.orElseGet(() -> waypoint.getSource().map(
+                    uuid -> net.minecraft.util.math.ColorHelper.withBrightness(
+                            net.minecraft.util.math.ColorHelper.withAlpha(255, uuid.hashCode()), 0.9F),
+                    name -> net.minecraft.util.math.ColorHelper.withBrightness(
+                            net.minecraft.util.math.ColorHelper.withAlpha(255, name.hashCode()), 0.9F)));
+            dto.setColor(color & 0xFFFFFF);
+            dto.setDistance((float) Math.sqrt(waypoint.squaredDistanceTo(camera)));
+            //? if >=1.21.9 {
+            net.minecraft.world.waypoint.TrackedWaypoint.Pitch pitch =
+                    waypoint.getPitch(cameraWorld, client.gameRenderer, tickProgress);
+            //?} else {
+            net.minecraft.world.waypoint.TrackedWaypoint.Pitch pitch =
+                    waypoint.getPitch(cameraWorld, client.gameRenderer);
+            //?}
+            if (pitch == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.UP) {
+                dto.setPitch(WaypointDto.Pitch.UP);
+            } else if (pitch == net.minecraft.world.waypoint.TrackedWaypoint.Pitch.DOWN) {
+                dto.setPitch(WaypointDto.Pitch.DOWN);
+            } else {
+                dto.setPitch(WaypointDto.Pitch.LEVEL);
+            }
+            waypoints.add(dto);
+        });
+        return waypoints;
+    }
+
+    private static Field hudBarField;
+
+    // InGameHud keeps the bar it is drawing in a private Pair<BarType, Bar> field.
+    private static String readHudBar(MinecraftClient client) {
+        try {
+            if (hudBarField == null) {
+                for (Field field : net.minecraft.client.gui.hud.InGameHud.class.getDeclaredFields()) {
+                    if (field.getType() == org.apache.commons.lang3.tuple.Pair.class) {
+                        field.setAccessible(true);
+                        hudBarField = field;
+                        break;
+                    }
+                }
+                if (hudBarField == null) {
+                    return null;
+                }
+            }
+            Object current = hudBarField.get(client.inGameHud);
+            if (!(current instanceof org.apache.commons.lang3.tuple.Pair)) {
+                return null;
+            }
+            Object bar = ((org.apache.commons.lang3.tuple.Pair<?, ?>) current).getRight();
+            if (bar instanceof net.minecraft.client.gui.hud.bar.ExperienceBar) {
+                return "EXPERIENCE";
+            }
+            if (bar instanceof net.minecraft.client.gui.hud.bar.LocatorBar) {
+                return "LOCATOR";
+            }
+            if (bar instanceof net.minecraft.client.gui.hud.bar.JumpBar) {
+                return "JUMP";
+            }
+            return "EMPTY";
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
+        }
+    }
+    *///?}
 
     //? if >=26.1 {
     private static void updateCompassData(PlayerDto dto, LocalPlayer player, ClientLevel world) {

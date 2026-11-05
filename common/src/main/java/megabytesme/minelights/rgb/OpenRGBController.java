@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +24,7 @@ public class OpenRGBController {
     private static final int MAX_CLIENT_PROTOCOL_VERSION = 5;
     private static final int MAX_DEVICE_COUNT = 4096;
     private static final int MAX_RESPONSE_DATA_SIZE = 64 * 1024 * 1024;
+    private static final int MODE_COLORS_PER_LED = 1;
 
     private String processKeyName(String name) {
         return KeyNameStandardizer.standardize(name);
@@ -40,6 +42,11 @@ public class OpenRGBController {
         public int controllerId;
         public int ledCount;
         public Map<String, Integer> keyMap = new HashMap<>();
+        public List<String> ledNames = new ArrayList<>();
+        public int originalModeIndex = -1;
+        public byte[] originalModeData;
+        public boolean originalModeUsesPerLedColors;
+        public byte[] originalColors;
     }
 
     private final List<OpenRGBDevice> devices = new ArrayList<>();
@@ -110,7 +117,6 @@ public class OpenRGBController {
                     );
                 }
 
-                sendPacket(1100, controllerId, new byte[0]);
             }
             return true;
         } catch (IOException e) {
@@ -136,9 +142,10 @@ public class OpenRGBController {
 
         int numModes = Short.toUnsignedInt(data.getShort());
         LOGGER.info("Modes: " + numModes);
-        data.getInt();
+        int activeMode = data.getInt();
 
         for (int i = 0; i < numModes; i++) {
+            int modeStart = data.position();
             readString(data);
             data.getInt();
             data.getInt();
@@ -159,11 +166,20 @@ public class OpenRGBController {
             }
 
             data.getInt();
-            data.getInt();
+            int colorMode = data.getInt();
 
             int modeNumColors = Short.toUnsignedInt(data.getShort());
             if (modeNumColors > 0) {
                 data.position(data.position() + (modeNumColors * 4));
+            }
+
+            if (i == activeMode) {
+                device.originalModeIndex = i;
+                device.originalModeData = new byte[data.position() - modeStart];
+                ByteBuffer modeBytes = data.duplicate();
+                modeBytes.position(modeStart);
+                modeBytes.get(device.originalModeData);
+                device.originalModeUsesPerLedColors = colorMode == MODE_COLORS_PER_LED;
             }
         }
 
@@ -200,6 +216,7 @@ public class OpenRGBController {
         LOGGER.info("[OpenRGB] LEDs reported: " + numLeds);
         for (int i = 0; i < numLeds; i++) {
             String ledName = readString(data);
+            device.ledNames.add(ledName);
             if (!ledName.isEmpty()) {
                 String processedName = processKeyName(ledName);
                 device.keyMap.put(processedName, i);
@@ -209,9 +226,8 @@ public class OpenRGBController {
         }
 
         int numColors = Short.toUnsignedInt(data.getShort());
-        if (numColors > 0) {
-            data.position(data.position() + (numColors * 4));
-        }
+        device.originalColors = new byte[numColors * 4];
+        data.get(device.originalColors);
 
         if (this.serverProtocolVersion >= 5) {
             int numAltNames = Short.toUnsignedInt(data.getShort());
@@ -312,6 +328,73 @@ public class OpenRGBController {
         }
     }
 
+    public void restoreOriginalModes(Set<Integer> enabledDevices) {
+        if (socket == null || socket.isClosed()) {
+            return;
+        }
+        for (int index = 0; index < devices.size(); index++) {
+            if (!enabledDevices.contains(index)) continue;
+            OpenRGBDevice device = devices.get(index);
+            if (device.originalModeData == null) {
+                continue;
+            }
+            try {
+                ByteBuffer mode = ByteBuffer.allocate(8 + device.originalModeData.length).order(ByteOrder.LITTLE_ENDIAN);
+                mode.putInt(mode.capacity());
+                mode.putInt(device.originalModeIndex);
+                mode.put(device.originalModeData);
+                sendPacket(1101, device.controllerId, mode.array());
+
+                if (device.originalModeUsesPerLedColors && device.originalColors.length > 0) {
+                    ByteBuffer colors = ByteBuffer.allocate(6 + device.originalColors.length)
+                            .order(ByteOrder.LITTLE_ENDIAN);
+                    colors.putInt(colors.capacity());
+                    colors.putShort((short) (device.originalColors.length / 4));
+                    colors.put(device.originalColors);
+                    sendPacket(1050, device.controllerId, colors.array());
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to restore the original mode of OpenRGB device " + device.name, e);
+            }
+        }
+    }
+
+    public void loadProfile(String profileName) {
+        if (socket == null || socket.isClosed()) {
+            return;
+        }
+        try {
+            byte[] name = (profileName + "\0").getBytes(StandardCharsets.UTF_8);
+            // 152 loads a profile; 151 would save over it.
+            sendPacket(152, 0, name);
+        } catch (IOException e) {
+            LOGGER.warn("Failed to load OpenRGB profile " + profileName, e);
+        }
+    }
+
+    public void enterCustomMode(Set<Integer> enabledDevices) {
+        if (socket == null || socket.isClosed()) {
+            return;
+        }
+        for (int index = 0; index < devices.size(); index++) {
+            if (!enabledDevices.contains(index)) continue;
+            OpenRGBDevice device = devices.get(index);
+            try {
+                byte[] request = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+                        .putInt(serverProtocolVersion).array();
+                sendPacket(1, device.controllerId, request);
+                OpenRGBDevice current = parseDeviceData(readResponse());
+                device.originalModeIndex = current.originalModeIndex;
+                device.originalModeData = current.originalModeData;
+                device.originalModeUsesPerLedColors = current.originalModeUsesPerLedColors;
+                device.originalColors = current.originalColors;
+                sendPacket(1100, device.controllerId, new byte[0]);
+            } catch (IOException | RuntimeException e) {
+                LOGGER.warn("Failed to switch OpenRGB device " + device.name + " to direct mode", e);
+            }
+        }
+    }
+
     public void disconnect() {
         try {
             if (socket != null)
@@ -350,11 +433,7 @@ public class OpenRGBController {
     }
 
     private int getLedOffsetForDevice(int deviceIndex) {
-        int offset = 2000;
-        for (int i = 0; i < deviceIndex; i++) {
-            offset += devices.get(i).ledCount;
-        }
-        return offset;
+        return 2000 + (deviceIndex * 1000);
     }
 
     public Map<String, Integer> getGlobalKeyMap() {

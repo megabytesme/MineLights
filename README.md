@@ -19,9 +19,9 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
   - **Weather Effects**: Experience rain and dramatic lightning flashes during in-game thunderstorms.
   - **Status Effects**: Your lighting will react when you are on fire, poisoned, or withering.
   - **Block Effects**: Standing in lava, fire, or portals will trigger unique lighting themes.
-- **In-Game Status Bars**: Use your keyboard's function keys as real-time status bars for health, hunger, and experience, alongside tracking other players or waypoints!
+- **In-Game Status Bars**: Show health, absorption, hunger, saturation, air, and experience on your chosen keyboard keys. On Minecraft 1.21.6 and later, a locator bar can also track players and waypoints.
 - **Compass**: A compass on your numpad (Extended keyboards only) will appear, if you have either a compass or recovery compass in your inventory! Alternatively it can always be displayed via a toggle in settings.
-- **Highly Configurable**: An in-game configuration screen (via Mod Menu) lets you enable/disable every feature, integration, and even individual devices.
+- **Highly Configurable**: Change effect keys and colors, integrations, and individual devices through the settings screen and `/minelights` commands.
 - **Multiple Languages**: Support for English, Anglish, German and Chinese (Simplified) has been added (Along with some joke languages)
 
 ## Supported RGB Software
@@ -69,13 +69,16 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
 
 ## Usage
 
-1. **Launch Minecraft:** Start the game with your Fabric, Quilt, Forge, or NeoForge profile.
+1. **Launch Minecraft or Horizon:** Start the game with your Fabric, Quilt, Forge, or NeoForge profile, or launch Horizon with MineLights enabled.
 2. **Configure:**
    - In the main menu, go to **Mods > MineLights > Config** (the gear icon).
    - Enable the integrations you want to use (OpenRGB, Corsair iCUE, etc.).
    - Save the config.
    - Refresh devices to show newly added devices.
    - You can re-enter the config to disable specific devices if you wish.
+   - Configure effect keys and colors in the available settings screen or with commands. For example, `/minelights set health-bar-keys F1,F2,F3,F4` chooses the health keys and `/minelights set health-color #FF0000` sets their full-health color. Use `/minelights list` to see the available settings.
+   - If OpenRGB reports a wrong LED name, use an override such as `/minelights set led-overrides Keyboard|1=F1`. Separate multiple overrides with semicolons; use `none` to clear them. The device name matches part of the reported name and LED indexes appear in the game log.
+   - OpenRGB lighting is restored outside worlds by default. You can choose a profile with `/minelights set outside-world-profile <profile name>`; the profile is not loaded when that OpenRGB server contains disabled devices.
    - ⚠️: MSI Mystic Light integration requires you to restart the MineLights server as administrator to work!
 3. **Enjoy!** Your lighting will now sync with your game.
 

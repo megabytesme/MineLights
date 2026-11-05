@@ -105,7 +105,6 @@ pub(super) struct Painter {
     biome_to: Color,
     biome_started: Instant,
     brightness: f32,
-    last_water: Option<Instant>,
     damage_started: Option<Instant>,
     was_damaged: bool,
     was_low_health: bool,
@@ -143,7 +142,6 @@ impl Painter {
             biome_to: Color::BLACK,
             biome_started: now,
             brightness: 1.0,
-            last_water: None,
             damage_started: None,
             was_damaged: false,
             was_low_health: false,
@@ -321,7 +319,7 @@ impl Painter {
         }
         self.apply_bars(&mut frame, &player, layouts, &settings, now);
         if settings.compass_effect {
-            self.paint_compass(&mut frame, &player, layouts, now);
+            self.paint_compass(&mut frame, &player, layouts, &settings, now);
         }
 
         let effect_color = if settings.water_effect
@@ -381,35 +379,78 @@ impl Painter {
         settings: &Settings,
         now: Instant,
     ) {
-        if settings.experience_bar {
-            for (i, key) in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-                .iter()
-                .enumerate()
-            {
+        let mode = settings.experience_locator_mode.as_str();
+        let locator = settings.locator_bar
+            && (mode == "locator" || mode == "both" || (mode == "auto" && player.hud_bar == 1));
+        let experience = settings.experience_bar
+            && (mode == "experience"
+                || mode == "both"
+                || (mode == "auto"
+                    && (player.hud_bar == 0 || (player.hud_bar == 1 && !settings.locator_bar))));
+        if experience {
+            let filled = player.experience * settings.experience_bar_keys.len() as f32;
+            for (i, key) in settings.experience_bar_keys.iter().enumerate() {
                 paint_key(
                     frame,
                     layouts,
                     key,
-                    if i < (player.experience * 10.0) as usize {
-                        Color(0, 255, 0)
-                    } else {
-                        Color(10, 30, 10)
-                    },
+                    packed(settings.experience_dim_color)
+                        .lerp(packed(settings.experience_color), filled - i as f32),
                 );
             }
         }
-        if settings.locator_bar {
-            for waypoint in &player.waypoints {
+        if locator {
+            let keys = &settings.locator_bar_keys;
+            if mode != "both" {
+                for key in keys {
+                    paint_key(frame, layouts, key, packed(settings.locator_bar_color));
+                }
+            }
+            let mut points = player.waypoints.clone();
+            points.sort_by(|a, b| b.distance.total_cmp(&a.distance));
+            for waypoint in points {
                 let yaw = f32::from(waypoint.yaw_degrees);
-                if yaw > -60.0 && yaw <= 60.0 {
-                    let position = (((yaw + 60.0) / 120.0) * 10.0) as usize;
-                    let key = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"][position.min(9)];
-                    let color = match waypoint.pitch {
-                        1 => waypoint.color.lerp(Color::WHITE, 0.5),
-                        -1 => waypoint.color.lerp(Color::BLACK, 0.5),
-                        _ => waypoint.color,
-                    };
-                    paint_key(frame, layouts, key, color);
+                if keys.is_empty() || yaw <= -60.0 || yaw > 60.0 {
+                    continue;
+                }
+                let position = (yaw + 60.0) / 120.0 * (keys.len() - 1) as f32;
+                let step = if waypoint.distance <= 128.0 {
+                    0
+                } else if waypoint.distance >= 332.0 {
+                    3
+                } else {
+                    (((waypoint.distance - 128.0) / 204.0 * 4.0) as usize).min(3)
+                };
+                let radius = settings.locator_dot_size.max(0.5) * [1.0, 0.65, 0.35, 0.0][step];
+                let max = waypoint.color.0.max(waypoint.color.1).max(waypoint.color.2);
+                let mut dot = if max == 0 {
+                    waypoint.color
+                } else {
+                    waypoint.color.scaled(255.0 / f32::from(max))
+                };
+                dot = match waypoint.pitch {
+                    1 => dot.lerp(Color::WHITE, 0.35),
+                    -1 => dot.lerp(Color::BLACK, 0.35),
+                    _ => dot,
+                };
+                let weights: Vec<f32> = (0..keys.len())
+                    .map(|i| (1.0 - ((i as f32 - position).abs() - radius)).clamp(0.0, 1.0))
+                    .collect();
+                let peak = weights.iter().copied().fold(0.0_f32, f32::max);
+                if peak <= 0.0 {
+                    continue;
+                }
+                for (key, weight) in keys.iter().zip(weights) {
+                    if weight <= 0.0 {
+                        continue;
+                    }
+                    for layout in layouts {
+                        if let Some(ids) = layout.keys.get(key) {
+                            for id in ids {
+                                overlay_led(frame, *id, dot, weight / peak);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -423,74 +464,85 @@ impl Painter {
                     .unwrap_or(false)
             };
             self.was_damaged = player.taking_damage;
-            for (i, key) in ["F1", "F2", "F3", "F4"].iter().enumerate() {
-                let color = if damage_active {
+            let chunk = 20.0 / settings.health_bar_keys.len().max(1) as f32;
+            for (i, key) in settings.health_bar_keys.iter().enumerate() {
+                let mut color = if damage_active {
                     Color::WHITE
                 } else if player.withering {
                     Color(43, 43, 43)
                 } else if player.poisoned {
                     Color(148, 120, 24)
                 } else {
-                    Color(30, 0, 0).lerp(
-                        Color(255, 0, 0),
-                        ((player.health - (i as f32 * 5.0)) / 5.0).clamp(0.0, 1.0),
+                    packed(settings.health_dim_color).lerp(
+                        packed(settings.health_color),
+                        (player.health - i as f32 * chunk) / chunk,
                     )
+                };
+                if !damage_active && settings.enable_absorption_overlay && player.absorption > 0.0 {
+                    color = color.lerp(
+                        packed(settings.absorption_color),
+                        (player.absorption - i as f32 * chunk) / chunk,
+                    );
+                }
+                paint_key(frame, layouts, key, color);
+            }
+        }
+        let air_bar = player.in_water || player.air < 300;
+        let merged = settings.merge_saturation_into_hunger && settings.saturation_air_bar;
+        if settings.hunger_bar {
+            let chunk = 20.0 / settings.hunger_bar_keys.len().max(1) as f32;
+            for (i, key) in settings.hunger_bar_keys.iter().enumerate() {
+                let color = if merged && air_bar {
+                    let air_chunk = 300.0 / settings.hunger_bar_keys.len().max(1) as f32;
+                    packed(settings.air_dim_color).lerp(
+                        packed(settings.air_color),
+                        (player.air as f32 - i as f32 * air_chunk) / air_chunk,
+                    )
+                } else {
+                    let mut c = packed(settings.hunger_dim_color).lerp(
+                        packed(settings.hunger_color),
+                        (player.hunger as f32 - i as f32 * chunk) / chunk,
+                    );
+                    if merged {
+                        c = c.lerp(
+                            packed(settings.saturation_color),
+                            settings.saturation_tint_strength.clamp(0.0, 1.0)
+                                * ((player.saturation - i as f32 * chunk) / chunk).clamp(0.0, 1.0),
+                        );
+                    }
+                    c
                 };
                 paint_key(frame, layouts, key, color);
             }
         }
-        if settings.hunger_bar {
-            for (i, key) in ["F5", "F6", "F7", "F8"].iter().enumerate() {
-                let color = Color(30, 15, 0).lerp(
-                    Color(255, 165, 0),
-                    ((player.hunger as f32 - i as f32 * 5.0) / 5.0).clamp(0.0, 1.0),
-                );
-                paint_key(frame, layouts, key, color);
-            }
-        }
-        if settings.saturation_air_bar {
-            if player.in_water
-                || [
-                    player.feet.as_str(),
-                    player.below.as_str(),
-                    player.head.as_str(),
-                ]
-                .iter()
-                .any(|b| b.contains("minecraft:water"))
-            {
-                self.last_water = Some(now);
-            }
-            let air_bar = self
-                .last_water
-                .map(|at| now.duration_since(at) < Duration::from_millis(2500))
-                .unwrap_or(false);
+        if settings.saturation_air_bar && !(merged && settings.hunger_bar) {
             let (value, maximum, full, dim) = if air_bar {
                 (
                     player.air as f32,
                     300.0,
-                    Color(173, 216, 230),
-                    Color(0, 0, 50),
+                    packed(settings.air_color),
+                    packed(settings.air_dim_color),
                 )
             } else {
                 (
                     player.saturation,
                     20.0,
-                    Color(200, 255, 0),
-                    Color(40, 50, 0),
+                    packed(settings.saturation_color),
+                    packed(settings.saturation_dim_color),
                 )
             };
-            for (i, key) in ["F9", "F10", "F11", "F12"].iter().enumerate() {
-                let chunk = maximum / 4.0;
+            let chunk = maximum / settings.saturation_bar_keys.len().max(1) as f32;
+            for (i, key) in settings.saturation_bar_keys.iter().enumerate() {
                 paint_key(
                     frame,
                     layouts,
                     key,
-                    dim.lerp(full, ((value - i as f32 * chunk) / chunk).clamp(0.0, 1.0)),
+                    dim.lerp(full, (value - i as f32 * chunk) / chunk),
                 );
             }
         }
         if settings.low_health_warning {
-            let low = player.health < 10.0;
+            let low = player.health < settings.low_health_threshold;
             if low && !self.was_low_health {
                 self.heartbeat = 0.1;
                 self.heartbeat_rising = true;
@@ -510,14 +562,13 @@ impl Painter {
                     }
                     self.heartbeat_step += Duration::from_millis(40);
                 }
-                let red = (255.0 * self.heartbeat) as u8;
-                for key in [
-                    "4", "5", "6", "7", "E", "T", "U", "D", "F", "H", "V", "B", "SPACE",
-                ] {
-                    paint_key(frame, layouts, key, Color(red, 0, 0));
+                let pulse = packed(settings.heartbeat_color).scaled(self.heartbeat);
+                let white = Color::WHITE.scaled(self.heartbeat);
+                for key in &settings.heartbeat_red_keys {
+                    paint_key(frame, layouts, key, pulse);
                 }
-                for key in ["R", "Y", "G"] {
-                    paint_key(frame, layouts, key, Color(red, red, red));
+                for key in &settings.heartbeat_white_keys {
+                    paint_key(frame, layouts, key, white);
                 }
             }
         }
@@ -738,9 +789,10 @@ impl Painter {
         frame: &mut Frame,
         player: &Snapshot,
         layouts: &[DeviceLayout],
+        settings: &Settings,
         now: Instant,
     ) {
-        if player.compass_type == 0 {
+        if player.compass_type == 0 || settings.compass_keys.is_empty() {
             return;
         }
         let (color, background) = match player.compass_type {
@@ -748,19 +800,22 @@ impl Painter {
             2 => (Color(238, 130, 238), Color(25, 0, 25)),
             _ => (Color(255, 0, 0), Color(35, 0, 0)),
         };
-        let directions = [
-            "NUMPAD8", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD2", "NUMPAD1", "NUMPAD4", "NUMPAD7",
-        ];
+        let directions = &settings.compass_keys;
         for key in directions {
             paint_key(frame, layouts, key, background);
         }
-        paint_key(frame, layouts, "NUMPAD5", color);
+        paint_key(frame, layouts, &settings.compass_center_key, color);
         if !player.compass_pointing {
             if now.duration_since(self.last_spin) > Duration::from_millis(75) {
                 self.spin_index = (self.spin_index + 1) % directions.len();
                 self.last_spin = now;
             }
-            paint_key(frame, layouts, directions[self.spin_index], color);
+            paint_key(
+                frame,
+                layouts,
+                &directions[self.spin_index % directions.len()],
+                color,
+            );
         } else if player.compass_distance < 8.0 {
             let wave = (SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -771,29 +826,14 @@ impl Painter {
             paint_key(
                 frame,
                 layouts,
-                "NUMPAD5",
+                &settings.compass_center_key,
                 color.scaled(0.8 + (wave + 1.0) * 0.1),
             );
         } else {
             let yaw = normalize_yaw(player.compass_yaw);
-            let key = if (-22.5..22.5).contains(&yaw) {
-                "NUMPAD8"
-            } else if (22.5..67.5).contains(&yaw) {
-                "NUMPAD9"
-            } else if (67.5..112.5).contains(&yaw) {
-                "NUMPAD6"
-            } else if (112.5..157.5).contains(&yaw) {
-                "NUMPAD3"
-            } else if yaw >= 157.5 || yaw < -157.5 {
-                "NUMPAD2"
-            } else if (-157.5..-112.5).contains(&yaw) {
-                "NUMPAD1"
-            } else if (-112.5..-67.5).contains(&yaw) {
-                "NUMPAD4"
-            } else {
-                "NUMPAD7"
-            };
-            paint_key(frame, layouts, key, color);
+            let sector = 360.0 / directions.len() as f32;
+            let index = ((yaw + sector / 2.0).rem_euclid(360.0) / sector) as usize;
+            paint_key(frame, layouts, &directions[index % directions.len()], color);
         }
         if player.compass_type == 2 {
             if now.duration_since(self.last_sheen) > Duration::from_millis(60) {
@@ -801,8 +841,10 @@ impl Painter {
                 self.last_sheen = now;
             }
             for (offset, opacity) in [0.6, 0.4, 0.2].into_iter().enumerate() {
-                let index = (self.sheen_index + directions.len() - offset) % directions.len();
-                let key = directions[index];
+                let index = (self.sheen_index % directions.len() + directions.len()
+                    - offset % directions.len())
+                    % directions.len();
+                let key = &directions[index];
                 for layout in layouts {
                     if let Some(ids) = layout.keys.get(key) {
                         for id in ids {
@@ -823,6 +865,10 @@ pub(super) fn normalize_yaw(mut yaw: f32) -> f32 {
         yaw -= 360.0;
     }
     yaw
+}
+
+fn packed(color: u32) -> Color {
+    Color((color >> 16) as u8, (color >> 8) as u8, color as u8)
 }
 
 fn paint_key(frame: &mut Frame, layouts: &[DeviceLayout], key: &str, color: Color) {

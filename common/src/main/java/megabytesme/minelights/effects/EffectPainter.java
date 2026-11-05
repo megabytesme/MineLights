@@ -1,10 +1,11 @@
 package megabytesme.minelights.effects;
 
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.ExperienceLocatorMode;
 import megabytesme.minelights.model.CompassState;
 import megabytesme.minelights.model.CompassType;
 import megabytesme.minelights.model.PlayerDto;
-//? if >=1.21.8 {
+//? if >=1.21.6 {
 import megabytesme.minelights.model.WaypointDto;
 //?}
 //? if loader_forge && <1.17 {
@@ -119,8 +120,6 @@ public class EffectPainter {
     private long chatPulseStartTime = 0;
     private boolean chatPulseActive = false;
 
-    private long lastInWaterTime = 0;
-    private static final int AIR_BAR_VISIBLE_DURATION_MS = 2500;
 
     private boolean wasTakingDamageLastFrame = false;
     private boolean isDamageFlashActive = false;
@@ -188,15 +187,36 @@ public class EffectPainter {
 
         long now = System.currentTimeMillis();
         paintEnvironmentalBase(state, player, now);
-        if (MineLightsClient.CONFIG.enableExperienceBar)
+        ExperienceLocatorMode barMode = MineLightsClient.CONFIG.experienceLocatorMode == null
+                ? ExperienceLocatorMode.AUTO
+                : MineLightsClient.CONFIG.experienceLocatorMode;
+        //? if <1.21.6 {
+        /* barMode = ExperienceLocatorMode.EXPERIENCE; */
+        //?}
+        boolean showExperience;
+        boolean showLocator;
+        if (barMode == ExperienceLocatorMode.AUTO) {
+            String hudBar = player.getHudBar();
+            if (hudBar == null) {
+                boolean hasWaypoints = player.getWaypoints() != null && !player.getWaypoints().isEmpty();
+                hudBar = hasWaypoints ? "LOCATOR" : "EXPERIENCE";
+            }
+            showLocator = hudBar.equals("LOCATOR") && MineLightsClient.CONFIG.enableLocatorBar;
+            showExperience = hudBar.equals("EXPERIENCE") || (hudBar.equals("LOCATOR") && !showLocator);
+        } else {
+            showExperience = barMode == ExperienceLocatorMode.EXPERIENCE || barMode == ExperienceLocatorMode.BOTH;
+            showLocator = barMode == ExperienceLocatorMode.LOCATOR || barMode == ExperienceLocatorMode.BOTH;
+        }
+        if (showExperience && MineLightsClient.CONFIG.enableExperienceBar)
             paintExperienceBar(state, player);
-        //? if >=1.21.8 {
-        if (MineLightsClient.CONFIG.enableLocatorBar) {
-            paintLocatorBar(state, player);
+        //? if >=1.21.6 {
+        if (showLocator && MineLightsClient.CONFIG.enableLocatorBar) {
+            paintLocatorBar(state, player, barMode != ExperienceLocatorMode.BOTH);
         }
         //?}
         paintPlayerBars(state, player);
-        if (MineLightsClient.CONFIG.enableSaturationBar)
+        if (MineLightsClient.CONFIG.enableSaturationBar
+                && !(MineLightsClient.CONFIG.mergeSaturationIntoHunger && MineLightsClient.CONFIG.enableHungerBar))
             paintSaturationAndAirBar(state, player);
         if (MineLightsClient.CONFIG.enableCompassEffect)
             paintCompass(state, player);
@@ -649,53 +669,97 @@ public class EffectPainter {
 
     private void paintExperienceBar(FrameStateDto state, PlayerDto player) {
         List<String> logicalKeys = KeyMap.getExperienceBar();
-        int ledsToLight = (int) (player.getExperience() * logicalKeys.size());
+        float filledKeys = player.getExperience() * logicalKeys.size();
+        RGBColorDto fullColor = color(MineLightsClient.CONFIG.experienceColor);
+        RGBColorDto dimColor = color(MineLightsClient.CONFIG.experienceDimColor);
         for (int i = 0; i < logicalKeys.size(); i++) {
-            RGBColorDto color = (i < ledsToLight) ? new RGBColorDto(0, 255, 0) : new RGBColorDto(10, 30, 10);
+            RGBColorDto color = lerpColor(dimColor, fullColor, filledKeys - i);
             for (Integer ledId : getMappedIds(logicalKeys.get(i)))
                 state.keys.put(ledId, color);
         }
     }
 
-    //? if >=1.21.8 {
-    private void paintLocatorBar(FrameStateDto state, PlayerDto player) {
-        if (player.getWaypoints() == null || player.getWaypoints().isEmpty()) {
+    //? if >=1.21.6 {
+    private void paintLocatorBar(FrameStateDto state, PlayerDto player, boolean drawBackground) {
+        List<String> locatorBarKeys = KeyMap.getLocatorBar();
+        if (locatorBarKeys.isEmpty()) {
             return;
         }
-
-        List<String> locatorBarKeys = KeyMap.getExperienceBar();
-        if (locatorBarKeys.isEmpty()) {
+        if (drawBackground) {
+            RGBColorDto background = color(MineLightsClient.CONFIG.locatorBarColor);
+            for (String key : locatorBarKeys) {
+                for (Integer ledId : getMappedIds(key))
+                    state.keys.put(ledId, background);
+            }
+        }
+        if (player.getWaypoints() == null || player.getWaypoints().isEmpty()) {
             return;
         }
 
         int numKeys = locatorBarKeys.size();
         float viewAngle = 60.0f;
+        float dotSize = Math.max(0.5f, MineLightsClient.CONFIG.locatorDotSize);
 
-        for (WaypointDto waypoint : player.getWaypoints()) {
+        List<WaypointDto> waypoints = new ArrayList<>(player.getWaypoints());
+        waypoints.sort((a, b) -> Float.compare(b.getDistance(), a.getDistance()));
+
+        for (WaypointDto waypoint : waypoints) {
             double yaw = waypoint.getRelativeYaw();
+            if (yaw <= -viewAngle || yaw > viewAngle) {
+                continue;
+            }
 
-            if (yaw > -viewAngle && yaw <= viewAngle) {
-                double normalizedPosition = (yaw + viewAngle) / (viewAngle * 2.0);
-                int keyIndex = (int) (normalizedPosition * numKeys);
-                keyIndex = Math.max(0, Math.min(numKeys - 1, keyIndex));
+            double position = (yaw + viewAngle) / (viewAngle * 2.0) * (numKeys - 1);
 
-                for (Integer ledId : getMappedIds(locatorBarKeys.get(keyIndex))) {
-                    int packedColor = waypoint.getColor();
-                    int r = (packedColor >> 16) & 0xFF;
-                    int g = (packedColor >> 8) & 0xFF;
-                    int b = packedColor & 0xFF;
-                    RGBColorDto waypointColor = new RGBColorDto(r, g, b);
+            double radius = dotSize * LOCATOR_DOT_STEPS[locatorDotStep(waypoint.getDistance())];
 
-                    if (waypoint.getPitch() == WaypointDto.Pitch.UP) {
-                        waypointColor = lerpColor(waypointColor, new RGBColorDto(255, 255, 255), 0.5f);
-                    } else if (waypoint.getPitch() == WaypointDto.Pitch.DOWN) {
-                        waypointColor = lerpColor(waypointColor, new RGBColorDto(0, 0, 0), 0.5f);
-                    }
+            RGBColorDto dotColor = brighten(color(waypoint.getColor()));
+            if (waypoint.getPitch() == WaypointDto.Pitch.UP) {
+                dotColor = lerpColor(dotColor, new RGBColorDto(255, 255, 255), 0.35f);
+            } else if (waypoint.getPitch() == WaypointDto.Pitch.DOWN) {
+                dotColor = lerpColor(dotColor, new RGBColorDto(0, 0, 0), 0.35f);
+            }
 
-                    state.keys.put(ledId, waypointColor);
+            double[] weights = new double[numKeys];
+            double peak = 0;
+            for (int i = 0; i < numKeys; i++) {
+                weights[i] = Math.max(0, Math.min(1, 1.0 - (Math.abs(i - position) - radius)));
+                peak = Math.max(peak, weights[i]);
+            }
+            for (int i = 0; i < numKeys; i++) {
+                double weight = weights[i] / peak;
+                if (weight <= 0) {
+                    continue;
+                }
+                for (Integer ledId : getMappedIds(locatorBarKeys.get(i))) {
+                    state.keys.put(ledId, blend(state.keys.get(ledId), dotColor, weight));
                 }
             }
         }
+    }
+
+    private static final double[] LOCATOR_DOT_STEPS = { 1.0, 0.65, 0.35, 0.0 };
+
+    private static int locatorDotStep(float distance) {
+        float near = 128.0f;
+        float far = 332.0f;
+        if (distance <= near) {
+            return 0;
+        }
+        if (distance >= far) {
+            return LOCATOR_DOT_STEPS.length - 1;
+        }
+        return Math.min(LOCATOR_DOT_STEPS.length - 1,
+                (int) ((distance - near) / (far - near) * LOCATOR_DOT_STEPS.length));
+    }
+
+    private static RGBColorDto brighten(RGBColorDto color) {
+        int max = Math.max(color.r, Math.max(color.g, color.b));
+        if (max == 0) {
+            return color;
+        }
+        float scale = 255.0f / max;
+        return new RGBColorDto((int) (color.r * scale), (int) (color.g * scale), (int) (color.b * scale));
     }
     //?}
 
@@ -710,9 +774,11 @@ public class EffectPainter {
         }
 
         if (MineLightsClient.CONFIG.enableHealthBar) {
-            RGBColorDto healthDim = new RGBColorDto(30, 0, 0);
-            RGBColorDto healthFull = new RGBColorDto(255, 0, 0);
+            RGBColorDto healthDim = color(MineLightsClient.CONFIG.healthDimColor);
+            RGBColorDto healthFull = color(MineLightsClient.CONFIG.healthColor);
+            RGBColorDto absorptionColor = color(MineLightsClient.CONFIG.absorptionColor);
             List<String> healthKeys = KeyMap.getHealthBar();
+            float healthPerKey = 20.0f / Math.max(1, healthKeys.size());
             for (int i = 0; i < healthKeys.size(); i++) {
                 RGBColorDto finalColor;
                 if (isDamageFlashActive)
@@ -722,8 +788,13 @@ public class EffectPainter {
                 else if (player.getIsPoisoned())
                     finalColor = new RGBColorDto(148, 120, 24);
                 else {
-                    float t = (player.getHealth() - (i * 5.0f)) / 5.0f;
+                    float t = (player.getHealth() - (i * healthPerKey)) / healthPerKey;
                     finalColor = lerpColor(healthDim, healthFull, t);
+                }
+                if (!isDamageFlashActive && MineLightsClient.CONFIG.enableAbsorptionOverlay
+                        && player.getAbsorption() > 0) {
+                    float goldT = (player.getAbsorption() - (i * healthPerKey)) / healthPerKey;
+                    finalColor = lerpColor(finalColor, absorptionColor, goldT);
                 }
                 for (Integer ledId : getMappedIds(healthKeys.get(i)))
                     state.keys.put(ledId, finalColor);
@@ -731,12 +802,26 @@ public class EffectPainter {
         }
 
         if (MineLightsClient.CONFIG.enableHungerBar) {
-            RGBColorDto hungerDim = new RGBColorDto(30, 15, 0);
-            RGBColorDto hungerFull = new RGBColorDto(255, 165, 0);
+            RGBColorDto hungerDim = color(MineLightsClient.CONFIG.hungerDimColor);
+            RGBColorDto hungerFull = color(MineLightsClient.CONFIG.hungerColor);
             List<String> hungerKeys = KeyMap.getHungerBar();
+            boolean merged = MineLightsClient.CONFIG.mergeSaturationIntoHunger
+                    && MineLightsClient.CONFIG.enableSaturationBar;
+            if (merged && isAirBarVisible(player)) {
+                paintBar(state, hungerKeys, player.getAir(), 300f, color(MineLightsClient.CONFIG.airDimColor),
+                        color(MineLightsClient.CONFIG.airColor));
+                return;
+            }
+            RGBColorDto saturationColor = color(MineLightsClient.CONFIG.saturationColor);
+            float hungerPerKey = 20.0f / Math.max(1, hungerKeys.size());
             for (int i = 0; i < hungerKeys.size(); i++) {
-                float t = (player.getHunger() - (i * 5.0f)) / 5.0f;
+                float t = (player.getHunger() - (i * hungerPerKey)) / hungerPerKey;
                 RGBColorDto color = lerpColor(hungerDim, hungerFull, t);
+                if (merged) {
+                    float saturationT = (player.getSaturation() - (i * hungerPerKey)) / hungerPerKey;
+                    float strength = Math.max(0f, Math.min(1f, MineLightsClient.CONFIG.saturationTintStrength));
+                    color = lerpColor(color, saturationColor, strength * Math.max(0f, Math.min(1f, saturationT)));
+                }
                 for (Integer ledId : getMappedIds(hungerKeys.get(i)))
                     state.keys.put(ledId, color);
             }
@@ -745,37 +830,36 @@ public class EffectPainter {
 
     private void paintSaturationAndAirBar(FrameStateDto state, PlayerDto player) {
         List<String> barKeys = KeyMap.getSaturationBar();
-        if (isPlayerInOrOnBlock(player, "block.minecraft.water"))
-            lastInWaterTime = System.currentTimeMillis();
-        boolean showAirBar = isPlayerInOrOnBlock(player, "block.minecraft.water")
-                || (System.currentTimeMillis() - lastInWaterTime < AIR_BAR_VISIBLE_DURATION_MS);
-
-        float value, maxValue;
-        RGBColorDto fullColor, dimColor;
-
-        if (showAirBar) {
-            value = player.getAir();
-            maxValue = 300f;
-            fullColor = new RGBColorDto(173, 216, 230);
-            dimColor = new RGBColorDto(0, 0, 50);
+        if (isAirBarVisible(player)) {
+            paintBar(state, barKeys, player.getAir(), 300f, color(MineLightsClient.CONFIG.airDimColor),
+                    color(MineLightsClient.CONFIG.airColor));
         } else {
-            value = player.getSaturation();
-            maxValue = 20f;
-            fullColor = new RGBColorDto(200, 255, 0);
-            dimColor = new RGBColorDto(40, 50, 0);
+            paintBar(state, barKeys, player.getSaturation(), 20f, color(MineLightsClient.CONFIG.saturationDimColor),
+                    color(MineLightsClient.CONFIG.saturationColor));
         }
+    }
 
-        float valuePerKey = maxValue / barKeys.size();
-        for (int i = 0; i < barKeys.size(); i++) {
+    private boolean isAirBarVisible(PlayerDto player) {
+        if (player.getAirBarVisible() != null)
+            return player.getAirBarVisible();
+        return player.getAir() < 300 || isPlayerInOrOnBlock(player, "block.minecraft.water");
+    }
+
+    private void paintBar(FrameStateDto state, List<String> keys, float value, float maxValue, RGBColorDto dimColor,
+            RGBColorDto fullColor) {
+        if (keys.isEmpty())
+            return;
+        float valuePerKey = maxValue / keys.size();
+        for (int i = 0; i < keys.size(); i++) {
             float t = (value - (i * valuePerKey)) / valuePerKey;
             RGBColorDto color = lerpColor(dimColor, fullColor, t);
-            for (Integer ledId : getMappedIds(barKeys.get(i)))
+            for (Integer ledId : getMappedIds(keys.get(i)))
                 state.keys.put(ledId, color);
         }
     }
 
     private void paintHealthEffects(FrameStateDto state, PlayerDto player) {
-        boolean isLowHealthNow = player.getHealth() < 10;
+        boolean isLowHealthNow = player.getHealth() < MineLightsClient.CONFIG.lowHealthThreshold;
         if (isLowHealthNow && !wasLowHealthLastFrame) {
             heartbeatBrightness = 0.1f;
             isHeartBeatingUp = true;
@@ -804,9 +888,12 @@ public class EffectPainter {
         }
 
         int r = (int) (255 * heartbeatBrightness);
+        RGBColorDto heartbeatColor = color(MineLightsClient.CONFIG.heartbeatColor);
+        RGBColorDto pulsedHeartbeat = new RGBColorDto((int) (heartbeatColor.r * heartbeatBrightness),
+                (int) (heartbeatColor.g * heartbeatBrightness), (int) (heartbeatColor.b * heartbeatBrightness));
         for (String keyName : KeyMap.getHeartbeatRed()) {
             for (Integer ledId : getMappedIds(keyName))
-                state.keys.put(ledId, new RGBColorDto(r, 0, 0));
+                state.keys.put(ledId, pulsedHeartbeat);
         }
         for (String keyName : KeyMap.getHeartbeatWhite()) {
             for (Integer ledId : getMappedIds(keyName))
@@ -816,6 +903,9 @@ public class EffectPainter {
 
     private void paintCompass(FrameStateDto state, PlayerDto player) {
         if (player.getCompassType() == CompassType.NONE)
+            return;
+        List<String> compassKeys = KeyMap.getNumpadDirectional();
+        if (compassKeys.isEmpty())
             return;
 
         RGBColorDto compassColor, backgroundColor;
@@ -834,7 +924,7 @@ public class EffectPainter {
                 break;
         }
 
-        for (String keyName : KeyMap.getNumpadDirectional()) {
+        for (String keyName : compassKeys) {
             for (Integer ledId : getMappedIds(keyName))
                 state.keys.put(ledId, backgroundColor);
         }
@@ -845,10 +935,10 @@ public class EffectPainter {
         if (player.getCompassState() == CompassState.SPINNING) {
             long now = System.currentTimeMillis();
             if (now - lastCompassSpinTime > 75) {
-                compassSpinIndex = (compassSpinIndex + 1) % KeyMap.getNumpadDirectional().size();
+                compassSpinIndex = (compassSpinIndex + 1) % compassKeys.size();
                 lastCompassSpinTime = now;
             }
-            String keyToLight = KeyMap.getNumpadDirectional().get(compassSpinIndex);
+            String keyToLight = compassKeys.get(compassSpinIndex % compassKeys.size());
             for (Integer ledId : getMappedIds(keyToLight))
                 state.keys.put(ledId, compassColor);
         } else if (player.getCompassState() == CompassState.POINTING) {
@@ -865,23 +955,9 @@ public class EffectPainter {
                 Double relativeYaw = player.getCompassRelativeYaw();
                 if (relativeYaw == null)
                     return;
-                String keyToLight;
-                if (relativeYaw >= -22.5 && relativeYaw < 22.5)
-                    keyToLight = "NUMPAD8";
-                else if (relativeYaw >= 22.5 && relativeYaw < 67.5)
-                    keyToLight = "NUMPAD9";
-                else if (relativeYaw >= 67.5 && relativeYaw < 112.5)
-                    keyToLight = "NUMPAD6";
-                else if (relativeYaw >= 112.5 && relativeYaw < 157.5)
-                    keyToLight = "NUMPAD3";
-                else if (relativeYaw >= 157.5 || relativeYaw < -157.5)
-                    keyToLight = "NUMPAD2";
-                else if (relativeYaw >= -157.5 && relativeYaw < -112.5)
-                    keyToLight = "NUMPAD1";
-                else if (relativeYaw >= -112.5 && relativeYaw < -67.5)
-                    keyToLight = "NUMPAD4";
-                else
-                    keyToLight = "NUMPAD7";
+                double sector = 360.0 / compassKeys.size();
+                int keyIndex = (int) Math.floor(((relativeYaw + sector / 2.0) % 360.0 + 360.0) % 360.0 / sector);
+                String keyToLight = compassKeys.get(keyIndex % compassKeys.size());
                 for (Integer ledId : getMappedIds(keyToLight))
                     state.keys.put(ledId, compassColor);
             }
@@ -890,10 +966,10 @@ public class EffectPainter {
         if (player.getCompassType() == CompassType.LODESTONE) {
             long now = System.currentTimeMillis();
             if (now - lastSheenTime > 60) {
-                sheenIndex = (sheenIndex + 1) % KeyMap.getNumpadDirectional().size();
+                sheenIndex = (sheenIndex + 1) % compassKeys.size();
                 lastSheenTime = now;
             }
-            List<String> directionalKeys = KeyMap.getNumpadDirectional();
+            List<String> directionalKeys = compassKeys;
             RGBColorDto sheenTintColor = new RGBColorDto(120, 0, 255);
             double[] opacities = { 0.6, 0.4, 0.2 };
             for (int i = 0; i < opacities.length; i++) {
@@ -1225,6 +1301,10 @@ public class EffectPainter {
         for (int i = 0; i < count; i++) {
             keyList.add(sourceList.get(random.nextInt(sourceList.size())));
         }
+    }
+
+    private static RGBColorDto color(int rgb) {
+        return new RGBColorDto((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
 
     private RGBColorDto lerpColor(RGBColorDto start, RGBColorDto end, float t) {

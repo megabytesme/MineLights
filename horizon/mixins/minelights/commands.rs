@@ -1,5 +1,7 @@
 use super::minelights_bridge::{ACTION_CHECK_UPDATE, ACTION_REFRESH, BRIDGE, bridge_for};
-use super::minelights_config::{SETTINGS, Settings, device_disabled, set_device_enabled, on_off, persist_settings, settings_for};
+use super::minelights_config::{
+    SETTINGS, Settings, device_disabled, on_off, persist_settings, set_device_enabled, settings_for,
+};
 use super::minelights_protocol;
 use std::path::PathBuf;
 
@@ -39,6 +41,37 @@ const SETTING_NAMES: &[&str] = &[
     "yeelight",
     "notify-missing-server",
     "check-server-updates",
+    "health-bar-keys",
+    "hunger-bar-keys",
+    "saturation-bar-keys",
+    "experience-bar-keys",
+    "locator-bar-keys",
+    "heartbeat-red-keys",
+    "heartbeat-white-keys",
+    "compass-keys",
+    "compass-center-key",
+    "low-health-threshold",
+    "saturation-tint-strength",
+    "locator-dot-size",
+    "experience-locator-mode",
+    "absorption-overlay",
+    "merge-saturation-into-hunger",
+    "restore-lighting-outside-world",
+    "outside-world-profile",
+    "led-overrides",
+    "health-color",
+    "health-dim-color",
+    "hunger-color",
+    "hunger-dim-color",
+    "saturation-color",
+    "saturation-dim-color",
+    "air-color",
+    "air-dim-color",
+    "experience-color",
+    "experience-dim-color",
+    "heartbeat-color",
+    "absorption-color",
+    "locator-bar-color",
 ];
 
 pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran: &mut bool) {
@@ -67,11 +100,16 @@ pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran:
             get_setting(game, name);
         }
         "set" => {
-            let (Some(name), Some(value)) = (parts.next(), parts.next()) else {
+            let Some(name) = parts.next() else {
                 chat(game, "Usage: /minelights set <setting> <value>");
                 return;
             };
-            set_command(game, name, value);
+            let value = parts.collect::<Vec<_>>().join(" ");
+            if value.is_empty() {
+                chat(game, "Usage: /minelights set <setting> <value>");
+                return;
+            }
+            set_command(game, name, &value);
         }
         "toggle" => {
             let Some(name) = parts.next() else {
@@ -145,7 +183,9 @@ pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran:
                 let target = parts.next().unwrap_or("").to_owned();
                 let settings = settings_for(game);
                 let bridge = bridge_for(game, &settings);
-                if let Ok(mut request) = bridge.stop_request.lock() { *request = Some(target); }
+                if let Ok(mut request) = bridge.stop_request.lock() {
+                    *request = Some(target);
+                }
                 chat(game, "Requesting MineLights Server shutdown.");
             }
             Some("restart") | Some("restart-admin") | Some("restart-as-admin") => {
@@ -255,6 +295,13 @@ fn set_command(game: &mut super::Game<'_>, name: &str, value: &str) {
             let snapshot = settings.clone();
             drop(settings);
             let _ = bridge_for(game, &snapshot);
+            if name == "led-overrides" {
+                if let Some(bridge) = BRIDGE.get() {
+                    bridge
+                        .actions
+                        .fetch_or(ACTION_REFRESH, std::sync::atomic::Ordering::Release);
+                }
+            }
             if name == "server-autostart" && snapshot.server_confirmation_pending {
                 super::minelights::PENDING_SERVER_CONFIRMATION_REMINDER_SENT
                     .store(true, std::sync::atomic::Ordering::Release);
@@ -411,7 +458,12 @@ fn set_device(game: &mut super::Game<'_>, index: &str, value: &str) {
     let mut settings = state
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
-    set_device_enabled(&mut settings, &unique_id, layout.legacy_id.as_deref(), enabled);
+    set_device_enabled(
+        &mut settings,
+        &unique_id,
+        layout.legacy_id.as_deref(),
+        enabled,
+    );
     persist_settings(game, settings.clone());
     drop(settings);
     bridge
@@ -684,11 +736,182 @@ fn remove_remote_server(game: &mut super::Game<'_>, server_id: &str) {
     }
 }
 
+fn effect_field(name: &str) -> Option<String> {
+    if !SETTING_NAMES.contains(&name) {
+        return None;
+    }
+    if name == "absorption-overlay" {
+        return Some("enable_absorption_overlay".into());
+    }
+    if name == "merge-saturation-into-hunger" {
+        return Some("merge_saturation_into_hunger".into());
+    }
+    if matches!(
+        name,
+        "restore-lighting-outside-world" | "outside-world-profile" | "led-overrides"
+    ) {
+        return Some(name.replace('-', "_"));
+    }
+    if name.ends_with("-keys")
+        || name.ends_with("-color")
+        || matches!(
+            name,
+            "compass-center-key"
+                | "low-health-threshold"
+                | "saturation-tint-strength"
+                | "locator-dot-size"
+                | "experience-locator-mode"
+        )
+    {
+        return Some(name.replace('-', "_"));
+    }
+    None
+}
+
+#[cfg(test)]
+mod effect_setting_tests {
+    use super::*;
+
+    #[test]
+    fn validates_and_round_trips_effect_commands() {
+        let mut settings = Settings::default();
+        set_setting(&mut settings, "health-bar-keys", "Q,W").unwrap();
+        set_setting(&mut settings, "health-color", "#123456").unwrap();
+        set_setting(&mut settings, "absorption-overlay", "off").unwrap();
+        assert_eq!(
+            setting_value(&settings, "health-bar-keys").as_deref(),
+            Some("Q,W")
+        );
+        assert_eq!(
+            setting_value(&settings, "health-color").as_deref(),
+            Some("#123456")
+        );
+        assert!(!settings.enable_absorption_overlay);
+        assert!(set_setting(&mut settings, "health-color", "not-a-color").is_err());
+        assert!(set_setting(&mut settings, "saturation-tint-strength", "NaN").is_err());
+    }
+}
+
+fn effect_value(settings: &Settings, name: &str) -> Option<String> {
+    let data = serde_json::to_value(settings).ok()?;
+    let field = effect_field(name)?;
+    let value = data.get(field.as_str())?;
+    if name.ends_with("-color") {
+        return Some(format!("#{:06X}", value.as_u64()?));
+    }
+    if let Some(list) = value.as_array() {
+        return Some(
+            list.iter()
+                .filter_map(|v| v.as_str())
+                .collect::<Vec<_>>()
+                .join(if name == "led-overrides" { "; " } else { "," }),
+        );
+    }
+    Some(match value {
+        serde_json::Value::String(text) => text.clone(),
+        serde_json::Value::Bool(value) => on_off(*value).into(),
+        _ => value.to_string(),
+    })
+}
+
+fn set_effect_setting(
+    settings: &mut Settings,
+    name: &str,
+    raw: &str,
+) -> Result<&'static str, &'static str> {
+    let field = effect_field(name).ok_or("Unknown effect setting.")?;
+    let value = raw.trim();
+    let parsed = if name.ends_with("-color") {
+        let hex = value.strip_prefix('#').unwrap_or(value);
+        if hex.len() != 6 {
+            return Err("Colors require six hexadecimal digits, e.g. #FF0080.");
+        }
+        serde_json::json!(u32::from_str_radix(hex, 16).map_err(|_| "Invalid RGB color.")?)
+    } else if name == "led-overrides" {
+        let mut list = Vec::new();
+        if !value.eq_ignore_ascii_case("none") {
+            for item in value.split(';') {
+                let Some((device, rest)) = item.trim().rsplit_once('|') else {
+                    return Err("Use Device name|index=KEY for LED overrides.");
+                };
+                let Some((index, key)) = rest.split_once('=') else {
+                    return Err("Use Device name|index=KEY for LED overrides.");
+                };
+                if device.trim().is_empty()
+                    || index.trim().parse::<usize>().is_err()
+                    || key.trim().is_empty()
+                {
+                    return Err("Invalid LED override.");
+                }
+                list.push(item.trim().to_owned());
+            }
+        }
+        serde_json::json!(list)
+    } else if name.ends_with("-keys") {
+        let mut list = Vec::new();
+        if !value.eq_ignore_ascii_case("none") {
+            for key in value.split(',') {
+                let key = minelights_engine::standardize_key(key.trim());
+                if key.is_empty() {
+                    return Err("Key names cannot be empty.");
+                }
+                list.push(key);
+            }
+        }
+        serde_json::json!(list)
+    } else if name == "compass-center-key" {
+        serde_json::json!(if value.eq_ignore_ascii_case("none") {
+            String::new()
+        } else {
+            minelights_engine::standardize_key(value)
+        })
+    } else if name == "experience-locator-mode" {
+        let mode = value.to_ascii_lowercase();
+        if !["auto", "experience", "locator", "both"].contains(&mode.as_str()) {
+            return Err("Mode must be auto, experience, locator, or both.");
+        }
+        serde_json::json!(mode)
+    } else if name == "outside-world-profile" {
+        serde_json::json!(if value.eq_ignore_ascii_case("none") {
+            ""
+        } else {
+            value
+        })
+    } else if name == "absorption-overlay"
+        || name == "merge-saturation-into-hunger"
+        || name == "restore-lighting-outside-world"
+    {
+        serde_json::json!(parse_bool(value).ok_or("Use on or off.")?)
+    } else {
+        let number: f32 = value.parse().map_err(|_| "Expected a number.")?;
+        let (min, max) = match name {
+            "locator-dot-size" => (0.5, 5.0),
+            "saturation-tint-strength" => (0.0, 1.0),
+            _ => (1.0, 20.0),
+        };
+        if !number.is_finite() || number < min || number > max {
+            return Err("Number is outside the supported range.");
+        }
+        serde_json::json!(number)
+    };
+    let mut data = serde_json::to_value(&*settings).map_err(|_| "Could not read settings.")?;
+    data.as_object_mut()
+        .ok_or("Could not read settings.")?
+        .insert(field, parsed);
+    let pending = settings.server_confirmation_pending;
+    *settings = serde_json::from_value(data).map_err(|_| "Invalid setting value.")?;
+    settings.server_confirmation_pending = pending;
+    Ok("Setting updated.")
+}
+
 fn set_setting(
     settings: &mut Settings,
     name: &str,
     value: &str,
 ) -> Result<&'static str, &'static str> {
+    if effect_field(name).is_some() {
+        return set_effect_setting(settings, name, value);
+    }
     if name == "server-autostart" {
         let Some(enabled) = parse_bool(value) else {
             return Err("server-autostart value must be on or off.");
@@ -786,6 +1009,9 @@ fn set_setting(
 }
 
 fn setting_value(settings: &Settings, name: &str) -> Option<String> {
+    if effect_field(name).is_some() {
+        return effect_value(settings, name);
+    }
     let value = match name {
         "enabled" => on_off(settings.enabled).into(),
         "experience-bar" => on_off(settings.experience_bar).into(),
@@ -832,6 +1058,9 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
 
 fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
     Some(match name {
+        "absorption-overlay" => settings.enable_absorption_overlay,
+        "merge-saturation-into-hunger" => settings.merge_saturation_into_hunger,
+        "restore-lighting-outside-world" => settings.restore_lighting_outside_world,
         "enabled" => settings.enabled,
         "experience-bar" => settings.experience_bar,
         "health-bar" => settings.health_bar,

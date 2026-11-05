@@ -4,6 +4,7 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.network.EffectSettings;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.AlertScreen;
@@ -107,6 +108,38 @@ public final class ModMenuIntegration {
         });
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+
+        ConfigCategory effectSettings = builder.getOrCreateCategory(translatable("category.mine-lights.key_layout"));
+        effectSettings.addEntry(entryBuilder.startTextDescription(translatable("option.mine-lights.effectConfigHelp")).build());
+        MineLightsConfig effectDefaults = new MineLightsConfig();
+        for (String name : EffectSettings.NAMES) {
+            if (!EffectSettings.isAvailable(name)) continue;
+            effectSettings.addEntry(entryBuilder.startStrField(translatable(EffectSettings.labelKey(name)),
+                            EffectSettings.get(MineLightsClient.CONFIG, name))
+                    .setDefaultValue(EffectSettings.get(effectDefaults, name))
+                    .setErrorSupplier(value -> {
+                        try { EffectSettings.set(new MineLightsConfig(), name, value); return java.util.Optional.empty(); }
+                        catch (IllegalArgumentException exception) { return java.util.Optional.of(literal(exception.getMessage())); }
+                    })
+                    .setSaveConsumer(value -> {
+                        boolean changed = !EffectSettings.get(MineLightsClient.CONFIG, name).equals(value);
+                        EffectSettings.set(MineLightsClient.CONFIG, name, value);
+                        if (changed && name.equals("led-overrides")) MineLightsClient.CONFIG.refreshDevices = true;
+                    }).build());
+        }
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableAbsorptionOverlay"),
+                        MineLightsClient.CONFIG.enableAbsorptionOverlay)
+                .setDefaultValue(effectDefaults.enableAbsorptionOverlay)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.enableAbsorptionOverlay = value).build());
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.mergeSaturationIntoHunger"),
+                        MineLightsClient.CONFIG.mergeSaturationIntoHunger)
+                .setDefaultValue(effectDefaults.mergeSaturationIntoHunger)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value).build());
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.restoreLightingOutsideWorld"),
+                        MineLightsClient.CONFIG.restoreLightingOutsideWorld)
+                .setDefaultValue(effectDefaults.restoreLightingOutsideWorld)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value).build());
+
 
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(translatable("category.mine-lights.server_management"));
@@ -246,24 +279,24 @@ public final class ModMenuIntegration {
         }
 
         ConfigCategory playerStatus = builder.getOrCreateCategory(translatable("category.mine-lights.player_status"));
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHealthBar"), MineLightsClient.CONFIG.enableHealthBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHealthBar.configured", String.join(" ", MineLightsClient.CONFIG.healthBarKeys)), MineLightsClient.CONFIG.enableHealthBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHealthBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHungerBar"), MineLightsClient.CONFIG.enableHungerBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHungerBar.configured", String.join(" ", MineLightsClient.CONFIG.hungerBarKeys)), MineLightsClient.CONFIG.enableHungerBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHungerBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableSaturationBar"), MineLightsClient.CONFIG.enableSaturationBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableSaturationBar.configured", String.join(" ", MineLightsClient.CONFIG.saturationBarKeys)), MineLightsClient.CONFIG.enableSaturationBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableSaturationBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableExperienceBar"), MineLightsClient.CONFIG.enableExperienceBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableExperienceBar.configured", String.join(" ", MineLightsClient.CONFIG.experienceBarKeys)), MineLightsClient.CONFIG.enableExperienceBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                 .build());
-        //? if >=26.1 {
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLocatorBar"), MineLightsClient.CONFIG.enableLocatorBar)
+        //? if >=1.21.6 {
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLocatorBar.configured", String.join(" ", MineLightsClient.CONFIG.locatorBarKeys)), MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
                 .build());
@@ -282,7 +315,7 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.pulseChatKey.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.pulseChatKey = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableCompassEffect"), MineLightsClient.CONFIG.enableCompassEffect)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableCompassEffect.configured", String.join(" ", MineLightsClient.CONFIG.compassKeys)), MineLightsClient.CONFIG.enableCompassEffect)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableCompassEffect = newValue)
                 .build());

@@ -40,6 +40,37 @@ pub(super) struct Settings {
     pub(super) chat_pulse: bool,
     pub(super) always_show_compass: bool,
     pub(super) locator_bar: bool,
+    pub(super) experience_locator_mode: String,
+    pub(super) low_health_threshold: f32,
+    pub(super) enable_absorption_overlay: bool,
+    pub(super) merge_saturation_into_hunger: bool,
+    pub(super) saturation_tint_strength: f32,
+    pub(super) locator_dot_size: f32,
+    pub(super) restore_lighting_outside_world: bool,
+    pub(super) outside_world_profile: String,
+    pub(super) led_overrides: Vec<String>,
+    pub(super) health_bar_keys: Vec<String>,
+    pub(super) hunger_bar_keys: Vec<String>,
+    pub(super) saturation_bar_keys: Vec<String>,
+    pub(super) experience_bar_keys: Vec<String>,
+    pub(super) locator_bar_keys: Vec<String>,
+    pub(super) heartbeat_red_keys: Vec<String>,
+    pub(super) heartbeat_white_keys: Vec<String>,
+    pub(super) compass_keys: Vec<String>,
+    pub(super) compass_center_key: String,
+    pub(super) health_color: u32,
+    pub(super) health_dim_color: u32,
+    pub(super) hunger_color: u32,
+    pub(super) hunger_dim_color: u32,
+    pub(super) saturation_color: u32,
+    pub(super) saturation_dim_color: u32,
+    pub(super) air_color: u32,
+    pub(super) air_dim_color: u32,
+    pub(super) experience_color: u32,
+    pub(super) experience_dim_color: u32,
+    pub(super) heartbeat_color: u32,
+    pub(super) absorption_color: u32,
+    pub(super) locator_bar_color: u32,
     // A new field deliberately does not inherit the old, default-on setting.
     pub(super) allow_reviewed_server: bool,
     pub(super) notify_missing_server: bool,
@@ -87,6 +118,42 @@ impl Default for Settings {
             chat_pulse: true,
             always_show_compass: false,
             locator_bar: true,
+            experience_locator_mode: "auto".into(),
+            low_health_threshold: 10.0,
+            enable_absorption_overlay: true,
+            merge_saturation_into_hunger: false,
+            saturation_tint_strength: 0.25,
+            locator_dot_size: 1.5,
+            restore_lighting_outside_world: true,
+            outside_world_profile: String::new(),
+            led_overrides: Vec::new(),
+            health_bar_keys: keys(&["F1", "F2", "F3", "F4"]),
+            hunger_bar_keys: keys(&["F5", "F6", "F7", "F8"]),
+            saturation_bar_keys: keys(&["F9", "F10", "F11", "F12"]),
+            experience_bar_keys: keys(&["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]),
+            locator_bar_keys: keys(&["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]),
+            heartbeat_red_keys: keys(&[
+                "4", "5", "6", "7", "E", "T", "U", "D", "F", "H", "V", "B", "SPACE",
+            ]),
+            heartbeat_white_keys: keys(&["R", "Y", "G"]),
+            compass_keys: keys(&[
+                "NUMPAD8", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD2", "NUMPAD1", "NUMPAD4",
+                "NUMPAD7",
+            ]),
+            compass_center_key: "NUMPAD5".into(),
+            health_color: 0xff0000,
+            health_dim_color: 0x1e0000,
+            hunger_color: 0xffa500,
+            hunger_dim_color: 0x1e0f00,
+            saturation_color: 0xc8ff00,
+            saturation_dim_color: 0x283200,
+            air_color: 0xadd8e6,
+            air_dim_color: 0x000032,
+            experience_color: 0x00ff00,
+            experience_dim_color: 0x0a1e0a,
+            heartbeat_color: 0xff0000,
+            absorption_color: 0xffd700,
+            locator_bar_color: 0x0a0a0a,
             allow_reviewed_server: false,
             notify_missing_server: true,
             check_server_updates: true,
@@ -114,7 +181,11 @@ fn default_openrgb_endpoints() -> Vec<OpenRgbEndpoint> {
     vec![OpenRgbEndpoint::default()]
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 40;
+fn keys(values: &[&str]) -> Vec<String> {
+    values.iter().map(|value| (*value).to_owned()).collect()
+}
+
+pub(super) const STATIC_SETTING_COUNT: usize = 48;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -141,14 +212,31 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
     let server_version = super::minelights_server::SERVER_VERSION;
     let mut labels = vec![
         format!("Lighting output: {}", on_off(settings.enabled)),
-        format!("Experience bar: {}", on_off(settings.experience_bar)),
-        format!("Health bar: {}", on_off(settings.health_bar)),
-        format!("Hunger bar: {}", on_off(settings.hunger_bar)),
         format!(
-            "Saturation and air bar: {}",
+            "Experience bar ({}): {}",
+            settings.experience_bar_keys.join(" "),
+            on_off(settings.experience_bar)
+        ),
+        format!(
+            "Health bar ({}): {}",
+            settings.health_bar_keys.join(" "),
+            on_off(settings.health_bar)
+        ),
+        format!(
+            "Hunger bar ({}): {}",
+            settings.hunger_bar_keys.join(" "),
+            on_off(settings.hunger_bar)
+        ),
+        format!(
+            "Saturation and air bar ({}): {}",
+            settings.saturation_bar_keys.join(" "),
             on_off(settings.saturation_air_bar)
         ),
-        format!("Compass effect: {}", on_off(settings.compass_effect)),
+        format!(
+            "Compass effect ({}): {}",
+            settings.compass_keys.join(" "),
+            on_off(settings.compass_effect)
+        ),
         format!("Biome lighting: {}", on_off(settings.biome_lighting)),
         format!(
             "Dimming mode: {}",
@@ -177,7 +265,11 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             "Always show spawn compass: {}",
             on_off(settings.always_show_compass)
         ),
-        format!("Waypoint locator bar: {}", on_off(settings.locator_bar)),
+        format!(
+            "Waypoint locator bar ({}): {}",
+            settings.locator_bar_keys.join(" "),
+            on_off(settings.locator_bar)
+        ),
         if settings.server_confirmation_pending {
             format!("CONFIRM: download and run verified MineLights Server {server_version}")
         } else {
@@ -225,13 +317,56 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             "Check for MineLights Server updates: {}",
             on_off(settings.check_server_updates)
         ),
+        format!(
+            "Absorption overlay: {}",
+            on_off(settings.enable_absorption_overlay)
+        ),
+        format!(
+            "Merge saturation into hunger: {}",
+            on_off(settings.merge_saturation_into_hunger)
+        ),
+        format!(
+            "Restore OpenRGB outside worlds: {}",
+            on_off(settings.restore_lighting_outside_world)
+        ),
+        format!("Low health threshold: {:.0}", settings.low_health_threshold),
+        format!(
+            "Saturation tint strength: {:.2}",
+            settings.saturation_tint_strength
+        ),
+        format!(
+            "Experience / locator mode: {}",
+            settings.experience_locator_mode
+        ),
+        format!("Locator dot size: {:.1}", settings.locator_dot_size),
+        "Configure keys and colors with /minelights set".into(),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
+        if (40..=46).contains(&index) {
+            if let Some(translated) = super::minelights_lang::setting_label(language, index + 7) {
+                if let Some((_, value)) = label.rsplit_once(": ") {
+                    *label = format!("{translated}: {value}");
+                }
+            }
+            continue;
+        }
         // The old translations describe different, less restrictive behaviour.
         if index == 20 || index == 31 || (34..=36).contains(&index) || index >= 38 {
             continue;
         }
         if let Some(translated) = super::minelights_lang::setting_label(language, index) {
+            let keys = match index {
+                1 => Some(&settings.experience_bar_keys),
+                2 => Some(&settings.health_bar_keys),
+                3 => Some(&settings.hunger_bar_keys),
+                4 => Some(&settings.saturation_bar_keys),
+                5 => Some(&settings.compass_keys),
+                19 => Some(&settings.locator_bar_keys),
+                _ => None,
+            };
+            let translated = keys
+                .map(|keys| translated.replace("%s", &keys.join(" ")))
+                .unwrap_or_else(|| translated.to_owned());
             if index < 33 {
                 if let Some((_, value)) = label.rsplit_once(": ") {
                     let value_index = match index {
@@ -259,7 +394,12 @@ pub(super) fn device_disabled(settings: &Settings, id: &str, legacy: Option<&str
             && !settings.enabled_legacy_devices.iter().any(|v| v == id))
 }
 
-pub(super) fn set_device_enabled(settings: &mut Settings, id: &str, legacy: Option<&str>, enabled: bool) {
+pub(super) fn set_device_enabled(
+    settings: &mut Settings,
+    id: &str,
+    legacy: Option<&str>,
+    enabled: bool,
+) {
     settings.disabled_devices.retain(|v| v != id);
     settings.enabled_legacy_devices.retain(|v| v != id);
     if enabled {
@@ -308,6 +448,40 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
             settings.compass_priority = (settings.compass_priority + 1) % 4;
             return;
         }
+        43 => {
+            settings.low_health_threshold = if settings.low_health_threshold >= 20.0 {
+                1.0
+            } else {
+                (settings.low_health_threshold + 1.0).min(20.0)
+            };
+            return;
+        }
+        44 => {
+            settings.saturation_tint_strength = if settings.saturation_tint_strength >= 1.0 {
+                0.0
+            } else {
+                (settings.saturation_tint_strength + 0.1).min(1.0)
+            };
+            return;
+        }
+        45 => {
+            settings.experience_locator_mode = match settings.experience_locator_mode.as_str() {
+                "auto" => "experience",
+                "experience" => "locator",
+                "locator" => "both",
+                _ => "auto",
+            }
+            .into();
+            return;
+        }
+        46 => {
+            settings.locator_dot_size = if settings.locator_dot_size >= 5.0 {
+                0.5
+            } else {
+                (settings.locator_dot_size + 0.5).min(5.0)
+            };
+            return;
+        }
         _ => {}
     }
     let value = match index {
@@ -342,6 +516,9 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         32 => &mut settings.enable_yeelight,
         38 => &mut settings.notify_missing_server,
         39 => &mut settings.check_server_updates,
+        40 => &mut settings.enable_absorption_overlay,
+        41 => &mut settings.merge_saturation_into_hunger,
+        42 => &mut settings.restore_lighting_outside_world,
         _ => return,
     };
     *value = !*value;
