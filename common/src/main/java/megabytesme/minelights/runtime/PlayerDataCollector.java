@@ -194,6 +194,7 @@ public class PlayerDataCollector {
         //?}
         //? if >=26.1 {
         playerDto.setWaypoints(collectWaypoints(client, player, world));
+        playerDto.setHudBar(PlayerHudBar.read(client));
         //?} else {
         /* //? if >=1.21.6 {
         playerDto.setWaypoints(collectWaypointsYarn(client, player));

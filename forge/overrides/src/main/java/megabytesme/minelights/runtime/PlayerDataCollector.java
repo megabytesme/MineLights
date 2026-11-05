@@ -160,7 +160,7 @@ import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 //?}
-//? if >=1.21.8 {
+//? if >=1.21.6 {
 import net.minecraft.world.waypoints.TrackedWaypoint;
 //?}
 import org.apache.logging.log4j.LogManager;
@@ -371,8 +371,9 @@ public class PlayerDataCollector {
         playerDto.setEndFlashIntensity(0.0f);
         //?}
 
-        //? if >=1.21.8 {
+        //? if >=1.21.6 {
         playerDto.setWaypoints(collectWaypoints(client, player, world));
+        playerDto.setHudBar(PlayerHudBar.read(client));
         //?} else {
         playerDto.setWaypoints(new ArrayList<>());
         //?}
@@ -524,7 +525,7 @@ public class PlayerDataCollector {
         return playerDto;
     }
 
-    //? if >=1.21.8 {
+    //? if >=1.21.6 {
     private static List<WaypointDto> collectWaypoints(Minecraft client, LocalPlayer player, ClientLevel world) {
         List<WaypointDto> waypoints = new ArrayList<>();
         ClientPacketListener connection = client.getConnection();
