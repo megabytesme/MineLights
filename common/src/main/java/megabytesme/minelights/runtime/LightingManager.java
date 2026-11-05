@@ -331,8 +331,8 @@ public class LightingManager implements Runnable {
                 LOGGER.warn("Ignoring LED override \"{}\": expected \"Device name|LED index=KEY\"", entry);
                 continue;
             }
-            String device = entry.substring(0, separator).trim().toLowerCase();
-            if (!deviceName.toLowerCase().contains(device)) {
+            String device = entry.substring(0, separator).trim().toLowerCase(java.util.Locale.ROOT);
+            if (!deviceName.toLowerCase(java.util.Locale.ROOT).contains(device)) {
                 continue;
             }
             try {
