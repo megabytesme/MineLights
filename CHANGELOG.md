@@ -1,31 +1,45 @@
-# MineLights 2.4.0
+# MineLights 2.4.0
 
-This release adds Horizon support for Minecraft 26.3 and aligns all clients with the authenticated MineLights Server V2 protocol.
+This release brings the authenticated MineLights Server V2 protocol to Java and Horizon clients, adds Horizon support for Minecraft 26.3, and introduces configurable lighting controls.
 
-## Changes
+## Key Features & Major Changes
 
 - Added V2 server communication with per-install credentials, automatic local enrollment, and optional remote pairing.
-- Use V2 exclusively in the updated clients. Older V1 clients can still connect after explicit approval in MineLights Server.
-- Automatically stop a client-started server when it is safe; keep it running while other clients are connected or legacy access is enabled.
-- Added stable device identities, remote server profiles, per-client device leases and provider interests, and expanded server controls.
-- Preserve legacy device exclusions and remind users when legacy server access remains enabled after connecting over V2.
+- Updated clients use V2 exclusively. Older V1 clients can still connect after explicit approval in MineLights Server.
+- Added stable device identities, per-client device leases and provider interests, remote server profiles, and expanded server controls.
+- Stop a client-started server automatically when it is safe; keep it running while other clients are connected or legacy access is enabled.
 - Added `/minelights` settings and control commands across Fabric, Quilt, Forge, NeoForge, and Horizon.
-- Added a manual server management option for Java clients on Windows. It disables automatic downloads and replacement and offers configurable installation and update notices, including release notes. Automatic server downloads and updates remain enabled by default.
-- Kept server downloads opt-in on Horizon and added chat guidance while autostart confirmation is pending.
+- Added a manual server management option for Java clients on Windows, with configurable installation and update notices. Automatic downloads and updates remain enabled by default.
+- Kept Horizon server downloads off by default, with confirmation required before a download or launch.
 - Bumped the Java mods, Horizon mod, and MineLights Server to version 2.4.0.
+- Added configurable status lighting, custom key layouts and colors, OpenRGB keyboard fixes, and locator-bar lighting.
 
-- Added configurable key layouts and colors for player status effects, with `/minelights` commands across loaders and Horizon. Fabric and Quilt 1.16+ support choosing keys by pressing them; Forge and NeoForge configuration screens provide effect controls.
-- Fixed OpenRGB keyboard mapping for repeated LED names and added LED-name overrides for incorrectly reported keys.
-- Restore OpenRGB devices' previous lighting outside a world, with an optional OpenRGB profile, while respecting disabled devices.
-- Added smoothly filled experience lighting, configurable low-health thresholds, absorption overlays, and an option to merge saturation and air into hunger.
-- Added configurable locator lighting for Minecraft 1.21.6 and later, including waypoint colors and a mode that follows the active experience or locator HUD bar.
+## Installation / Upgrade Instructions
 
-## Installation / Upgrade
-
-- With manual server management enabled, download MineLights Server from the [release page](https://github.com/megabytesme/MineLights-Server/releases) on Windows if your devices need it.
+- Install the Java mod build matching your loader and Minecraft version. Java artifacts retain their loader and Minecraft version names.
+- V2 Java and Horizon clients require MineLights Server 2.4.0. Older V1 clients can connect only when legacy access is explicitly enabled in the server.
+- By default, Java clients download a missing server and check for updates. Enable manual server management to disable automatic downloads and replacement and receive installation or update notices instead.
 - Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge, and NeoForge, or the game's `MineLights` folder for Quilt.
-- Java clients can start an installed server automatically. By default, they download a missing server and check for updates.
+- Horizon keeps server downloads opt-in and requires confirmation before downloading or starting the reviewed server.
 - OpenRGB and Yeelight can connect directly and do not need MineLights Server.
+
+## Full Changelog & Technical Details
+
+### Original contribution in [PR #32](https://github.com/megabytesme/MineLights/pull/32) by [obaba-samich](https://github.com/obaba-samich)
+
+- Mapped OpenRGB LEDs by index so repeated LED names are retained, standardized symbol, modifier, arrow, and numpad key names, and added overrides for devices that report incorrect names.
+- Added key-layout and color settings pages for Fabric and Quilt 1.16+, with key selection by pressing the desired keys.
+- Filled the experience bar gradually through its final key.
+- Added locator-bar lighting for Minecraft 1.21.6+, with colored waypoint dots, vanilla distance steps, and a mode that follows the active experience or locator HUD bar.
+- Added golden absorption-heart overlays, an option to show saturation and air on hunger keys, and a configurable low-health threshold.
+- Restored OpenRGB devices' own lighting outside a world, with an optional OpenRGB profile.
+
+### Follow-up fixes and parity work
+
+- Ported effect commands and configuration controls to Forge, NeoForge, Horizon, and older supported Fabric and Quilt versions, with version-specific feature gating.
+- Fixed player-status labels and locator-bar selection, improved handling for programmable and unnamed OpenRGB keys, made LED overrides consistent, and preserved device exclusions when restoring lighting.
+- Added Horizon OpenRGB key-name logging and documentation for configurable lighting. Translation cleanup and completion followed the original contribution.
+- The authenticated server protocol, pairing, multi-client lifecycle, Java installation controls, and Horizon server-download safeguards are separate 2.4.0 release work.
 
 ## New Contributors ⭐
 
