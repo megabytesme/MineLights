@@ -91,8 +91,11 @@ public class KeyNameStandardizer {
             numberSuffix = "_" + matcher.group(0);
         }
 
+        if (upperName.contains("PROGRAMMABLE")) {
+            return "G" + numberSuffix.replace("_", "");
+        }
         if (upperName.contains("DRAM") || upperName.contains("CORSAIR PRO LED") || upperName.contains("RAM")) {
-            if (upperName.contains("CORSAIR PRO LED")) {
+            if (upperName.contains("CORSAIR PRO LED") && !numberSuffix.isEmpty()) {
                 int num = Integer.parseInt(numberSuffix.substring(1)) + 1;
                 return "RAM_" + num;
             }
@@ -100,9 +103,6 @@ public class KeyNameStandardizer {
         }
         if (upperName.contains("LEDSTRIPE") || upperName.contains("UNDERGLOW")) {
             return "UNDERGLOW" + numberSuffix;
-        }
-        if (upperName.contains("PROGRAMMABLE")) {
-            return "G" + numberSuffix.replace("_", "");
         }
         if (upperName.contains("CUSTOM") || upperName.contains("WHEEL")) {
             return "WHEEL" + numberSuffix;
