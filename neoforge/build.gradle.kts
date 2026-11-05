@@ -181,6 +181,7 @@ java {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
+    java.exclude("megabytesme/minelights/mixin/ClientPlayerChatMixin.java")
     if (stonecutter.eval(mcVersion, ">=26.1")) {
         java.exclude("megabytesme/minelights/config/LiveLogEntry.java")
         java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")

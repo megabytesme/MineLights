@@ -12,18 +12,21 @@ import megabytesme.minelights.MineLightsTransitionalConfigScreen;
 import megabytesme.minelights.MineLightsModernConfigScreen;
 //?}
 import net.minecraft.client.Minecraft;
-//? if loader_forge && <=1.14.3 {
+//? if loader_forge && <1.19 {
 import megabytesme.minelights.network.MineLightsCommands;
 //?}
-//? if loader_forge && >=1.11.2 && <=1.14.3 {
+//? if loader_forge && >=1.13.2 && <1.19 {
 import net.minecraftforge.client.event.ClientChatEvent;
 //?}
-//? if loader_forge && <=1.11 {
+//? if loader_forge && <=1.12.2 {
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 //? if >=1.9 {
 import net.minecraft.server.MinecraftServer;
+//?}
+//? if >=1.11.2 {
+import net.minecraft.util.math.BlockPos;
 //?}
 //?}
 //? if loader_forge && >=1.14.2 && <1.17 {
@@ -168,7 +171,7 @@ public final class MineLightsForge {
         client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge");
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
-        //? if <=1.11 {
+        //? if <=1.12.2 {
         ClientCommandHandler.instance.registerCommand(new MineLightsLegacyCommand());
         //?}
     }
@@ -269,8 +272,7 @@ public final class MineLightsForge {
     }
     //?}
 
-    //? if loader_forge && <=1.14.3 {
-    //? if >=1.11.2 {
+    //? if loader_forge && >=1.13.2 && <1.19 {
     @SubscribeEvent
     public void onClientChatSent(ClientChatEvent event) {
         if (MineLightsCommands.handleSlashMessage(event.getMessage())) {
@@ -279,6 +281,7 @@ public final class MineLightsForge {
     }
     //?}
 
+    //? if loader_forge && <=1.14.3 {
     public static boolean consumeChatReceivedThisTick() {
         boolean received = chatReceivedThisTick;
         chatReceivedThisTick = false;
@@ -291,7 +294,7 @@ public final class MineLightsForge {
     }
     //?}
 
-    //? if loader_forge && <=1.11 {
+    //? if loader_forge && <=1.12.2 {
     private static final class MineLightsLegacyCommand extends CommandBase {
         //? if <=1.9.4 {
         @Override public String getCommandName() { return "minelights"; }
@@ -310,6 +313,14 @@ public final class MineLightsForge {
         //?}
             MineLightsCommands.handleCommand("minelights " + String.join(" ", args));
         }
+        //? if >=1.11.2 {
+        @Override public java.util.List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+            if (args.length == 1) {
+                return getListOfStringsMatchingLastWord(args, "help", "list", "status", "refresh", "get", "set", "toggle", "device", "devices", "server", "openrgb", "check-update");
+            }
+            return java.util.Collections.emptyList();
+        }
+        //?}
     }
     //?}
 

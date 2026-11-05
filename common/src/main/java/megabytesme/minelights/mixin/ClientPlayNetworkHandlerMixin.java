@@ -83,20 +83,6 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
             ci.cancel();
         }
     }
-    //?} else if >=1.17 {
-    @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true, require = 0)
-    private void minelights$interceptChat(String message, CallbackInfo ci) {
-        if (MineLightsCommands.handleSlashMessage(message)) {
-            ci.cancel();
-        }
-    }
-    //?} else {
-    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
-    private void minelights$interceptChat(String message, CallbackInfo ci) {
-        if (MineLightsCommands.handleSlashMessage(message)) {
-            ci.cancel();
-        }
-    }
     //?}
 //?} else {
     //? if >=1.19 {
@@ -113,22 +99,15 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
             ci.cancel();
         }
     }
-    //?} else {
-    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
-    private void minelights$interceptChat(String message, CallbackInfo ci) {
-        if (MineLightsCommands.handleSlashMessage(message)) {
-            ci.cancel();
-        }
-    }
     //?}
 //?}
 
-//? if loader_forge && >=1.13 && <1.17 {
-    @Inject(method = "handleCommandTree", at = @At("TAIL"), require = 0)
+//? if loader_forge && 1.16.1 {
+    @Inject(method = "handleCommandList", at = @At("TAIL"), require = 0)
     private void minelights$registerCommandSuggestions(CallbackInfo ci) {
         MineLightsCommands.registerClientCommandSuggestions(this);
     }
-//?} else if >=26.1 || (loader_forge || loader_neoforge) && >=1.17 {
+//?} else if >=26.1 || loader_forge || loader_neoforge {
     @Inject(method = "handleCommands", at = @At("TAIL"), require = 0)
     private void minelights$registerCommandSuggestions(CallbackInfo ci) {
         MineLightsCommands.registerClientCommandSuggestions(this);

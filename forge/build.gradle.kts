@@ -29,7 +29,11 @@ val forgeVersionRange = property("forge.version_range").toString()
 val forgeLoaderRange = property("forge.loader_range").toString()
 val buildVersion = "$modVersion+$mcVersion-forge"
 val usesLegacyForgeMetadata = mcVersion in setOf("1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2", "1.11", "1.11.2", "1.12", "1.12.1", "1.12.2")
+val usesMixinConfig = !usesLegacyForgeMetadata && mcVersion !in setOf("1.13.2", "1.14.2", "1.14.3")
 val requiresSrgRuntimeMappings = stonecutter.eval(mcVersion, "<=1.20.4")
+val usesMixinManifest = usesMixinConfig && requiresSrgRuntimeMappings
+val needsMixinRefmap = requiresSrgRuntimeMappings && stonecutter.eval(mcVersion, ">=1.14.4")
+val needsMixinBootstrap = mcVersion in setOf("1.14.4", "1.15", "1.15.1")
 val mappingChannel = when (mcVersion) {
     "1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2", "1.11", "1.11.2", "1.12", "1.12.1", "1.12.2" -> "stable"
     "1.13.2", "1.14.2", "1.14.3", "1.16.1" -> "snapshot"
@@ -146,6 +150,9 @@ minecraft {
         configureEach {
             workingDir = project.file("run/$mcVersion")
             systemProperty("forge.logging.console.level", "info")
+            if (usesMixinManifest) {
+                args("--mixin.config=minelights.mixins.json")
+            }
             if (mcVersion == "1.7.2") {
                 // This development runtime uses a remapped Minecraft jar, which legacy FML otherwise rejects.
                 systemProperty("fml.ignoreInvalidMinecraftCertificates", "true")
@@ -180,9 +187,12 @@ dependencies {
     if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
         compileOnly("org.spongepowered:mixin:0.8.2")
         annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
-        if (mcVersion != "1.15.2") {
+        if (needsMixinBootstrap) {
             runtimeOnly("maven.modrinth:mixinbootstrap:hOGSWOX8")
         }
+    }
+    if (needsMixinRefmap && stonecutter.eval(mcVersion, ">=1.16")) {
+        annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
     }
     if (stonecutter.eval(mcVersion, ">=1.21.6")) {
         annotationProcessor("net.minecraftforge:eventbus-validator:7.0.5")
@@ -198,6 +208,7 @@ java {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
+    java.exclude("megabytesme/minelights/mixin/ClientPlayerChatMixin.java")
     if (!usesClothConfig) {
         java.exclude("megabytesme/minelights/config/ModMenuIntegration.java")
         java.exclude("megabytesme/minelights/config/LiveStatusEntry.java")
@@ -267,7 +278,7 @@ tasks.withType<JavaCompile>().configureEach {
                 }
         }
     }
-    if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
+    if (needsMixinRefmap) {
         val srgMappings = minecraft.dependency.toSrgFile
         inputs.file(srgMappings)
         doFirst {
@@ -280,10 +291,16 @@ tasks.withType<JavaCompile>().configureEach {
                         gzip.bufferedReader().use { reader ->
                             val header = reader.readLine()
                             uncompressed.bufferedWriter().use { writer ->
-                                if (header?.startsWith("tsrg2 ") != true) {
+                                if (header?.startsWith("tsrg2 ") == true) {
+                                    // The Mixin processor reads TSRG v1, which has no method
+                                    // parameter or static-marker records from TSRG v2.
+                                    reader.forEachLine { line ->
+                                        if (!line.startsWith("\t\t")) writer.appendLine(line)
+                                    }
+                                } else {
                                     writer.appendLine(header ?: "")
+                                    reader.copyTo(writer)
                                 }
-                                reader.copyTo(writer)
                             }
                         }
                     }
@@ -328,7 +345,7 @@ tasks.processResources {
     } else {
         filesMatching("META-INF/mods.toml") { expand(templateProperties) }
     }
-    if (mcVersion in setOf("1.14.4", "1.15", "1.15.1", "1.15.2")) {
+    if (needsMixinRefmap) {
         val refmap = layout.buildDirectory.file("tmp/compileJava/minelights.refmap.json")
         dependsOn(tasks.named("compileJava"))
         from(refmap)
@@ -339,7 +356,7 @@ tasks.processResources {
     doLast {
         rootProject.file("src/main/resources/assets/minelights/icon.png")
             .copyTo(destinationDir.resolve(modIcon), overwrite = true)
-        if (mcVersion == "1.14.4") {
+        if (needsMixinRefmap) {
             val mixinConfig = destinationDir.resolve("minelights.mixins.json")
             mixinConfig.writeText(mixinConfig.readText().replaceFirst("{", "{\n  \"refmap\": \"minelights.refmap.json\","))
         }
@@ -358,8 +375,10 @@ tasks.processResources {
         if (usesLegacyForgeMetadata) {
             destinationDir.resolve("minelights.mixins.json").delete()
             destinationDir.resolve("META-INF/mods.toml").delete()
-        } else if (mcVersion == "1.13.2" || mcVersion == "1.14.2" || mcVersion == "1.14.3") {
+        } else if (!usesMixinConfig) {
             destinationDir.resolve("minelights.mixins.json").delete()
+        }
+        if (!usesLegacyForgeMetadata && (!usesMixinConfig || usesMixinManifest)) {
             val modsToml = destinationDir.resolve("META-INF/mods.toml")
             modsToml.writeText(modsToml.readText().replace(
                 Regex("""(?m)^\[\[mixins]]\r?\nconfig = "minelights\.mixins\.json"\r?\n?"""),
@@ -373,6 +392,9 @@ tasks.named<Jar>("jar") {
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
+    if (usesMixinManifest) {
+        manifest.attributes["MixinConfigs"] = "minelights.mixins.json"
+    }
     if (usesLegacyForgeMetadata) {
         from("src/main/resources") { include("mcmod.info") }
     } else {
@@ -433,8 +455,11 @@ publishMods {
         projectId = property("publish.modrinth").toString()
         accessToken = modrinthToken
         minecraftVersions.addAll(property("mod.mc_targets").toString().split(" "))
-        if (mcVersion == "1.14.4") {
-            requires("mixinbootstrap")
+        if (needsMixinBootstrap) {
+            requires {
+                slug = "mixinbootstrap"
+                version = "hOGSWOX8"
+            }
         }
         if (usesClothConfig) {
             requires(if (stonecutter.eval(mcVersion, ">=1.21.5")) "cloth-config-forge" else "cloth-config")

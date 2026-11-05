@@ -1030,7 +1030,7 @@ public class MineLightsClient implements ClientModInitializer {
                 //?} else if >=1.19 {
                 /* client.player.sendMessage(Text.literal(text), false); */
                 //?} else {
-                /* client.player.sendMessage(new net.minecraft.text.LiteralText(text)); */
+                /* client.player.sendMessage(new net.minecraft.text.LiteralText(text), false); */
                 //?}
             }
         }

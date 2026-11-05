@@ -168,6 +168,9 @@ tasks.withType<JavaCompile>().configureEach {
 sourceSets {
     named("main") {
         java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
+        if (!stonecutter.eval(stonecutter.current.version, "<1.19")) {
+            java.exclude("megabytesme/minelights/mixin/ClientPlayerChatMixin.java")
+        }
     }
 }
 
@@ -188,6 +191,13 @@ tasks {
     matching { it.name == "remapSourcesJar" }.configureEach { dependsOn("sourcesJar") }
 
     processResources {
+        val needsPlayerChatMixin = stonecutter.eval(stonecutter.current.version, "<1.19")
+        inputs.property("needsPlayerChatMixin", needsPlayerChatMixin)
+        if (needsPlayerChatMixin) {
+            filesMatching("minelights.mixins.json") {
+                filter { line: String -> line.replace("\"ClientPlayNetworkHandlerMixin\"", "\"ClientPlayNetworkHandlerMixin\", \"ClientPlayerChatMixin\"") }
+            }
+        }
         val minecraftTargets = prop("mod.mc_targets").split(Regex("\\s+"))
         val props = mapOf(
             "id" to prop("mod.id"),

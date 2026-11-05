@@ -169,6 +169,9 @@ tasks.withType<JavaCompile>().configureEach {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
+    if (!stonecutter.eval(stonecutter.current.version, "<1.19")) {
+        java.exclude("megabytesme/minelights/mixin/ClientPlayerChatMixin.java")
+    }
 }
 
 tasks {
@@ -197,6 +200,13 @@ tasks {
     }
 
     processResources {
+        val needsPlayerChatMixin = stonecutter.eval(stonecutter.current.version, "<1.19")
+        inputs.property("needsPlayerChatMixin", needsPlayerChatMixin)
+        if (needsPlayerChatMixin) {
+            filesMatching("minelights.mixins.json") {
+                filter { line: String -> line.replace("\"ClientPlayNetworkHandlerMixin\"", "\"ClientPlayNetworkHandlerMixin\", \"ClientPlayerChatMixin\"") }
+            }
+        }
         inputs.property("id", project.property("mod.id"))
         inputs.property("name", project.property("mod.name"))
         inputs.property("version", project.property("mod.version"))
