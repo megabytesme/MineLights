@@ -103,6 +103,7 @@
   "category.mine-lights.key_layout": "Key Layout",
   "category.mine-lights.colors": "Colors",
   "text.mine-lights.key_layout.help": "Choose which keys each effect lights up. Click \"+ Add keys\", then press the keys on your keyboard in order (the first key is the start of the bar), and press Esc when you're done. Changes apply when you click Save.",
+  "option.mine-lights.effectConfigHelp": "Enter key names separated by commas and colors as #RRGGBB. LED overrides use Device name|index=KEY; separate multiple overrides with semicolons. Use none to clear a list or profile.",
   "option.mine-lights.healthBarKeys": "Health Bar",
   "option.mine-lights.healthBarKeys.tooltip": "Keys that show your health, from empty to full.\nYour 20 health is split evenly across the keys.",
   "option.mine-lights.hungerBarKeys": "Hunger Bar",
