@@ -749,7 +749,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableHealthBar", keysLabel(MineLightsClient.CONFIG.healthBarKeys))
+                        translatable("option.mine-lights.enableHealthBar.configured", keysLabel(MineLightsClient.CONFIG.healthBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableHealthBar")
                         *///?}
@@ -764,7 +764,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableHungerBar", keysLabel(MineLightsClient.CONFIG.hungerBarKeys))
+                        translatable("option.mine-lights.enableHungerBar.configured", keysLabel(MineLightsClient.CONFIG.hungerBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableHungerBar")
                         *///?}
@@ -779,7 +779,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableSaturationBar", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
+                        translatable("option.mine-lights.enableSaturationBar.configured", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableSaturationBar")
                         *///?}
@@ -807,7 +807,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableExperienceBar", keysLabel(MineLightsClient.CONFIG.experienceBarKeys))
+                        translatable("option.mine-lights.enableExperienceBar.configured", keysLabel(MineLightsClient.CONFIG.experienceBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableExperienceBar")
                         *///?}
@@ -838,7 +838,7 @@ public class ModMenuIntegration implements ModMenuApi {
 
         //? if >=26.1 {
         playerStatus.addEntry(entryBuilder
-                .startBooleanToggle(translatable("option.mine-lights.enableLocatorBar"),
+                .startBooleanToggle(translatable("option.mine-lights.enableLocatorBar.configured", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
                                 MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
                 .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip"))
@@ -850,7 +850,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableCompassEffect", keysLabel(MineLightsClient.CONFIG.compassKeys))
+                        translatable("option.mine-lights.enableCompassEffect.configured", keysLabel(MineLightsClient.CONFIG.compassKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableCompassEffect")
                         *///?}
@@ -1454,9 +1454,9 @@ public class ModMenuIntegration implements ModMenuApi {
 
     private static void addPlayerStatusExtras(ConfigCategory playerStatus, ConfigEntryBuilder entryBuilder) {
         MineLightsConfig defaults = new MineLightsConfig();
-        //? if <26.1 {
+        //? if >=1.21.6 && <26.1 {
         /*playerStatus.addEntry(entryBuilder.startBooleanToggle(
-                        translatable("option.mine-lights.enableLocatorBar", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
+                        translatable("option.mine-lights.enableLocatorBar.configured", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
                         MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
                 .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip"))
