@@ -206,6 +206,7 @@ public class PlayerDataCollector {
 
         playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
+        playerDto.setAbsorption(player.getAbsorptionAmount());
         //? if (loader_forge && <=1.14.3) || (loader_forge && 1.16.1) {
         playerDto.setHunger(player.getFoodStats().getFoodLevel());
         playerDto.setSaturation(player.getFoodStats().getSaturationLevel());

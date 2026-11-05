@@ -5,7 +5,7 @@ import megabytesme.minelights.config.ExperienceLocatorMode;
 import megabytesme.minelights.model.CompassState;
 import megabytesme.minelights.model.CompassType;
 import megabytesme.minelights.model.PlayerDto;
-//? if >=1.21.8 {
+//? if >=1.21.6 {
 import megabytesme.minelights.model.WaypointDto;
 //?}
 //? if loader_forge && <1.17 {
@@ -198,15 +198,15 @@ public class EffectPainter {
                 boolean hasWaypoints = player.getWaypoints() != null && !player.getWaypoints().isEmpty();
                 hudBar = hasWaypoints ? "LOCATOR" : "EXPERIENCE";
             }
-            showExperience = hudBar.equals("EXPERIENCE");
-            showLocator = hudBar.equals("LOCATOR");
+            showLocator = hudBar.equals("LOCATOR") && MineLightsClient.CONFIG.enableLocatorBar;
+            showExperience = hudBar.equals("EXPERIENCE") || (hudBar.equals("LOCATOR") && !showLocator);
         } else {
             showExperience = barMode == ExperienceLocatorMode.EXPERIENCE || barMode == ExperienceLocatorMode.BOTH;
             showLocator = barMode == ExperienceLocatorMode.LOCATOR || barMode == ExperienceLocatorMode.BOTH;
         }
         if (showExperience && MineLightsClient.CONFIG.enableExperienceBar)
             paintExperienceBar(state, player);
-        //? if >=1.21.8 {
+        //? if >=1.21.6 {
         if (showLocator && MineLightsClient.CONFIG.enableLocatorBar) {
             paintLocatorBar(state, player, barMode != ExperienceLocatorMode.BOTH);
         }
@@ -676,7 +676,7 @@ public class EffectPainter {
         }
     }
 
-    //? if >=1.21.8 {
+    //? if >=1.21.6 {
     private void paintLocatorBar(FrameStateDto state, PlayerDto player, boolean drawBackground) {
         List<String> locatorBarKeys = KeyMap.getLocatorBar();
         if (locatorBarKeys.isEmpty()) {

@@ -56,6 +56,8 @@ public class PlayerDataCollector {
 
         playerDto.setInGame(true);
         playerDto.setHealth(player.getHealth());
+        playerDto.setAbsorption(player.getAbsorptionAmount());
+        playerDto.setAirBarVisible(player.isUnderWater() || player.getAirSupply() < player.getMaxAirSupply());
         playerDto.setHunger(player.getFoodData().getFoodLevel());
         playerDto.setSaturation(player.getFoodData().getSaturationLevel());
         playerDto.setAir(player.getAirSupply());
