@@ -85,7 +85,7 @@
   "minelights.status.running": "État : le serveur est en cours d’exécution.",
   "minelights.status.not_running": "État : le serveur n’est pas en cours d’exécution.",
   "option.mine-lights.force_update.tooltip": "Vérifiez sur GitHub s'il existe une mise à jour de MineLights Server.\nLa gestion automatique peut télécharger les mises à jour ; la gestion manuelle affiche les détails d'installation dans le chat.",
-  "text.mine-lights.server.restart_from_tray": "Le serveur V2 est partagé avec d'autres clients et logiciels. Redémarre-le ou arrête-le depuis le menu de la zone de notification.",
+  "text.mine-lights.server.restart_from_tray": "Le serveur V2 est partagé avec d'autres clients et logiciels. Redémarrez-le ou arrêtez-le depuis le menu de la zone de notification.",
   "option.mine-lights.minBrightness": "Luminosité minimale",
   "option.mine-lights.minBrightness.tooltip": "Luminosité minimale des effets d'environnement lorsque l'atténuation est activée.\n0 = obscurité totale ; 1 = luminosité maximale.",
   "category.mine-lights.key_layout": "Disposition des touches",
