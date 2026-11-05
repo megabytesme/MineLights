@@ -52,7 +52,7 @@ public class LightingManager implements Runnable {
     private Set<String> lastPolicy;
     private static int nextV2InternalId = Integer.MIN_VALUE;
     private static final AtomicBoolean LEGACY_REMINDER_SENT = new AtomicBoolean(false);
-    private boolean devicesReleased = false;
+    private Boolean devicesReleased;
 
     private final YeelightController yeelightController = new YeelightController();
     private final Map<Integer, Integer> yeelightLedToDeviceMap = new HashMap<>();
@@ -349,8 +349,10 @@ public class LightingManager implements Runnable {
         String profile = MineLightsClient.CONFIG.outsideWorldProfile;
         synchronized (openRgbControllers) {
             for (OpenRGBController controller : openRgbControllers) {
-                controller.restoreOriginalModes();
-                if (profile != null && !profile.trim().isEmpty()) {
+                Set<Integer> enabled = enabledOpenRgbDevices(controller);
+                controller.restoreOriginalModes(enabled);
+                if (profile != null && !profile.trim().isEmpty()
+                        && enabled.size() == controller.getDevices().size()) {
                     controller.loadProfile(profile.trim());
                 }
             }
@@ -360,9 +362,22 @@ public class LightingManager implements Runnable {
     private void takeOverOpenRgbDevices() {
         synchronized (openRgbControllers) {
             for (OpenRGBController controller : openRgbControllers) {
-                controller.enterCustomMode();
+                controller.enterCustomMode(enabledOpenRgbDevices(controller));
             }
         }
+    }
+
+    private Set<Integer> enabledOpenRgbDevices(OpenRGBController controller) {
+        Set<Integer> enabled = new HashSet<>();
+        List<OpenRGBController.OpenRGBDevice> devices = controller.getDevices();
+        for (int i = 0; i < devices.size(); i++) {
+            OpenRGBController.OpenRGBDevice device = devices.get(i);
+            String id = "127.0.0.1:6742".equals(device.endpointAddress)
+                    ? "OpenRGB|" + device.name
+                    : "OpenRGB|" + device.endpointAddress + "|" + device.name;
+            if (!MineLightsClient.CONFIG.disabledDevices.contains(id)) enabled.add(i);
+        }
+        return enabled;
     }
 
     @Override
@@ -393,7 +408,7 @@ public class LightingManager implements Runnable {
                 }
 
                 boolean releaseOpenRgb = !playerState.getInGame() && MineLightsClient.CONFIG.restoreLightingOutsideWorld;
-                if (releaseOpenRgb != devicesReleased) {
+                if (devicesReleased == null || releaseOpenRgb != devicesReleased.booleanValue()) {
                     if (releaseOpenRgb) {
                         releaseOpenRgbDevices();
                     } else {
@@ -441,7 +456,7 @@ public class LightingManager implements Runnable {
                 sendV2Frames(frameState);
                 lastV2KeepaliveFrame = System.currentTimeMillis();
 
-                if (!devicesReleased && !openRgbUpdates.isEmpty()) {
+                if (!Boolean.TRUE.equals(devicesReleased) && !openRgbUpdates.isEmpty()) {
                     for (Map.Entry<OpenRGBDeviceRef, List<KeyColorDto>> deviceUpdate : openRgbUpdates.entrySet()) {
                         OpenRGBDeviceRef deviceRef = deviceUpdate.getKey();
                         deviceRef.controller.updateLeds(deviceRef.deviceIndex, deviceUpdate.getValue(),

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -116,7 +117,6 @@ public class OpenRGBController {
                     );
                 }
 
-                sendPacket(1100, controllerId, new byte[0]);
             }
             return true;
         } catch (IOException e) {
@@ -328,11 +328,13 @@ public class OpenRGBController {
         }
     }
 
-    public void restoreOriginalModes() {
+    public void restoreOriginalModes(Set<Integer> enabledDevices) {
         if (socket == null || socket.isClosed()) {
             return;
         }
-        for (OpenRGBDevice device : devices) {
+        for (int index = 0; index < devices.size(); index++) {
+            if (!enabledDevices.contains(index)) continue;
+            OpenRGBDevice device = devices.get(index);
             if (device.originalModeData == null) {
                 continue;
             }
@@ -370,14 +372,24 @@ public class OpenRGBController {
         }
     }
 
-    public void enterCustomMode() {
+    public void enterCustomMode(Set<Integer> enabledDevices) {
         if (socket == null || socket.isClosed()) {
             return;
         }
-        for (OpenRGBDevice device : devices) {
+        for (int index = 0; index < devices.size(); index++) {
+            if (!enabledDevices.contains(index)) continue;
+            OpenRGBDevice device = devices.get(index);
             try {
+                byte[] request = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+                        .putInt(serverProtocolVersion).array();
+                sendPacket(1, device.controllerId, request);
+                OpenRGBDevice current = parseDeviceData(readResponse());
+                device.originalModeIndex = current.originalModeIndex;
+                device.originalModeData = current.originalModeData;
+                device.originalModeUsesPerLedColors = current.originalModeUsesPerLedColors;
+                device.originalColors = current.originalColors;
                 sendPacket(1100, device.controllerId, new byte[0]);
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 LOGGER.warn("Failed to switch OpenRGB device " + device.name + " to direct mode", e);
             }
         }
