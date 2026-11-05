@@ -40,7 +40,9 @@ public class LightingManager implements Runnable {
     private static final int FRAME_DURATION_MS = 33;
     private volatile boolean isInitialized = false;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
+    private final AtomicBoolean openRgbDataChanged = new AtomicBoolean(false);
     private FrameStateDto lastSentFrame = null;
+    private int initializedOpenRgbControllerCount;
 
     private final List<OpenRGBController> openRgbControllers = Collections.synchronizedList(new ArrayList<OpenRGBController>());
     private final Map<Integer, OpenRGBDeviceRef> openRgbLedToDeviceMap = new HashMap<>();
@@ -116,7 +118,10 @@ public class LightingManager implements Runnable {
                 if (controller.connect(endpoint.host, endpoint.port)) {
                     synchronized (openRgbControllers) {
                         if (isStopping()) controller.disconnect();
-                        else openRgbControllers.add(controller);
+                        else {
+                            openRgbControllers.add(controller);
+                            openRgbDataChanged.set(true);
+                        }
                     }
                 }
             }
@@ -129,7 +134,6 @@ public class LightingManager implements Runnable {
             if (yeelightController.discover(() -> !isStopping())) {
                 if (isStopping()) { yeelightController.disconnect(); return; }
                 List<YeelightController.YeelightDevice> devices = yeelightController.getDevices();
-                int yeelightLedOffset = 3000;
                 for (int i = 0; i < devices.size(); i++) {
                     YeelightController.YeelightDevice device = devices.get(i);
                     String uniqueId = "Yeelight|"
@@ -137,7 +141,7 @@ public class LightingManager implements Runnable {
                     if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId))
                         continue;
                     MineLightsClient.discoveredDevices.add(uniqueId);
-                    int globalLedId = yeelightLedOffset + i;
+                    int globalLedId = -1 - i;
 
                     DeviceLayout layout = new DeviceLayout("Yeelight " + i, "YEELIGHT");
                     layout.addMapping("YEELIGHT_" + i, globalLedId);
@@ -159,10 +163,13 @@ public class LightingManager implements Runnable {
 
             if (isStopping()) return;
 
-            parseOpenRGBData();
-
-            this.effectPainter = new EffectPainter(deviceLayouts);
-            this.isInitialized = true;
+            synchronized (openRgbControllers) {
+                parseOpenRGBData();
+                this.effectPainter = new EffectPainter(deviceLayouts);
+                initializedOpenRgbControllerCount = openRgbControllers.size();
+                openRgbDataChanged.set(false);
+                this.isInitialized = true;
+            }
 
             long totalLeds = deviceLayouts.stream().mapToLong(d -> d.getAllLeds().size()).sum();
             LOGGER.info("Initialization complete. Found {} devices with a total of {} LEDs.", deviceLayouts.size(),
@@ -282,7 +289,7 @@ public class LightingManager implements Runnable {
 
     private void parseOpenRGBData() {
         LOGGER.info("[OpenRGB] Parsing data from OpenRGB...");
-        int openRgbDeviceIndex = 0;
+        long nextOpenRgbLedId = 0;
         for (OpenRGBController controller : openRgbControllers) {
             List<OpenRGBController.OpenRGBDevice> devices = controller.getDevices();
             for (int localDeviceIndex = 0; localDeviceIndex < devices.size(); localDeviceIndex++) {
@@ -291,14 +298,19 @@ public class LightingManager implements Runnable {
                 String uniqueId = "127.0.0.1:6742".equals(endpointAddress)
                         ? "OpenRGB|" + device.name : "OpenRGB|" + endpointAddress + "|" + device.name;
                 MineLightsClient.discoveredDevices.add(uniqueId);
+                long lastLedId = nextOpenRgbLedId + Math.max(0, device.ledNames.size() - 1);
+                if (lastLedId > Integer.MAX_VALUE) {
+                    LOGGER.warn("Skipping OpenRGB device {} because its LED IDs exceed the supported range.", device.name);
+                    continue;
+                }
+                int openRgbLedOffset = (int) nextOpenRgbLedId;
+                nextOpenRgbLedId += device.ledNames.size();
                 if (MineLightsClient.CONFIG.disabledDevices.contains(uniqueId)) {
-                    openRgbDeviceIndex++;
                     continue;
                 }
 
                 DeviceLayout layout = new DeviceLayout(device.name + " (" + endpointAddress + ")", "OPENRGB");
                 Map<Integer, String> overrides = getLedOverrides(device.name);
-                int openRgbLedOffset = 2000 + (openRgbDeviceIndex * 1000);
 
                 for (int i = 0; i < device.ledNames.size(); i++) {
                     String keyName = device.ledNames.get(i);
@@ -314,7 +326,6 @@ public class LightingManager implements Runnable {
                 }
                 deviceLayouts.add(layout);
                 LOGGER.info("> Mapped device [OpenRGB]: {} ({} LEDs)", device.name, layout.getAllLeds().size());
-                openRgbDeviceIndex++;
             }
         }
     }
@@ -346,16 +357,20 @@ public class LightingManager implements Runnable {
     }
 
     private void releaseOpenRgbDevices() {
-        String profile = MineLightsClient.CONFIG.outsideWorldProfile;
         synchronized (openRgbControllers) {
             for (OpenRGBController controller : openRgbControllers) {
-                Set<Integer> enabled = enabledOpenRgbDevices(controller);
-                controller.restoreOriginalModes(enabled);
-                if (profile != null && !profile.trim().isEmpty()
-                        && enabled.size() == controller.getDevices().size()) {
-                    controller.loadProfile(profile.trim());
-                }
+                releaseOpenRgbController(controller);
             }
+        }
+    }
+
+    private void releaseOpenRgbController(OpenRGBController controller) {
+        Set<Integer> enabled = enabledOpenRgbDevices(controller);
+        controller.restoreOriginalModes(enabled);
+        String profile = MineLightsClient.CONFIG.outsideWorldProfile;
+        if (profile != null && !profile.trim().isEmpty()
+                && enabled.size() == controller.getDevices().size()) {
+            controller.loadProfile(profile.trim());
         }
     }
 
@@ -388,6 +403,29 @@ public class LightingManager implements Runnable {
                 Thread.sleep(100);
             }
             while (!Thread.currentThread().isInterrupted() && !isStopping()) {
+                if (openRgbDataChanged.get()) {
+                    List<OpenRGBController> addedControllers = new ArrayList<OpenRGBController>();
+                    synchronized (openRgbControllers) {
+                        if (openRgbDataChanged.getAndSet(false)) {
+                            if (initializedOpenRgbControllerCount < openRgbControllers.size()) {
+                                addedControllers.addAll(openRgbControllers.subList(
+                                        initializedOpenRgbControllerCount, openRgbControllers.size()));
+                                initializedOpenRgbControllerCount = openRgbControllers.size();
+                            }
+                            deviceLayouts.removeIf(layout -> "OPENRGB".equals(layout.deviceType));
+                            openRgbLedToDeviceMap.clear();
+                            parseOpenRGBData();
+                            effectPainter = new EffectPainter(deviceLayouts);
+                            lastSentFrame = null;
+                        }
+                    }
+                    if (devicesReleased != null) {
+                        for (OpenRGBController controller : addedControllers) {
+                            if (devicesReleased.booleanValue()) releaseOpenRgbController(controller);
+                            else controller.enterCustomMode(enabledOpenRgbDevices(controller));
+                        }
+                    }
+                }
                 long frameStart = System.currentTimeMillis();
 
                 //? if loader_neoforge || >=26.1 {
