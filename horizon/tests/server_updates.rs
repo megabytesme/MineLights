@@ -3,8 +3,8 @@
 mod server;
 
 #[test]
-fn pinned_build_metadata_compares_stable_release_precedence() {
-    assert_eq!(server::SERVER_VERSION, "v2.4.0+build.2");
+fn pinned_release_ignores_build_metadata_in_version_precedence() {
+    assert_eq!(server::SERVER_VERSION, "v2.4.0");
     let equal = r#"[
       {"tag_name":"v2.4.0","draft":false,"prerelease":false},
       {"tag_name":"v2.4.0+different.1","draft":false,"prerelease":false},
