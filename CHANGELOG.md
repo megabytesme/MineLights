@@ -26,3 +26,7 @@ This release adds Horizon support for Minecraft 26.3 and aligns all clients with
 - Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge, and NeoForge, or the game's `MineLights` folder for Quilt.
 - Java clients can start an installed server automatically. By default, they download a missing server and check for updates.
 - OpenRGB and Yeelight can connect directly and do not need MineLights Server.
+
+## New Contributors ⭐
+
+- [obaba-samich](https://github.com/obaba-samich): [PR #32](https://github.com/megabytesme/MineLights/pull/32)
