@@ -1211,7 +1211,9 @@ public class ModMenuIntegration implements ModMenuApi {
 
         //? if >=1.16 {
         addLayoutCategories(builder, entryBuilder);
-        //?}
+        //?} else {
+        /*addLegacyEffectCategories(builder, entryBuilder);
+        *///?}
 
         ConfigCategory aboutCategory = builder
                 .getOrCreateCategory(
@@ -1360,6 +1362,35 @@ public class ModMenuIntegration implements ModMenuApi {
         }
         return String.join(" ", keys);
     }
+
+    //? if <1.16 {
+    /*private static void addLegacyEffectCategories(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
+        ConfigCategory effects = builder.getOrCreateCategory(new TranslatableText("category.mine-lights.key_layout").getString());
+        MineLightsConfig defaults = new MineLightsConfig();
+        effects.addEntry(entryBuilder.startTextDescription(new TranslatableText("option.mine-lights.effectConfigHelp").getString()).build());
+        for (String name : megabytesme.minelights.network.EffectSettings.NAMES) {
+            if (!megabytesme.minelights.network.EffectSettings.isAvailable(name)) continue;
+            effects.addEntry(entryBuilder.startStrField(new TranslatableText(megabytesme.minelights.network.EffectSettings.labelKey(name)).getString(),
+                            megabytesme.minelights.network.EffectSettings.get(MineLightsClient.CONFIG, name))
+                    .setDefaultValue(megabytesme.minelights.network.EffectSettings.get(defaults, name))
+                    .setErrorSupplier(value -> {
+                        try { megabytesme.minelights.network.EffectSettings.set(new MineLightsConfig(), name, value); return java.util.Optional.empty(); }
+                        catch (IllegalArgumentException exception) { return java.util.Optional.of(exception.getMessage()); }
+                    })
+                    .setSaveConsumer(value -> {
+                        boolean changed = !megabytesme.minelights.network.EffectSettings.get(MineLightsClient.CONFIG, name).equals(value);
+                        megabytesme.minelights.network.EffectSettings.set(MineLightsClient.CONFIG, name, value);
+                        if (changed && name.equals("led-overrides")) MineLightsClient.CONFIG.refreshDevices = true;
+                    }).build());
+        }
+        effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.enableAbsorptionOverlay").getString(), MineLightsClient.CONFIG.enableAbsorptionOverlay)
+                .setDefaultValue(defaults.enableAbsorptionOverlay).setSaveConsumer(value -> MineLightsClient.CONFIG.enableAbsorptionOverlay = value).build());
+        effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.mergeSaturationIntoHunger").getString(), MineLightsClient.CONFIG.mergeSaturationIntoHunger)
+                .setDefaultValue(defaults.mergeSaturationIntoHunger).setSaveConsumer(value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value).build());
+        effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.restoreLightingOutsideWorld").getString(), MineLightsClient.CONFIG.restoreLightingOutsideWorld)
+                .setDefaultValue(defaults.restoreLightingOutsideWorld).setSaveConsumer(value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value).build());
+    }
+    *///?}
 
     //? if >=1.16 {
     private static void addLayoutCategories(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
