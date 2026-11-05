@@ -248,6 +248,9 @@ impl OpenRgbClient {
             let info = read_response(&mut stream)?;
             let (display_name, led_count, key_leds, original) =
                 parse_openrgb_device(&info, protocol_version)?;
+            for (index, name) in &key_leds {
+                eprintln!("[MineLights] OpenRGB {display_name} LED {index}: {name}");
+            }
             devices.push(OpenRgbDevice {
                 controller_id,
                 led_count,
