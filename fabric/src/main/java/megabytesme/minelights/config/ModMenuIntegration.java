@@ -792,14 +792,14 @@ public class ModMenuIntegration implements ModMenuApi {
                 //? if >=1.16 {
                 .setTooltip(
                     //? if >=1.19 {
-                    translatable("option.mine-lights.enableSaturationBar.tooltip")
+                    translatable("option.mine-lights.enableSaturationBar.tooltip", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                     //?} else if <1.19 {
-                    /*new TranslatableText("option.mine-lights.enableSaturationBar.tooltip")
+                    /*new TranslatableText("option.mine-lights.enableSaturationBar.tooltip", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                     *///?}
                 )
                 //?}
                 //? if <1.16 {
-                /* .setTooltip(new TranslatableText("option.mine-lights.enableSaturationBar.tooltip").getString()) */
+                /* .setTooltip(new TranslatableText("option.mine-lights.enableSaturationBar.tooltip", keysLabel(MineLightsClient.CONFIG.saturationBarKeys)).getString()) */
                 //?}
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableSaturationBar = newValue)
@@ -820,14 +820,14 @@ public class ModMenuIntegration implements ModMenuApi {
                 //? if >=1.16 {
                 .setTooltip(
                     //? if >=1.19 {
-                    translatable("option.mine-lights.enableExperienceBar.tooltip")
+                    translatable("option.mine-lights.experienceBarKeys.tooltip")
                     //?} else if <1.19 {
-                    /*new TranslatableText("option.mine-lights.enableExperienceBar.tooltip")
+                    /*new TranslatableText("option.mine-lights.experienceBarKeys.tooltip")
                     *///?}
                 )
                 //?}
                 //? if <1.16 {
-                /* .setTooltip(new TranslatableText("option.mine-lights.enableExperienceBar.tooltip").getString()) */
+                /* .setTooltip(new TranslatableText("option.mine-lights.experienceBarKeys.tooltip").getString()) */
                 //?}
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
@@ -841,7 +841,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 .startBooleanToggle(translatable("option.mine-lights.enableLocatorBar.configured", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
                                 MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
-                .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip"))
+                .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)))
                 .setSaveConsumer(
                                 newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
                 .build());
@@ -1492,7 +1492,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         translatable("option.mine-lights.enableLocatorBar.configured", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
                         MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
-                .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip"))
+                .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)))
                 .setSaveConsumer(v -> MineLightsClient.CONFIG.enableLocatorBar = v)
                 .build());
         *///?}
