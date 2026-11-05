@@ -24,7 +24,14 @@ public final class EffectSettings {
 
     private EffectSettings() {}
 
-    static boolean contains(String name) { return Arrays.asList(NAMES).contains(name); }
+    public static boolean isAvailable(String name) {
+        //? if <1.21.6 {
+        /* if (name.startsWith("locator-") || name.equals("experience-locator-mode")) return false; */
+        //?}
+        return true;
+    }
+
+    static boolean contains(String name) { return isAvailable(name) && Arrays.asList(NAMES).contains(name); }
 
     private static Field field(String name) {
         StringBuilder fieldName = new StringBuilder();

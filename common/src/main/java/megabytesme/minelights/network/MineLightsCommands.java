@@ -35,9 +35,12 @@ public final class MineLightsCommands {
             "portal-effects", "movement-keys", "chat-key-pulse", "absorption-overlay",
             "merge-saturation-into-hunger", "restore-lighting-outside-world"
         };
-        String[] all = java.util.Arrays.copyOf(base, base.length + EffectSettings.NAMES.length);
-        System.arraycopy(EffectSettings.NAMES, 0, all, base.length, EffectSettings.NAMES.length);
-        return all;
+        List<String> all = new ArrayList<String>();
+        for (String name : base) {
+            if (!name.equals("locator-bar") || EffectSettings.isAvailable("locator-bar-keys")) all.add(name);
+        }
+        for (String name : EffectSettings.NAMES) if (EffectSettings.isAvailable(name)) all.add(name);
+        return all.toArray(new String[0]);
     }
 
     private MineLightsCommands() {

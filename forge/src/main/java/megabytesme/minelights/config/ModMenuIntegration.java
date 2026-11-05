@@ -159,8 +159,10 @@ public final class ModMenuIntegration {
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
         ConfigCategory effectSettings = builder.getOrCreateCategory(translatable("category.mine-lights.key_layout"));
+        effectSettings.addEntry(entryBuilder.startTextDescription(translatable("option.mine-lights.effectConfigHelp")).build());
         MineLightsConfig effectDefaults = new MineLightsConfig();
         for (String name : EffectSettings.NAMES) {
+            if (!EffectSettings.isAvailable(name)) continue;
             effectSettings.addEntry(entryBuilder.startStrField(translatable(EffectSettings.labelKey(name)),
                             EffectSettings.get(MineLightsClient.CONFIG, name))
                     .setDefaultValue(EffectSettings.get(effectDefaults, name))
