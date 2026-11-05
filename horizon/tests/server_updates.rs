@@ -3,6 +3,26 @@
 mod server;
 
 #[test]
+fn pinned_build_metadata_compares_stable_release_precedence() {
+    assert_eq!(server::SERVER_VERSION, "v2.4.0+build.2");
+    let equal = r#"[
+      {"tag_name":"v2.4.0","draft":false,"prerelease":false},
+      {"tag_name":"v2.4.0+different.1","draft":false,"prerelease":false},
+      {"tag_name":"v2.4.1-rc.1","draft":false,"prerelease":false},
+      {"tag_name":"v2.5.0","draft":false,"prerelease":true}
+    ]"#;
+    assert!(server::parse_update_notice(equal).is_none());
+
+    let newer = r#"[
+      {"tag_name":"v2.4.1+build.9","draft":false,"prerelease":false,"body":"Fix"},
+      {"tag_name":"v999.0.0+bad..metadata","draft":false,"prerelease":false}
+    ]"#;
+    let notice = server::parse_update_notice(newer).unwrap();
+    assert_eq!(notice.version, "v2.4.1+build.9");
+    assert_eq!(notice.changelog, ["Fix"]);
+}
+
+#[test]
 fn reports_new_stable_releases_and_their_notes() {
     let json = r###"[
       {"tag_name":"v2.3.3-test-3","draft":false,"prerelease":false,"body":"test"},

@@ -140,6 +140,7 @@ public class ModMenuIntegration implements ModMenuApi {
             MineLightsClient.CONFIG.restartProxyAsAdmin = false;
             if (MineLightsClient.CONFIG.clearDisabledDevices) {
                 MineLightsClient.CONFIG.disabledDevices.clear();
+                MineLightsClient.CONFIG.enabledLegacyDevices.clear();
                 MineLightsClient.saveConfig();
                 MineLightsClient.CONFIG.clearDisabledDevices = false;
                 needsRefresh = true;
@@ -647,8 +648,7 @@ public class ModMenuIntegration implements ModMenuApi {
 
         MineLightsClient.discoveredDevices.stream().sorted(Comparator.naturalOrder())
                 .forEach(uniqueId -> {
-                    boolean isEnabled = !MineLightsClient.CONFIG.disabledDevices
-                            .contains(uniqueId);
+                    boolean isEnabled = MineLightsClient.isDeviceEnabled(uniqueId);
                     String[] parts = uniqueId.split("\\|", 2);
                     String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
                     String deviceName = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
@@ -674,18 +674,7 @@ public class ModMenuIntegration implements ModMenuApi {
                             *///? }
                             , isEnabled)
                             .setDefaultValue(true)
-                            .setSaveConsumer(newValue -> {
-                                if (newValue) {
-                                    MineLightsClient.CONFIG.disabledDevices
-                                            .remove(uniqueId);
-                                } else {
-                                    if (!MineLightsClient.CONFIG.disabledDevices
-                                            .contains(uniqueId)) {
-                                        MineLightsClient.CONFIG.disabledDevices
-                                                .add(uniqueId);
-                                    }
-                                }
-                            }).build());
+                            .setSaveConsumer(newValue -> MineLightsClient.setDeviceEnabled(uniqueId, newValue)).build());
                 });
 
         if (!MineLightsClient.CONFIG.disabledDevices.isEmpty()) {

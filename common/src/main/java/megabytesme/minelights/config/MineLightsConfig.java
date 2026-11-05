@@ -27,8 +27,6 @@ public class MineLightsConfig {
     }
     public boolean notifyMissingServer = true;
     public boolean checkServerUpdates = true;
-    /** Permit unauthenticated loopback V1 only when a discovered V2 endpoint is unavailable. */
-    public boolean allowLegacyV1Fallback = false;
 
     /** Credentials are stored in the protected MineLights configuration file and never logged. */
     public String v2ClientId;
@@ -38,18 +36,19 @@ public class MineLightsConfig {
     public List<OpenRGBEndpoint> openRgbEndpoints = new java.util.concurrent.CopyOnWriteArrayList<>(java.util.Collections.singletonList(
             new OpenRGBEndpoint("127.0.0.1", 6742)));
 
-    public boolean enableCorsair = true;
-    public boolean enableAsus = true;
-    public boolean enableLogitech = true;
-    public boolean enableRazer = true;
-    public boolean enableWooting = true;
-    public boolean enableSteelSeries = true;
-    public boolean enableMsi = true;
-    public boolean enableNovation = true;
-    public boolean enablePicoPi = true;
-    public boolean enableOpenRgb = true;
-    public boolean enableYeelight = true;
+    public volatile boolean enableCorsair = true;
+    public volatile boolean enableAsus = true;
+    public volatile boolean enableLogitech = true;
+    public volatile boolean enableRazer = true;
+    public volatile boolean enableWooting = true;
+    public volatile boolean enableSteelSeries = true;
+    public volatile boolean enableMsi = true;
+    public volatile boolean enableNovation = true;
+    public volatile boolean enablePicoPi = true;
+    public volatile boolean enableOpenRgb = true;
+    public volatile boolean enableYeelight = true;
     public List<String> disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<>();
+    public List<String> enabledLegacyDevices = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     /** Use stable iterators when UI and network workers read or save settings concurrently. */
     public void normalizeCollections() {
@@ -59,6 +58,8 @@ public class MineLightsConfig {
                 ? java.util.Collections.singletonList(new OpenRGBEndpoint("127.0.0.1", 6742)) : openRgbEndpoints);
         disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<>(disabledDevices == null
                 ? java.util.Collections.<String>emptyList() : disabledDevices);
+        enabledLegacyDevices = new java.util.concurrent.CopyOnWriteArrayList<>(enabledLegacyDevices == null
+                ? java.util.Collections.<String>emptyList() : enabledLegacyDevices);
     }
 
     public boolean enableHealthBar = true;

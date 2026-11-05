@@ -5,9 +5,10 @@ This release aligns the Java and Horizon clients with the new authenticated Mine
 ## Changes
 
 - Added V2 server communication with per-install credentials, authenticated local enrollment, and optional remote pairing.
-- Kept the shared V2 server running after Minecraft exits; restart and stop it from the system tray.
-- Removed obsolete Java V1 server restart controls and made stale endpoint files detectable after a server crash.
-- Added stable device identities, remote server profiles, device lease handling, and expanded server controls.
+- Automatically stop a client-started server when it is safe; keep it running while other clients or legacy access need it.
+- Use V2 exclusively in the updated clients. Older V1 clients can still connect after explicit approval in MineLights Server.
+- Added stable device identities, remote server profiles, per-client device leases and provider interests, and expanded server controls.
+- Preserve legacy device exclusions and remind users when legacy server access remains enabled after connecting over V2.
 - Added matching `/minelights` settings and control commands across Fabric, Quilt, Forge, NeoForge, and Horizon.
 - Added Horizon chat guidance while server autostart still needs confirmation and kept server downloading opt-in there.
 - Bumped the Java mods, Horizon mod, and MineLights Server to version 2.4.0.

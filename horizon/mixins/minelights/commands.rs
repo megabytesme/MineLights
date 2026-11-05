@@ -1,24 +1,7 @@
 use super::minelights_bridge::{ACTION_CHECK_UPDATE, ACTION_REFRESH, BRIDGE, bridge_for};
-use super::minelights_config::{SETTINGS, Settings, on_off, persist_settings, settings_for};
+use super::minelights_config::{SETTINGS, Settings, device_disabled, set_device_enabled, on_off, persist_settings, settings_for};
 use super::minelights_protocol;
 use std::path::PathBuf;
-
-#[cfg(test)]
-mod fallback_tests {
-    use super::*;
-
-    #[test]
-    fn explicit_legacy_setting_reports_its_security_properties() {
-        let mut settings = Settings::default();
-        assert!(!settings.allow_legacy_v1_fallback);
-        let message = set_setting(&mut settings, "legacy-v1-fallback", "on").unwrap();
-        assert!(settings.allow_legacy_v1_fallback);
-        assert!(message.contains("unauthenticated"));
-        assert_eq!(setting_value(&settings, "legacy-v1-fallback").as_deref(), Some("On"));
-        set_setting(&mut settings, "legacy-v1-fallback", "off").unwrap();
-        assert!(!settings.allow_legacy_v1_fallback);
-    }
-}
 
 const SETTING_NAMES: &[&str] = &[
     "enabled",
@@ -56,7 +39,6 @@ const SETTING_NAMES: &[&str] = &[
     "yeelight",
     "notify-missing-server",
     "check-server-updates",
-    "legacy-v1-fallback",
 ];
 
 pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran: &mut bool) {
@@ -379,7 +361,7 @@ fn list_devices(game: &mut super::Game<'_>) {
         return;
     }
     for (index, layout) in layouts.iter().enumerate() {
-        let enabled = !settings.disabled_devices.contains(&layout.unique_id);
+        let enabled = !device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
         chat(
             game,
             &format!(
@@ -429,11 +411,7 @@ fn set_device(game: &mut super::Game<'_>, index: &str, value: &str) {
     let mut settings = state
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
-    if enabled {
-        settings.disabled_devices.retain(|id| id != &unique_id);
-    } else if !settings.disabled_devices.contains(&unique_id) {
-        settings.disabled_devices.push(unique_id);
-    }
+    set_device_enabled(&mut settings, &unique_id, layout.legacy_id.as_deref(), enabled);
     persist_settings(game, settings.clone());
     drop(settings);
     bridge
@@ -455,6 +433,7 @@ fn clear_disabled_devices(game: &mut super::Game<'_>) {
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     let count = settings.disabled_devices.len();
     settings.disabled_devices.clear();
+    settings.enabled_legacy_devices.clear();
     persist_settings(game, settings.clone());
     drop(settings);
     if let Some(bridge) = BRIDGE.get() {
@@ -799,16 +778,11 @@ fn set_setting(
         "yeelight" => &mut settings.enable_yeelight,
         "notify-missing-server" => &mut settings.notify_missing_server,
         "check-server-updates" => &mut settings.check_server_updates,
-        "legacy-v1-fallback" => &mut settings.allow_legacy_v1_fallback,
         _ => return Err("Unknown setting. Use /minelights list."),
     };
     *field = enabled;
     settings.server_confirmation_pending = false;
-    if name == "legacy-v1-fallback" && enabled {
-        Ok("Legacy V1 fallback enabled. V1 is unauthenticated and local only; use it only with a trusted local server.")
-    } else {
-        Ok("Setting updated.")
-    }
+    Ok("Setting updated.")
 }
 
 fn setting_value(settings: &Settings, name: &str) -> Option<String> {
@@ -851,7 +825,6 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "yeelight" => on_off(settings.enable_yeelight).into(),
         "notify-missing-server" => on_off(settings.notify_missing_server).into(),
         "check-server-updates" => on_off(settings.check_server_updates).into(),
-        "legacy-v1-fallback" => on_off(settings.allow_legacy_v1_fallback).into(),
         _ => return None,
     };
     Some(value)
@@ -890,7 +863,6 @@ fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
         "yeelight" => settings.enable_yeelight,
         "notify-missing-server" => settings.notify_missing_server,
         "check-server-updates" => settings.check_server_updates,
-        "legacy-v1-fallback" => settings.allow_legacy_v1_fallback,
         _ => return None,
     })
 }

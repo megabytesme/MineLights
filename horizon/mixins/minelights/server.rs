@@ -2,13 +2,13 @@
 // The release checker never chooses executable bytes. Changing the executable
 // URL or digest requires a new, reviewed native-mod release.
 
-pub(super) const SERVER_VERSION: &str = "v2.4.0";
+pub(super) const SERVER_VERSION: &str = "v2.4.0+build.2";
 #[cfg(windows)]
 pub(super) const SERVER_SHA256: &str =
-    "f88c7c844915bde700337f9e407ee2b15813fa0760653c0a7f2a9a974496071c";
+    "427ea566e752500db27c8161e36c8d9492d7c06ffe7ea588fb8f813dafaa6624";
 #[cfg(windows)]
 const SERVER_URL: &str =
-    "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0/MineLights.exe";
+    "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0%2Bbuild.2/MineLights.exe";
 const RELEASES_URL: &str = "https://github.com/megabytesme/MineLights-Server/releases";
 
 #[derive(Debug, PartialEq, Eq)]
@@ -21,16 +21,63 @@ pub(super) struct UpdateNotice {
 #[cfg(any(windows, test))]
 fn stable_version(tag: &str) -> Option<[u64; 3]> {
     let tag = tag.strip_prefix('v')?;
-    if tag.len() > 32 || !tag.chars().all(|c| c.is_ascii_digit() || c == '.') {
+    if tag.len() > 128 {
         return None;
     }
-    let mut parts = tag.split('.');
+    let (core, build) = match tag.split_once('+') {
+        Some((core, build)) => (core, Some(build)),
+        None => (tag, None),
+    };
+    // Build metadata does not affect SemVer precedence. Reject malformed
+    // metadata as well as prereleases instead of accepting arbitrary tags.
+    if let Some(build) = build {
+        if build.split('.').any(|identifier| {
+            identifier.is_empty()
+                || !identifier.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-')
+        }) {
+            return None;
+        }
+    }
+    let mut parts = core.split('.');
+    let parse_part = |part: &str| -> Option<u64> {
+        if part.is_empty()
+            || (part.len() > 1 && part.starts_with('0'))
+            || !part.bytes().all(|c| c.is_ascii_digit())
+        {
+            return None;
+        }
+        part.parse().ok()
+    };
     let numbers = [
-        parts.next()?.parse().ok()?,
-        parts.next()?.parse().ok()?,
-        parts.next()?.parse().ok()?,
+        parse_part(parts.next()?)?,
+        parse_part(parts.next()?)?,
+        parse_part(parts.next()?)?,
     ];
     parts.next().is_none().then_some(numbers)
+}
+
+#[cfg(test)]
+mod stable_version_tests {
+    use super::stable_version;
+
+    #[test]
+    fn accepts_valid_build_metadata_without_changing_precedence() {
+        assert_eq!(stable_version("v2.4.0+build.2"), Some([2, 4, 0]));
+        assert_eq!(stable_version("v2.4.0+00.sha-ABC"), Some([2, 4, 0]));
+        assert_eq!(stable_version("v2.4.0"), Some([2, 4, 0]));
+        assert_eq!(stable_version("v2.4.1"), Some([2, 4, 1]));
+    }
+
+    #[test]
+    fn rejects_prereleases_and_malformed_semver() {
+        for tag in [
+            "v2.4.1-rc.1", "v2.4.1-rc.1+build.2", "v2.4.0+", "v2.4.0+.a",
+            "v2.4.0+a..b", "v2.4.0+a.", "v2.4.0+a+b", "v2.4.0+a/b", "v2.04.0",
+            "v2.4", "v2.4.0.1", "2.4.0", "v18446744073709551616.0.0",
+        ] {
+            assert_eq!(stable_version(tag), None, "accepted {tag}");
+        }
+    }
 }
 
 /// Parse GitHub release metadata as text only; ignore drafts and test releases.

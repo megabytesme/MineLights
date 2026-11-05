@@ -1,10 +1,5 @@
 package megabytesme.minelights.runtime;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.effects.DeviceLayout;
 import megabytesme.minelights.effects.EffectPainter;
@@ -13,9 +8,9 @@ import megabytesme.minelights.effects.KeyColorDto;
 import megabytesme.minelights.effects.KeyNameStandardizer;
 import megabytesme.minelights.effects.RGBColorDto;
 import megabytesme.minelights.model.PlayerDto;
-import megabytesme.minelights.network.UDPClient;
 import megabytesme.minelights.network.RemoteServerProfile;
 import megabytesme.minelights.network.V2ClientConnection;
+import megabytesme.minelights.network.V2DevicePolicy;
 import megabytesme.minelights.network.V2Endpoint;
 import megabytesme.minelights.rgb.OpenRGBController;
 import megabytesme.minelights.rgb.OpenRGBEndpoint;
@@ -28,11 +23,6 @@ import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +37,6 @@ public class LightingManager implements Runnable {
     public static final Logger LOGGER = LogManager.getLogger("MineLights-LightingManager");
 
     private EffectPainter effectPainter;
-    private final Gson gson = new Gson();
     private static final int FRAME_DURATION_MS = 33;
     private volatile boolean isInitialized = false;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
@@ -59,7 +48,10 @@ public class LightingManager implements Runnable {
     private final Map<Integer, V2ElementTarget> v2ElementTargets = new HashMap<Integer, V2ElementTarget>();
     private final AtomicBoolean refreshAfterDisconnect = new AtomicBoolean(false);
     private long lastV2KeepaliveFrame;
+    private long nextLocalV2Retry;
+    private Set<String> lastPolicy;
     private static int nextV2InternalId = Integer.MIN_VALUE;
+    private static final AtomicBoolean LEGACY_REMINDER_SENT = new AtomicBoolean(false);
 
     private final YeelightController yeelightController = new YeelightController();
     private final Map<Integer, Integer> yeelightLedToDeviceMap = new HashMap<>();
@@ -101,71 +93,7 @@ public class LightingManager implements Runnable {
 
     private void performHandshakes() {
         if (isStopping()) return;
-        final JsonObject[] serverDataContainer = new JsonObject[1];
-
-        final boolean localV2EndpointPresent = V2Endpoint.localEndpointDocumentExists();
-        final boolean allowV1Fallback = !localV2EndpointPresent || MineLightsClient.CONFIG.allowLegacyV1Fallback;
-        boolean v2LocalConnected = initializeV2Connections();
-
-        Thread serverHandshakeThread = new Thread(() -> {
-            if (isStopping() || v2LocalConnected || !allowV1Fallback) {
-                return;
-            }
-            if (localV2EndpointPresent) {
-                MineLightsClient.sendChatMessage("[MineLights] V2 connection failed; using explicitly enabled legacy V1 fallback. V1 is unauthenticated and loopback-only.");
-            }
-            try (Socket clientSocket = new Socket()) {
-                clientSocket.connect(new InetSocketAddress("127.0.0.1", 63211), 2000);
-                clientSocket.setSoTimeout(3000);
-                if (isStopping()) return;
-                MineLightsClient.isProxyConnected = true;
-
-                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
-                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-
-                JsonObject configPayload = new JsonObject();
-                JsonArray enabledIntegrations = new JsonArray();
-                if (MineLightsClient.CONFIG.enableCorsair)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Corsair"));
-                if (MineLightsClient.CONFIG.enableAsus)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Asus"));
-                if (MineLightsClient.CONFIG.enableLogitech)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Logitech"));
-                if (MineLightsClient.CONFIG.enableRazer)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Razer"));
-                if (MineLightsClient.CONFIG.enableWooting)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Wooting"));
-                if (MineLightsClient.CONFIG.enableSteelSeries)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("SteelSeries"));
-                if (MineLightsClient.CONFIG.enableMsi)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Msi"));
-                if (MineLightsClient.CONFIG.enableNovation)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("Novation"));
-                if (MineLightsClient.CONFIG.enablePicoPi)
-                    enabledIntegrations.add(new com.google.gson.JsonPrimitive("PicoPi"));
-
-                configPayload.add("enabled_integrations", enabledIntegrations);
-                configPayload.add("disabled_devices", new Gson().toJsonTree(MineLightsClient.CONFIG.disabledDevices));
-
-                byte[] configBytes = configPayload.toString().getBytes(StandardCharsets.UTF_8);
-                dos.writeInt(configBytes.length);
-                dos.write(configBytes);
-                dos.flush();
-
-                int length = dis.readInt();
-                if (length > 0) {
-                    byte[] jsonBytes = new byte[length];
-                    dis.readFully(jsonBytes);
-                    String jsonString = new String(jsonBytes, StandardCharsets.UTF_8);
-                    serverDataContainer[0] = new JsonParser().parse(jsonString).getAsJsonObject();
-                }
-            } catch (Exception e) {
-                LOGGER.error("Failed during handshake with MineLights Server. Is it running? Details: {}",
-                        e.getMessage());
-                MineLightsClient.isProxyConnected = false;
-            }
-        });
-        serverHandshakeThread.setName("MineLights-Server-Handshake");
+        initializeV2Connections();
 
         Thread openRgbThread = new Thread(() -> {
             if (isStopping() || !MineLightsClient.CONFIG.enableOpenRgb)
@@ -220,22 +148,15 @@ public class LightingManager implements Runnable {
         yeelightThread.setName("MineLights-Yeelight-Discovery");
 
         try {
-            serverHandshakeThread.setDaemon(true);
             openRgbThread.setDaemon(true);
             yeelightThread.setDaemon(true);
-            serverHandshakeThread.start();
             openRgbThread.start();
             yeelightThread.start();
 
-            serverHandshakeThread.join(5000);
             openRgbThread.join(5000);
             yeelightThread.join(5000);
 
             if (isStopping()) return;
-
-            if (serverDataContainer[0] != null) {
-                parseServerHandshakeData(serverDataContainer[0]);
-            }
 
             parseOpenRGBData();
 
@@ -264,7 +185,8 @@ public class LightingManager implements Runnable {
             clientId = MineLightsClient.CONFIG.v2ClientId;
             remoteProfiles = new ArrayList<RemoteServerProfile>(MineLightsClient.CONFIG.remoteServers);
         }
-        Set<String> disabled = new HashSet<String>(MineLightsClient.CONFIG.disabledDevices);
+        Set<String> disabled = V2DevicePolicy.exclusions(MineLightsClient.CONFIG);
+        lastPolicy = disabled;
         boolean localConnected = false;
         try {
             V2Endpoint localEndpoint = V2Endpoint.readLocal();
@@ -287,6 +209,10 @@ public class LightingManager implements Runnable {
                 localConnected = true;
                 MineLightsClient.isProxyConnected = true;
                 LOGGER.info("Connected to local MineLights Server '{}' with Protocol V2.", connection.serverName);
+                if (!LEGACY_REMINDER_SENT.get() && connection.legacyLocalAccessEnabled()
+                        && LEGACY_REMINDER_SENT.compareAndSet(false, true)) {
+                    MineLightsClient.sendChatMessage("[MineLights] Legacy local access remains enabled in MineLights Server. If older clients no longer need it, turn off Allow legacy local clients in the server tray menu.");
+                }
             }
         } catch (IOException e) {
             LOGGER.warn("Could not connect to the local MineLights V2 endpoint: {}", e.getMessage());
@@ -333,9 +259,9 @@ public class LightingManager implements Runnable {
         for (V2ClientConnection.DeviceDescriptor device : connection.getDevices()) {
             String deviceKey = "MineLights V2|" + connection.serverId + "|" + device.deviceId;
             MineLightsClient.discoveredDeviceNames.put(deviceKey, connection.serverName + " / " + device.name);
+            MineLightsClient.discoveredLegacyDeviceKeys.put(deviceKey, V2DevicePolicy.legacyKey(device));
             MineLightsClient.discoveredDevices.add(deviceKey);
-            if (MineLightsClient.CONFIG.disabledDevices.contains(deviceKey)
-                    || MineLightsClient.CONFIG.disabledDevices.contains(connection.serverId + "|" + device.deviceId)) {
+            if (!V2DevicePolicy.allows(V2DevicePolicy.exclusions(MineLightsClient.CONFIG), connection.serverId, device)) {
                 continue;
             }
             DeviceLayout layout = new DeviceLayout(connection.serverName + " / " + device.name, "SERVER");
@@ -350,32 +276,6 @@ public class LightingManager implements Runnable {
                         new V2ElementTarget(connection, device.deviceId, element.elementId));
             }
             deviceLayouts.add(layout);
-        }
-    }
-
-    private void parseServerHandshakeData(JsonObject handshakeData) {
-        LOGGER.info("--- Parsing Handshake Data from MineLights Server ---");
-        if (handshakeData.has("devices")) {
-            for (JsonElement deviceElement : handshakeData.getAsJsonArray("devices")) {
-                JsonObject deviceObject = deviceElement.getAsJsonObject();
-                String name = deviceObject.get("name").getAsString();
-                String sdk = deviceObject.get("sdk").getAsString();
-                String uniqueId = sdk + "|" + name;
-
-                MineLightsClient.discoveredDevices.add(uniqueId);
-                DeviceLayout layout = new DeviceLayout(name, "SERVER");
-
-                if (deviceObject.has("key_map")) {
-                    JsonObject mapObject = deviceObject.getAsJsonObject("key_map");
-                    for (Map.Entry<String, JsonElement> entry : mapObject.entrySet()) {
-                        String standardizedName = KeyNameStandardizer.standardize(entry.getKey());
-                        int ledId = entry.getValue().getAsInt();
-                        layout.addMapping(standardizedName, ledId);
-                    }
-                }
-                deviceLayouts.add(layout);
-                LOGGER.info("> Mapped device [{}]: {} ({} LEDs)", sdk, name, layout.getAllLeds().size());
-            }
         }
     }
 
@@ -457,7 +357,6 @@ public class LightingManager implements Runnable {
                 }
                 lastSentFrame = frameState;
 
-                List<KeyColorDto> proxyUpdateList = new ArrayList<>();
                 Map<OpenRGBDeviceRef, List<KeyColorDto>> openRgbUpdates = new HashMap<OpenRGBDeviceRef, List<KeyColorDto>>();
 
                 for (Map.Entry<Integer, RGBColorDto> entry : frameState.keys.entrySet()) {
@@ -473,15 +372,7 @@ public class LightingManager implements Runnable {
                     } else if (yeelightLedToDeviceMap.containsKey(globalLedId)) {
                         int deviceIndex = yeelightLedToDeviceMap.get(globalLedId);
                         yeelightController.updateLed(deviceIndex, color);
-                    } else {
-                        proxyUpdateList.add(new KeyColorDto(globalLedId, color));
                     }
-                }
-
-                if (!proxyUpdateList.isEmpty()) {
-                    JsonObject proxyPayload = new JsonObject();
-                    proxyPayload.add("led_colors", gson.toJsonTree(proxyUpdateList));
-                    UDPClient.sendFrameData(gson.toJson(proxyPayload));
                 }
 
                 sendV2Frames(frameState);
@@ -547,25 +438,50 @@ public class LightingManager implements Runnable {
     }
 
     private void scheduleV2ReconnectIfNeeded() {
+        Set<String> currentPolicy = V2DevicePolicy.exclusions(MineLightsClient.CONFIG);
+        if (lastPolicy != null && !lastPolicy.equals(currentPolicy)) {
+            scheduleRefresh(0, currentPolicy);
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (!MineLightsClient.isProxyConnected && now >= nextLocalV2Retry) {
+            nextLocalV2Retry = now + 5000;
+            if (V2Endpoint.localEndpointDocumentExists()) {
+                scheduleRefresh(5000, null);
+                return;
+            }
+        }
         for (V2ClientConnection connection : v2Connections) {
             if (connection.isConnected()) {
                 continue;
             }
-            if (refreshAfterDisconnect.compareAndSet(false, true)) {
-                Thread refreshThread = new Thread(() -> {
-                    try {
-                        Thread.sleep(5000);
-                        MineLightsClient.refreshLightingManager();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } finally {
-                        refreshAfterDisconnect.set(false);
-                    }
-                }, "MineLights-V2-Reconnect");
-                refreshThread.setDaemon(true);
-                refreshThread.start();
-            }
+            scheduleRefresh(5000, null);
             return;
+        }
+    }
+
+    private void scheduleRefresh(final long delayMillis, final Set<String> changedPolicy) {
+        if (refreshAfterDisconnect.compareAndSet(false, true)) {
+            Thread refreshThread = new Thread(() -> {
+                try {
+                    if (delayMillis > 0) Thread.sleep(delayMillis);
+                    if (changedPolicy != null) {
+                        List<V2ClientConnection> connections;
+                        synchronized (v2Connections) { connections = new ArrayList<V2ClientConnection>(v2Connections); }
+                        for (V2ClientConnection connection : connections) {
+                            if (isStopping()) return;
+                            connection.setRequestedIntegrations(changedPolicy);
+                        }
+                    }
+                    if (!isStopping()) MineLightsClient.refreshLightingManager();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    refreshAfterDisconnect.set(false);
+                }
+            }, "MineLights-V2-Reconnect");
+            refreshThread.setDaemon(true);
+            refreshThread.start();
         }
     }
 

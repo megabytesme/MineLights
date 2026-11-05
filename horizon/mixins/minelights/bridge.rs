@@ -1,7 +1,6 @@
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    io::{Read, Write},
-    net::{TcpStream, ToSocketAddrs, UdpSocket},
+    net::{TcpStream, ToSocketAddrs},
     path::PathBuf,
     sync::{
         Arc, Mutex, OnceLock, RwLock,
@@ -12,27 +11,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-// A failure to authenticate an advertised endpoint must not silently enable
-// unauthenticated V1. A user may explicitly opt into local-only fallback.
-pub(super) fn allow_v1_fallback(explicit: bool, endpoint_present: bool, reviewed_binary: bool) -> bool {
-    explicit || (!endpoint_present && !reviewed_binary)
-}
-
 use super::minelights::{DeviceLayout, Frame, trailing_number};
 use super::minelights_config::Settings;
 use super::minelights_direct::DirectOutputs;
 use super::minelights_protocol::{self, V2Connection};
 use super::minelights_server;
-
-const FRAME_PORT: u16 = 63212;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
-struct LedColor {
-    id: u32,
-    r: u8,
-    g: u8,
-    b: u8,
-}
 
 pub(super) const ACTION_REFRESH: u32 = 1;
 pub(super) const ACTION_RESTART: u32 = 2;
@@ -150,12 +133,15 @@ fn bridge_worker(
     server_path: Option<PathBuf>,
     config_dir: Option<PathBuf>,
 ) {
-    let udp = UdpSocket::bind("127.0.0.1:0").ok();
     let mut direct = DirectOutputs::default();
     let mut local_v2: Option<V2Connection> = None;
     let mut remote_v2: HashMap<String, V2Connection> = HashMap::new();
+    let (remote_connect_tx, remote_connect_rx) = mpsc::channel::<(
+        minelights_protocol::RemoteServer,
+        Result<(V2Connection, Vec<minelights_protocol::V2Device>), String>,
+    )>();
+    let mut remote_connecting = HashSet::<String>::new();
     let mut v2_layouts: HashMap<String, Vec<DeviceLayout>> = HashMap::new();
-    let mut legacy_devices = Vec::new();
     let mut direct_layouts = Vec::new();
     let mut next_handshake = Instant::now();
     let mut next_yeelight_discovery = Instant::now();
@@ -163,8 +149,11 @@ fn bridge_worker(
     let mut was_in_world = false;
     let mut missing_reported = false;
     let mut update_checked = false;
-    let mut legacy_led_ids = HashSet::new();
     let mut was_active = true;
+    let mut legacy_reminder_sent = false;
+    let mut old_server_notice_sent = false;
+    let mut old_server_since: Option<Instant> = None;
+    let mut previous_direct: Option<(bool, bool, Vec<super::minelights_config::OpenRgbEndpoint>)> = None;
     loop {
         let is_active = active.load(Ordering::Acquire);
         if SHUTTING_DOWN.load(Ordering::Acquire) && MANAGED_SERVER_STARTED.load(Ordering::Acquire) {
@@ -190,23 +179,6 @@ fn bridge_worker(
         if was_active && !is_active {
             // Dropping each stream releases its V2 leases immediately. The
             // shared server remains alive under tray ownership.
-            let legacy_black = legacy_led_ids
-                .iter()
-                .map(|id| LedColor {
-                    id: *id,
-                    r: 0,
-                    g: 0,
-                    b: 0,
-                })
-                .collect::<Vec<_>>();
-            if !legacy_black.is_empty() {
-                if let (Some(socket), Ok(bytes)) = (
-                    udp.as_ref(),
-                    serde_json::to_vec(&serde_json::json!({"led_colors": legacy_black})),
-                ) {
-                    let _ = socket.send_to(&bytes, ("127.0.0.1", FRAME_PORT));
-                }
-            }
             let mut direct_black = HashMap::new();
             let current_direct_layouts = direct.layouts();
             for led in current_direct_layouts
@@ -222,8 +194,6 @@ fn bridge_worker(
             local_v2 = None;
             remote_v2.clear();
             v2_layouts.clear();
-            legacy_devices.clear();
-            legacy_led_ids.clear();
             if let Ok(mut current) = layouts.write() {
                 *current = direct_layouts.clone();
             }
@@ -257,10 +227,24 @@ fn bridge_worker(
             let text = match result {
                 "accepted" => "Server accepted the stop request.",
                 "pending" => "Other clients are connected; the server will stop if they disconnect shortly.",
+                "legacy_enabled" => "Server remains running while legacy local access is enabled; disable it or exit via the server tray.",
                 "other_clients" => "Server remains running because other clients are connected.",
                 _ => "Server stop request unavailable or unsupported.",
             };
             if let Ok(mut pending) = notices.lock() { pending.push_back(Notice::Manual(vec![format!("[MineLights] {text}")])); }
+        }
+        while let Ok((remote, result)) = remote_connect_rx.try_recv() {
+            let remote: minelights_protocol::RemoteServer = remote;
+            remote_connecting.remove(&remote.endpoint.server_id);
+            let still_configured = config_dir.as_deref().and_then(|dir| minelights_protocol::load_remote_servers(dir).ok())
+                .is_some_and(|servers| servers.iter().any(|saved| saved.endpoint == remote.endpoint && saved.client_id == remote.client_id && saved.client_secret == remote.client_secret));
+            if is_active && still_configured {
+                if let Ok((connection, devices)) = result {
+                    v2_layouts.insert(remote.endpoint.server_id.clone(), devices.into_iter().map(|device| device.layout).collect());
+                    remote_v2.insert(remote.endpoint.server_id, connection);
+                    next_handshake = Instant::now();
+                }
+            }
         }
         if active.load(Ordering::Acquire) {
             let requested = actions.swap(0, Ordering::AcqRel);
@@ -329,14 +313,18 @@ fn bridge_worker(
                     }
                 }
                 let endpoint_result = minelights_protocol::local_endpoint();
-                let endpoint_file_exists = match &endpoint_result {
-                    Ok(Some(_)) => true,
-                    Ok(None) => false,
-                    // Keep malformed metadata fail-closed rather than enabling V1 fallback.
-                    Err(_) => minelights_protocol::local_endpoint_path()
-                        .is_some_and(|path| path.exists()),
-                };
                 let endpoint = endpoint_result.ok().flatten();
+                if endpoint.is_some() || !running {
+                    old_server_since = None;
+                } else if !old_server_notice_sent {
+                    let since = *old_server_since.get_or_insert_with(Instant::now);
+                    if since.elapsed() >= Duration::from_secs(30) {
+                        if let Ok(mut pending) = notices.lock() {
+                            pending.push_back(Notice::Manual(vec!["[MineLights] A MineLights Server process may be running without a V2 endpoint. If it is an older server, exit it from its tray and update to MineLights Server 2.4.0 or newer.".into()]));
+                            old_server_notice_sent = true;
+                        }
+                    }
+                }
                 if let Some(endpoint) = endpoint {
                     if local_v2
                         .as_ref()
@@ -345,8 +333,15 @@ fn bridge_worker(
                         local_v2 = None;
                         if let Some(config_dir) = config_dir.as_deref() {
                             if let Ok(Some((connection, _))) =
-                                minelights_protocol::connect_local(config_dir)
+                                minelights_protocol::connect_local_with_integrations(config_dir, &requested_providers(&config))
                             {
+                                let mut connection = connection;
+                                if !legacy_reminder_sent && connection.legacy_local_access_enabled() {
+                                    if let Ok(mut pending) = notices.lock() {
+                                        pending.push_back(Notice::Manual(vec!["[MineLights] Legacy local access remains enabled in MineLights Server. If older clients no longer need it, turn off Allow legacy local clients in the server tray menu.".into()]));
+                                        legacy_reminder_sent = true;
+                                    }
+                                }
                                 local_v2 = Some(connection);
                             }
                         }
@@ -359,21 +354,6 @@ fn bridge_worker(
                 } else {
                     local_v2 = None;
                 }
-                let reviewed_binary = server_path
-                    .as_deref()
-                    .is_some_and(minelights_server::is_reviewed_binary);
-                if local_v2.is_some() {
-                    legacy_devices.clear();
-                } else if allow_v1_fallback(
-                    config.allow_legacy_v1_fallback,
-                    endpoint_file_exists,
-                    reviewed_binary,
-                ) {
-                    legacy_devices = perform_handshake(&config).unwrap_or_default();
-                } else {
-                    legacy_devices.clear();
-                }
-
                 if let Some(config_dir) = config_dir.as_deref() {
                     let configured_remotes =
                         minelights_protocol::load_remote_servers(config_dir).unwrap_or_default();
@@ -403,18 +383,17 @@ fn bridge_worker(
                         let needs_connect = remote_v2
                             .get(&remote.endpoint.server_id)
                             .is_none_or(|connection| !connection.matches_remote(&remote));
-                        if needs_connect {
+                        if needs_connect && !remote_connecting.contains(&remote.endpoint.server_id) && remote_connecting.len() < 4 {
                             remote_v2.remove(&remote.endpoint.server_id);
                             v2_layouts.remove(&remote.endpoint.server_id);
-                            if let Ok((connection, devices)) =
-                                minelights_protocol::connect_remote(&remote)
-                            {
-                                v2_layouts.insert(
-                                    remote.endpoint.server_id.clone(),
-                                    devices.into_iter().map(|device| device.layout).collect(),
-                                );
-                                remote_v2.insert(remote.endpoint.server_id.clone(), connection);
-                            }
+                            let id = remote.endpoint.server_id.clone();
+                            remote_connecting.insert(id.clone());
+                            let send = remote_connect_tx.clone();
+                            let providers = requested_providers(&config);
+                            if thread::Builder::new().name("MineLights-Remote-Connect".into()).spawn(move || {
+                                let result = minelights_protocol::connect_remote_with_integrations(&remote, &providers);
+                                let _ = send.send((remote, result));
+                            }).is_err() { remote_connecting.remove(&id); }
                         }
                     }
                 }
@@ -453,10 +432,6 @@ fn bridge_worker(
                     direct.disconnect_yeelights();
                     next_yeelight_discovery = Instant::now() + Duration::from_secs(5);
                 }
-                legacy_led_ids = legacy_devices
-                    .iter()
-                    .flat_map(|device| device.leds.iter().copied())
-                    .collect();
                 direct_layouts = direct
                     .layouts()
                     .into_iter()
@@ -464,11 +439,12 @@ fn bridge_worker(
                         keys: device.keys,
                         leds: device.leds,
                         unique_id: device.unique_id,
+                        legacy_id: None,
                         display_name: device.display_name,
                         integration: device.integration,
                     })
                     .collect();
-                publish_layouts(&layouts, &legacy_devices, &v2_layouts, &direct_layouts);
+                publish_layouts(&layouts, &v2_layouts, &direct_layouts);
                 #[cfg(test)]
                 TEST_COMPLETED_HANDSHAKES.fetch_add(1, Ordering::Release);
                 next_handshake = Instant::now() + Duration::from_secs(5);
@@ -513,32 +489,35 @@ fn bridge_worker(
             changed_layouts = true;
         }
         if changed_layouts {
-            publish_layouts(&layouts, &legacy_devices, &v2_layouts, &direct_layouts);
+            publish_layouts(&layouts, &v2_layouts, &direct_layouts);
+        }
+
+        // Reconcile each session against this client's current provider/device settings.
+        // Control connections start with no leases, so excluded devices are never acquired.
+        let current_policy = settings.read().map(|config| config.clone()).unwrap_or_default();
+        let direct_policy = (current_policy.enable_openrgb, current_policy.enable_yeelight, current_policy.openrgb_endpoints.clone());
+        if previous_direct.as_ref() != Some(&direct_policy) {
+            next_handshake = Instant::now();
+            next_yeelight_discovery = Instant::now();
+            previous_direct = Some(direct_policy);
+        }
+        let local_policy_failed = local_v2.as_mut().is_some_and(|connection| apply_v2_policy(connection, &current_policy).is_err());
+        if local_policy_failed {
+            if let Some(connection) = local_v2.take() { v2_layouts.remove(connection.server_id()); }
+            next_handshake = Instant::now() + Duration::from_secs(5);
+            publish_layouts(&layouts, &v2_layouts, &direct_layouts);
+        }
+        let failed_policy_remotes = remote_v2.iter_mut().filter_map(|(id, connection)|
+            apply_v2_policy(connection, &current_policy).err().map(|_| id.clone())).collect::<Vec<_>>();
+        for id in failed_policy_remotes {
+            remote_v2.remove(&id);
+            v2_layouts.remove(&id);
+            next_handshake = Instant::now() + Duration::from_secs(5);
+            publish_layouts(&layouts, &v2_layouts, &direct_layouts);
         }
 
         match receiver.recv_timeout(Duration::from_millis(25)) {
             Ok(frame) => {
-                let mut led_colors: Vec<LedColor> = frame
-                    .keys
-                    .iter()
-                    .filter_map(|(id, color)| {
-                        legacy_led_ids.contains(id).then_some(LedColor {
-                            id: *id,
-                            r: color.0,
-                            g: color.1,
-                            b: color.2,
-                        })
-                    })
-                    .collect();
-                led_colors.sort_by_key(|led| led.id);
-                if !led_colors.is_empty() {
-                    if let (Some(socket), Ok(bytes)) = (
-                        udp.as_ref(),
-                        serde_json::to_vec(&serde_json::json!({"led_colors": led_colors})),
-                    ) {
-                        let _ = socket.send_to(&bytes, ("127.0.0.1", FRAME_PORT));
-                    }
-                }
                 if let Some(connection) = local_v2.as_mut() {
                     let _ = connection.send_frame(
                         &frame
@@ -569,6 +548,68 @@ fn bridge_worker(
         }
     }
     WORKER_FINISHED.store(true, Ordering::Release);
+}
+
+fn requested_providers(settings: &Settings) -> Vec<String> {
+    [("Corsair", settings.enable_corsair), ("Asus", settings.enable_asus),
+     ("Logitech", settings.enable_logitech), ("Razer", settings.enable_razer),
+     ("Wooting", settings.enable_wooting), ("SteelSeries", settings.enable_steelseries),
+     ("Msi", settings.enable_msi), ("Novation", settings.enable_novation), ("PicoPi", settings.enable_picopi)]
+        .iter().filter_map(|(name, enabled)| enabled.then(|| (*name).to_owned())).collect()
+}
+
+fn v2_device_allowed(config: &Settings, identity: &str, legacy_key: Option<&str>, provider: Option<&str>, integration: &str) -> bool {
+    if super::minelights_config::device_disabled(config, identity, legacy_key) {
+        return false;
+    }
+    let source = provider.filter(|p| !p.trim().is_empty()).unwrap_or(integration)
+        .to_ascii_lowercase().chars().filter(|c| c.is_ascii_alphanumeric()).collect::<String>();
+    if source.contains("corsair") { config.enable_corsair }
+    else if source.contains("asus") || source.contains("asustek") { config.enable_asus }
+    else if source.contains("logitech") { config.enable_logitech }
+    else if source.contains("razer") { config.enable_razer }
+    else if source.contains("wooting") { config.enable_wooting }
+    else if source.contains("steelseries") { config.enable_steelseries }
+    else if source.contains("msi") || source.contains("microstar") { config.enable_msi }
+    else if source.contains("novation") { config.enable_novation }
+    else if source.contains("picopi") { config.enable_picopi }
+    else { true }
+}
+
+fn apply_v2_policy(connection: &mut V2Connection, config: &Settings) -> Result<(), String> {
+    let allowed = connection.devices.iter().filter(|device| v2_device_allowed(config,
+        &device.layout.unique_id, device.legacy_device_key.as_deref(),
+        device.provider.as_deref(), &device.layout.integration))
+        .map(|device| device.device_id.clone()).collect();
+    connection.set_allowed_devices(allowed);
+    connection.set_requested_integrations(&requested_providers(config))
+}
+
+#[cfg(test)]
+mod policy_tests {
+    use super::*;
+    #[test]
+    fn provider_toggle_and_legacy_device_exclusions_are_client_local() {
+        let mut config = Settings::default();
+        config.enable_corsair = false;
+        assert!(!requested_providers(&config).contains(&"Corsair".to_string()));
+        assert!(requested_providers(&config).contains(&"Asus".to_string()));
+        assert!(!v2_device_allowed(&config, "server|1", Some("Corsair|Keyboard"), Some("Corsair"), "Other vendor"));
+        assert!(v2_device_allowed(&config, "server|2", Some("Asus|Mouse"), Some("Asus"), "ASUSTeK"));
+        config.enable_corsair = true;
+        config.disabled_devices.push("Corsair|Keyboard".into());
+        assert!(!v2_device_allowed(&config, "server|1", Some("Corsair|Keyboard"), Some("Corsair"), "Corsair"));
+        assert!(v2_device_allowed(&config, "server|2", Some("Asus|Mouse"), Some("Asus"), "Asus"));
+        // An explicit enable affects only this stable device, not another sharing its old model key.
+        super::super::minelights_config::set_device_enabled(&mut config, "server|1", Some("Corsair|Keyboard"), true);
+        assert!(v2_device_allowed(&config, "server|1", Some("Corsair|Keyboard"), Some("Corsair"), "Corsair"));
+        assert!(!v2_device_allowed(&config, "server|3", Some("Corsair|Keyboard"), Some("Corsair"), "Corsair"));
+        super::super::minelights_config::set_device_enabled(&mut config, "server|1", Some("Corsair|Keyboard"), false);
+        assert!(!v2_device_allowed(&config, "server|1", Some("Corsair|Keyboard"), Some("Corsair"), "Corsair"));
+        config.disabled_devices.clear();
+        config.enable_asus = false;
+        assert!(!v2_device_allowed(&config, "server|2", None, None, "ASUSTeK COMPUTER INC."));
+    }
 }
 
 fn start_reviewed_server_async(
@@ -670,7 +711,7 @@ fn start_installed_server(path: Option<&std::path::Path>, permission: &AtomicBoo
 
 fn server_is_running() -> bool {
     if let Ok(Some(endpoint)) = minelights_protocol::local_endpoint() {
-        return (endpoint.host.as_str(), endpoint.port)
+        let reachable = (endpoint.host.as_str(), endpoint.port)
             .to_socket_addrs()
             .ok()
             .into_iter()
@@ -678,17 +719,65 @@ fn server_is_running() -> bool {
             .any(|address| {
                 TcpStream::connect_timeout(&address, Duration::from_millis(150)).is_ok()
             });
+        if reachable { return true; }
     }
-    [63211, 63213].into_iter().any(|port| {
-        let address = ("127.0.0.1", port)
-            .to_socket_addrs()
-            .ok()
-            .and_then(|mut addresses| addresses.next());
-        address.is_some_and(|address| {
-            TcpStream::connect_timeout(&address, Duration::from_millis(150)).is_ok()
-        })
-    })
+    cached_server_process_running()
+
 }
+
+#[cfg(windows)]
+fn cached_server_process_running() -> bool {
+    static LAST: Mutex<Option<Instant>> = Mutex::new(None);
+    static RUNNING: AtomicBool = AtomicBool::new(true);
+    static BUSY: AtomicBool = AtomicBool::new(false);
+    let due = LAST.lock().map(|mut last| {
+        if last.is_some_and(|at| at.elapsed() < Duration::from_secs(3)) { false }
+        else { *last = Some(Instant::now()); true }
+    }).unwrap_or(false);
+    if due && BUSY.compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire).is_ok() {
+        if thread::Builder::new().name("MineLights-Process-Check".into()).spawn(|| {
+            RUNNING.store(legacy_server_process_running(), Ordering::Release);
+            BUSY.store(false, Ordering::Release);
+        }).is_err() { BUSY.store(false, Ordering::Release); }
+    }
+    RUNNING.load(Ordering::Acquire)
+}
+
+#[cfg(not(windows))]
+fn cached_server_process_running() -> bool { false }
+
+#[cfg(windows)]
+fn legacy_server_process_running() -> bool {
+    use std::os::windows::process::CommandExt;
+    let Some(system_root) = std::env::var_os("SystemRoot") else { return true; };
+    let root = std::path::PathBuf::from(system_root);
+    if !root.is_absolute() { return true; }
+    let system_dir = if std::env::var_os("PROCESSOR_ARCHITEW6432").is_some_and(|v| !v.is_empty()) { "Sysnative" } else { "System32" };
+    let executable = root.join(system_dir).join("tasklist.exe");
+    if !executable.is_file() { return true; }
+    let process = std::process::Command::new(executable)
+        .args(["/FI", "IMAGENAME eq MineLights.exe", "/FO", "CSV", "/NH"])
+        .creation_flags(0x0800_0000).stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null()).spawn();
+    let Ok(mut process) = process else { return true; };
+    let deadline = Instant::now() + Duration::from_secs(3);
+    loop {
+        match process.try_wait() {
+            Ok(Some(status)) if status.success() => {
+                use std::io::Read;
+                let mut output = String::new();
+                if process.stdout.take().is_none_or(|mut stdout| stdout.read_to_string(&mut output).is_err()) { return true; }
+                return output.lines().any(|line| line.to_ascii_lowercase().starts_with("\"minelights.exe\","));
+            }
+            Ok(Some(_)) | Err(_) => return true,
+            Ok(None) if Instant::now() >= deadline => { let _ = process.kill(); let _ = process.wait(); return true; }
+            Ok(None) => thread::sleep(Duration::from_millis(25)),
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn legacy_server_process_running() -> bool { false }
 
 pub(super) fn minelights_shutdown() {
     if let Ok(_lifecycle) = SERVER_LIFECYCLE.lock() {
@@ -709,12 +798,10 @@ pub(super) fn minelights_shutdown() {
 
 fn publish_layouts(
     target: &RwLock<Vec<DeviceLayout>>,
-    legacy: &[DeviceLayout],
     v2: &HashMap<String, Vec<DeviceLayout>>,
     direct: &[DeviceLayout],
 ) {
     let mut all = Vec::new();
-    all.extend_from_slice(legacy);
     let mut servers = v2.keys().cloned().collect::<Vec<_>>();
     servers.sort();
     for server in servers {
@@ -726,94 +813,6 @@ fn publish_layouts(
     if let Ok(mut current) = target.write() {
         *current = all;
     }
-}
-
-fn perform_handshake(settings: &Settings) -> Result<Vec<DeviceLayout>, String> {
-    let mut stream = TcpStream::connect_timeout(
-        &"127.0.0.1:63211"
-            .parse()
-            .map_err(|error| format!("bad address: {error}"))?,
-        Duration::from_secs(2),
-    )
-    .map_err(|error| error.to_string())?;
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
-    let integrations = [
-        ("Corsair", settings.enable_corsair),
-        ("Asus", settings.enable_asus),
-        ("Logitech", settings.enable_logitech),
-        ("Razer", settings.enable_razer),
-        ("Wooting", settings.enable_wooting),
-        ("SteelSeries", settings.enable_steelseries),
-        ("Msi", settings.enable_msi),
-        ("Novation", settings.enable_novation),
-        ("PicoPi", settings.enable_picopi),
-    ]
-    .into_iter()
-    .filter_map(|(name, enabled)| enabled.then_some(name))
-    .collect::<Vec<_>>();
-    let request = serde_json::json!({
-        "enabled_integrations": integrations,
-        "disabled_devices": []
-    });
-    let bytes = serde_json::to_vec(&request).map_err(|error| error.to_string())?;
-    stream
-        .write_all(&(bytes.len() as u32).to_be_bytes())
-        .map_err(|error| error.to_string())?;
-    stream
-        .write_all(&bytes)
-        .map_err(|error| error.to_string())?;
-    stream.flush().map_err(|error| error.to_string())?;
-
-    let mut length = [0u8; 4];
-    stream
-        .read_exact(&mut length)
-        .map_err(|error| error.to_string())?;
-    let length = u32::from_be_bytes(length) as usize;
-    if length == 0 || length > 16 * 1024 * 1024 {
-        return Err(format!(
-            "invalid MineLights Server response length: {length}"
-        ));
-    }
-    let mut response = vec![0; length];
-    stream
-        .read_exact(&mut response)
-        .map_err(|error| error.to_string())?;
-    let value: serde_json::Value =
-        serde_json::from_slice(&response).map_err(|error| error.to_string())?;
-    let mut result = Vec::new();
-    if let Some(devices) = value.get("devices").and_then(serde_json::Value::as_array) {
-        for device in devices {
-            let Some(map) = device.get("key_map").and_then(serde_json::Value::as_object) else {
-                continue;
-            };
-            let mut layout = DeviceLayout::default();
-            layout.display_name = device
-                .get("name")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("Unknown device")
-                .to_owned();
-            layout.integration = device
-                .get("sdk")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("Unknown")
-                .to_owned();
-            layout.unique_id = format!("{}|{}", layout.integration, layout.display_name);
-            for (key, led) in map {
-                let Some(id) = led.as_u64().and_then(|id| u32::try_from(id).ok()) else {
-                    continue;
-                };
-                let key = standardize_key(key);
-                layout.keys.entry(key).or_default().push(id);
-                if !layout.leds.contains(&id) {
-                    layout.leds.push(id);
-                }
-            }
-            if !layout.leds.is_empty() {
-                result.push(layout);
-            }
-        }
-    }
-    Ok(result)
 }
 
 pub(super) fn standardize_key(key: &str) -> String {

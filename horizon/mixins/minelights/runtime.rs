@@ -22,7 +22,7 @@ use super::minelights_bridge::{
     Notice, bridge_for,
 };
 use super::minelights_config::{
-    SETTINGS, STATIC_SETTING_COUNT, on_off, persist_settings, settings_for, settings_labels,
+    SETTINGS, STATIC_SETTING_COUNT, device_disabled, set_device_enabled, on_off, persist_settings, settings_for, settings_labels,
     toggle_setting,
 };
 use super::minelights_effects::Painter;
@@ -200,7 +200,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
     let mut frame = painter.render(player, &layouts, config.clone(), now);
     for layout in layouts
         .iter()
-        .filter(|layout| config.disabled_devices.contains(&layout.unique_id))
+        .filter(|layout| device_disabled(&config, &layout.unique_id, layout.legacy_id.as_deref()))
     {
         for led in &layout.leds {
             frame.keys.insert(*led, Color::BLACK);
@@ -236,7 +236,7 @@ pub(super) fn minelights_settings(
     if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {
             buttons.extend(layouts.iter().map(|layout| {
-                let enabled = !settings.disabled_devices.contains(&layout.unique_id);
+                let enabled = !device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
                 format!(
                     "Device {} ({}): {}",
                     layout.display_name,
@@ -263,6 +263,7 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
     }
     if button == 37 {
         settings.disabled_devices.clear();
+        settings.enabled_legacy_devices.clear();
         if let Some(bridge) = BRIDGE.get() {
             bridge.actions.fetch_or(ACTION_REFRESH, Ordering::Release);
         }
@@ -278,9 +279,6 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
         }
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
-        if button == 40 && settings.allow_legacy_v1_fallback {
-            game.native_chat("[MineLights] Legacy V1 is unauthenticated and local only. Enable fallback only for a trusted local server.");
-        }
         if button == 20 && settings.server_confirmation_pending {
             game.native_chat(&format!("[MineLights] Reviewed server autostart is still off. Confirm with /minelights confirm server-autostart to download MineLights Server {} from GitHub, verify its pinned SHA-256, and run it with your account permissions; or cancel with /minelights set server-autostart off.", super::minelights_server::SERVER_VERSION));
             if BRIDGE
@@ -293,15 +291,8 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
     } else if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {
             if let Some(layout) = layouts.get(button - STATIC_SETTING_COUNT) {
-                if let Some(index) = settings
-                    .disabled_devices
-                    .iter()
-                    .position(|id| id == &layout.unique_id)
-                {
-                    settings.disabled_devices.remove(index);
-                } else {
-                    settings.disabled_devices.push(layout.unique_id.clone());
-                }
+                let disabled = device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
+                set_device_enabled(&mut settings, &layout.unique_id, layout.legacy_id.as_deref(), disabled);
             }
         }
     }

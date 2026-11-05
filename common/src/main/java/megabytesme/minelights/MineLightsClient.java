@@ -5,8 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
-import megabytesme.minelights.network.DiscoveryListener;
-import megabytesme.minelights.network.UDPClient;
 import megabytesme.minelights.network.V2Endpoint;
 import megabytesme.minelights.network.V2ClientConnection;
 import megabytesme.minelights.runtime.LightingManager;
@@ -105,12 +103,22 @@ public class MineLightsClient {
     private static SimpleJsonConfig CONFIG_MANAGER;
     private static LightingManager lightingManager;
     private static Thread lightingManagerThread;
-    private static Thread discoveryThread;
     public static Thread serverMonitorThread;
 
     public static final List<String> discoveredDevices = Collections.synchronizedList(new ArrayList<>());
     public static final java.util.concurrent.ConcurrentMap<String, String> discoveredDeviceNames =
             new java.util.concurrent.ConcurrentHashMap<String, String>();
+
+    public static final java.util.concurrent.ConcurrentMap<String, String> discoveredLegacyDeviceKeys =
+            new java.util.concurrent.ConcurrentHashMap<String, String>();
+
+    public static boolean isDeviceEnabled(String id) {
+        return megabytesme.minelights.network.V2DevicePolicy.deviceEnabled(CONFIG, id, discoveredLegacyDeviceKeys.get(id));
+    }
+
+    public static void setDeviceEnabled(String id, boolean enabled) {
+        megabytesme.minelights.network.V2DevicePolicy.setDeviceEnabled(CONFIG, id, discoveredLegacyDeviceKeys.get(id), enabled);
+    }
 
     public static String getDiscoveredDeviceDisplayName(String uniqueId) {
         String displayName = discoveredDeviceNames.get(uniqueId);
@@ -248,11 +256,9 @@ public class MineLightsClient {
     //?}
     //?}
 
-    public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
     // 0 = no check, 1 = notice-only, 2 = automatic install permitted.
     private static final java.util.concurrent.atomic.AtomicInteger serverCheckMode = new java.util.concurrent.atomic.AtomicInteger();
-    private static long nextDiscoveryRetry;
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
     private static final String SERVER_RELEASES_URL = "https://github.com/megabytesme/MineLights-Server/releases";
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -279,6 +285,9 @@ public class MineLightsClient {
     private static Process serverProcess = null;
     private static String serverLaunchId = null;
     private static final AtomicBoolean manualStopRequested = new AtomicBoolean(false);
+    private static final AtomicBoolean legacyServerNoticeSent = new AtomicBoolean(false);
+    private static long legacyOnlySince;
+
 
     private static final class ServerRelease {
         private final String version;
@@ -318,11 +327,7 @@ public class MineLightsClient {
 
         new Thread(() -> {
             try {
-                if (proxyDiscoveredLatch.await(3, TimeUnit.SECONDS)) {
-                    LOGGER.info("MineLights Server discovered via broadcast! Initializing connection.");
-                } else if (!IS_WINDOWS) {
-                    LOGGER.warn("MineLights Server not discovered via broadcast on non-Windows OS.");
-                }
+                Thread.sleep(3000);
                 triggerLightingInitialization();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -333,7 +338,6 @@ public class MineLightsClient {
     private static void preloadFmlShutdownClasses() {
         ClassLoader classLoader = MineLightsClient.class.getClassLoader();
         String[] classNames = {
-                "megabytesme.minelights.network.CommandClient",
                 "megabytesme.minelights.rgb.YeelightController$YeelightDevice"
         };
         for (String className : classNames) {
@@ -385,11 +389,8 @@ public class MineLightsClient {
         }
         if (lightingManagerThread != null)
             lightingManagerThread.interrupt();
-        if (discoveryThread != null)
-            discoveryThread.interrupt();
         if (serverMonitorThread != null)
             serverMonitorThread.interrupt();
-        UDPClient.close();
         serverProcess = null;
     }
 
@@ -457,6 +458,7 @@ public class MineLightsClient {
             if (serverId == null && !"accepted".equals(result) && !"pending".equals(result)) manualStopRequested.set(false);
             String message = "accepted".equals(result) ? "Server accepted the stop request." :
                 "pending".equals(result) ? "Other clients are connected; the server will stop if they disconnect shortly." :
+                "legacy_enabled".equals(result) ? "Server remains running while legacy local access is enabled; disable it or exit via the server tray." :
                 "other_clients".equals(result) ? "Server remains running because other clients are connected." :
                 "Server stop request unavailable or unsupported.";
             sendChatMessage("[MineLights] " + message);
@@ -1182,17 +1184,9 @@ public class MineLightsClient {
         if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()) {
             if (lightingManager != null) lightingManager.requestStop();
             if (lightingManagerThread != null) lightingManagerThread.interrupt();
-            if (discoveryThread != null) discoveryThread.interrupt();
             lightingInitialized.set(false);
             isProxyConnected = false;
             return;
-        }
-        if (IS_WINDOWS && (discoveryThread == null || !discoveryThread.isAlive())
-                && System.currentTimeMillis() >= nextDiscoveryRetry) {
-            nextDiscoveryRetry = System.currentTimeMillis() + 10000;
-            discoveryThread = new Thread(new DiscoveryListener(), "MineLights-Discovery");
-            discoveryThread.setDaemon(true);
-            discoveryThread.start();
         }
         if (!lightingInitialized.get() && (lightingManagerThread == null || !lightingManagerThread.isAlive())) {
             triggerLightingInitialization();
@@ -1281,6 +1275,7 @@ public class MineLightsClient {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                warnIfOldServerOnly();
                 if (!automaticServerStartAllowed()) {
                     resetAutomaticUpdateWhenDisallowed();
                     Thread.sleep(1000);
@@ -1349,15 +1344,21 @@ public class MineLightsClient {
         }
     }
 
+    private static void warnIfOldServerOnly() {
+        if (!IS_WINDOWS || CONFIG == null || !CONFIG.enableMod || legacyServerNoticeSent.get()) return;
+        if (isV2ServerRunning() || !megabytesme.minelights.network.ServerProcessDiscovery.isRunning()) {
+            legacyOnlySince = 0;
+        } else if (legacyOnlySince == 0) {
+            legacyOnlySince = System.currentTimeMillis();
+        } else if (System.currentTimeMillis() - legacyOnlySince >= 30000
+                && legacyServerNoticeSent.compareAndSet(false, true)) {
+            sendChatMessage("[MineLights] A MineLights Server process is running without a V2 endpoint. If it is an older server, exit it from its tray and update to MineLights Server 2.4.0 or newer.");
+        }
+    }
+
     public static boolean isServerRunning() {
-        if (isV2ServerRunning()) {
-            return true;
-        }
-        try (Socket ignored = new Socket("127.0.0.1", 63213)) {
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
+        return isV2ServerRunning() || (IS_WINDOWS
+                && megabytesme.minelights.network.ServerProcessDiscovery.isRunning());
     }
 
     private static boolean isV2ServerRunning() {
@@ -1451,8 +1452,8 @@ public class MineLightsClient {
 
         discoveredDevices.clear();
         discoveredDeviceNames.clear();
+        discoveredLegacyDeviceKeys.clear();
         isProxyConnected = false;
-        proxyDiscoveredLatch = new CountDownLatch(1);
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-MainLoop");
         lightingManagerThread.setDaemon(true);

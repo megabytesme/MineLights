@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
 /** Client-side chat commands for the settings and actions exposed by MineLights. */
 public final class MineLightsCommands {
     private static final String[] SETTING_NAMES = {
-            "enabled", "auto-start-server", "manual-server-management", "notify-missing-server", "legacy-v1-fallback",
+            "enabled", "auto-start-server", "manual-server-management", "notify-missing-server",
             "check-server-updates", "corsair", "asus", "logitech", "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
             "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
@@ -388,7 +388,6 @@ public final class MineLightsCommands {
             case "manual-server-management": return Boolean.valueOf(config.manualServerManagement);
             case "notify-missing-server": return Boolean.valueOf(config.notifyMissingServer);
             case "check-server-updates": return Boolean.valueOf(config.checkServerUpdates);
-            case "legacy-v1-fallback": return Boolean.valueOf(config.allowLegacyV1Fallback);
             case "corsair": return Boolean.valueOf(config.enableCorsair);
             case "asus": return Boolean.valueOf(config.enableAsus);
             case "logitech": return Boolean.valueOf(config.enableLogitech);
@@ -429,7 +428,6 @@ public final class MineLightsCommands {
             case "manual-server-management": config.manualServerManagement = value; break;
             case "notify-missing-server": config.notifyMissingServer = value; break;
             case "check-server-updates": config.checkServerUpdates = value; break;
-            case "legacy-v1-fallback": config.allowLegacyV1Fallback = value; break;
             case "corsair": config.enableCorsair = value; break;
             case "asus": config.enableAsus = value; break;
             case "logitech": config.enableLogitech = value; break;
@@ -493,8 +491,6 @@ public final class MineLightsCommands {
                 || "notify-when-server-missing".equals(name)) return "notify-missing-server";
         if ("server-update-notices".equals(name) || "update-notices".equals(name)
                 || "check-for-server-updates".equals(name)) return "check-server-updates";
-        if ("legacy-fallback".equals(name) || "allow-v1-fallback".equals(name)
-                || "v1-fallback".equals(name)) return "legacy-v1-fallback";
         if ("open-rgb".equals(name)) return "openrgb";
         if (name.endsWith("-integration")) name = name.substring(0, name.length() - "-integration".length());
         if (name.startsWith("enable-") && getBoolean(name.substring("enable-".length())) != null) {
@@ -602,7 +598,7 @@ public final class MineLightsCommands {
         lines.add("[MineLights] Devices (use /minelights device <number> <on|off>):");
         for (int i = 0; i < devices.size(); i++) {
             String id = devices.get(i);
-            boolean enabled = !MineLightsClient.CONFIG.disabledDevices.contains(id);
+            boolean enabled = MineLightsClient.isDeviceEnabled(id);
             lines.add("[MineLights] " + (i + 1) + ". " + formatDeviceName(id) + " = " + (enabled ? "on" : "off"));
         }
         MineLightsClient.sendChatMessages(lines);
@@ -644,12 +640,7 @@ public final class MineLightsCommands {
         if (MineLightsClient.CONFIG.disabledDevices == null) {
             MineLightsClient.CONFIG.disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<String>();
         }
-        String existing = findCaseInsensitive(MineLightsClient.CONFIG.disabledDevices, id);
-        if (enabled.booleanValue()) {
-            if (existing != null) MineLightsClient.CONFIG.disabledDevices.remove(existing);
-        } else if (existing == null) {
-            MineLightsClient.CONFIG.disabledDevices.add(id);
-        }
+        MineLightsClient.setDeviceEnabled(id, enabled.booleanValue());
         MineLightsClient.saveConfig();
         MineLightsClient.refreshLightingManager();
         MineLightsClient.sendChatMessage("[MineLights] Device " + formatDeviceName(id) + " = "
@@ -697,6 +688,7 @@ public final class MineLightsCommands {
             MineLightsClient.CONFIG.disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<String>();
         }
         MineLightsClient.CONFIG.disabledDevices.clear();
+        MineLightsClient.CONFIG.enabledLegacyDevices.clear();
         MineLightsClient.saveConfig();
         MineLightsClient.refreshLightingManager();
         MineLightsClient.sendChatMessage("[MineLights] All disabled devices have been re-enabled.");

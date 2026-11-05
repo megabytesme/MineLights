@@ -232,7 +232,7 @@ public final class V2ClientConnection implements AutoCloseable {
         try {
             DataInputStream input = new DataInputStream(socket.getInputStream());
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-            Handshake handshake = sendClientHello(endpoint, clientId, appId, appVersion, input, output);
+            Handshake handshake = sendClientHello(endpoint, clientId, appId, appVersion, input, output, Collections.singleton("*"));
             JsonObject authResult = authenticate(input, output, endpoint, clientId, credentialType, credentialId,
                     credential, handshake.serverNonce, handshake.selectedMinor);
             JsonArray authScopes = authResult.has("scopes") && authResult.get("scopes").isJsonArray()
@@ -285,7 +285,7 @@ public final class V2ClientConnection implements AutoCloseable {
         try {
             DataInputStream input = new DataInputStream(socket.getInputStream());
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-            Handshake handshake = sendClientHello(endpoint, clientId, appId, appVersion, input, output);
+            Handshake handshake = sendClientHello(endpoint, clientId, appId, appVersion, input, output, disabledDeviceKeys);
             JsonObject authResult = authenticate(input, output, endpoint, clientId,
                     credentialType, credentialId, credential, handshake.serverNonce, handshake.selectedMinor);
             if (authResult.has("ok") && !authResult.get("ok").getAsBoolean()) {
@@ -307,8 +307,7 @@ public final class V2ClientConnection implements AutoCloseable {
 
             Set<String> requestedDevices = new HashSet<String>();
             for (DeviceDescriptor device : deviceList) {
-                if (!disabledDeviceKeys.contains("*") && !disabledDeviceKeys.contains(endpoint.serverId + "|" + device.deviceId)
-                        && !disabledDeviceKeys.contains("MineLights V2|" + endpoint.serverId + "|" + device.deviceId)) {
+                if (V2DevicePolicy.allows(disabledDeviceKeys, endpoint.serverId, device)) {
                     requestedDevices.add(device.deviceId);
                 }
             }
@@ -385,7 +384,7 @@ public final class V2ClientConnection implements AutoCloseable {
     }
 
     private static Handshake sendClientHello(V2Endpoint endpoint, String clientId, String appId,
-            String appVersion, DataInputStream input, DataOutputStream output) throws IOException {
+            String appVersion, DataInputStream input, DataOutputStream output, Set<String> disabledDeviceKeys) throws IOException {
         JsonObject hello = new JsonObject();
         hello.addProperty("client_id", clientId);
         hello.addProperty("app_id", appId);
@@ -396,6 +395,9 @@ public final class V2ClientConnection implements AutoCloseable {
         capabilities.add(new JsonPrimitive("json_frames"));
         capabilities.add(new JsonPrimitive("device_leases"));
         hello.add("capabilities", capabilities);
+        JsonArray providers = new JsonArray();
+        for (String provider : V2DevicePolicy.requestedProviders(disabledDeviceKeys)) providers.add(new JsonPrimitive(provider));
+        hello.add("requested_integrations", providers);
         writeMessage(output, CLIENT_HELLO, hello);
 
         Message message = readMessage(input);
@@ -584,7 +586,8 @@ public final class V2ClientConnection implements AutoCloseable {
             DeviceDescriptor device = new DeviceDescriptor(id,
                     defaultString(stringValue(object, "name"), "Unknown device"),
                     defaultString(stringValue(object, "vendor"), ""),
-                    defaultString(stringValue(object, "integration"), "MineLights Server"));
+                    defaultString(stringValue(object, "integration"), "MineLights Server"),
+                    stringValue(object, "provider"), stringValue(object, "legacy_device_key"));
             if (object.has("elements") && object.get("elements").isJsonArray()) {
                 for (JsonElement elementValue : object.getAsJsonArray("elements")) {
                     if (!elementValue.isJsonObject()) {
@@ -785,6 +788,31 @@ public final class V2ClientConnection implements AutoCloseable {
         }
     }
 
+    /** Older V2 servers omit the legacy setting; unknown is treated as false. */
+    public boolean legacyLocalAccessEnabled() {
+        try {
+            JsonObject response = request("server.info", new JsonObject());
+            if (!response.has("ok") || !response.get("ok").getAsBoolean()
+                    || !response.has("result") || !response.get("result").isJsonObject()) return false;
+            JsonObject result = response.getAsJsonObject("result");
+            return result.has("legacy_v1_enabled") && result.get("legacy_v1_enabled").isJsonPrimitive()
+                    && result.getAsJsonPrimitive("legacy_v1_enabled").isBoolean()
+                    && result.get("legacy_v1_enabled").getAsBoolean();
+        } catch (IOException e) { return false; }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); return false; }
+    }
+
+    /** Update this authenticated session's provider interest; old V2 servers may ignore it. */
+    public void setRequestedIntegrations(Set<String> exclusions) {
+        JsonArray providers = new JsonArray();
+        for (String provider : V2DevicePolicy.requestedProviders(exclusions)) providers.add(new JsonPrimitive(provider));
+        JsonObject params = new JsonObject();
+        params.add("providers", providers);
+        try { request("integrations.set", params); }
+        catch (IOException ignored) { }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
+
     /** Ask the authenticated server to shut down only if no other client is connected. */
     public String requestServerShutdown() {
         try {
@@ -793,6 +821,7 @@ public final class V2ClientConnection implements AutoCloseable {
                     || !response.has("result") || !response.get("result").isJsonObject()) return "unsupported";
             JsonObject result = response.getAsJsonObject("result");
             if (result.has("accepted") && result.get("accepted").getAsBoolean()) return "accepted";
+            if ("legacy_enabled".equals(stringValue(result, "reason"))) return "legacy_enabled";
             if (result.has("pending_for_ms") && result.get("pending_for_ms").getAsInt() > 0) return "pending";
             return "other_clients";
         } catch (IOException e) {
@@ -999,13 +1028,17 @@ public final class V2ClientConnection implements AutoCloseable {
         public final String name;
         public final String vendor;
         public final String integration;
+        public final String provider;
+        public final String legacyDeviceKey;
         public final List<ElementDescriptor> elements = new ArrayList<ElementDescriptor>();
 
-        DeviceDescriptor(String deviceId, String name, String vendor, String integration) {
+        DeviceDescriptor(String deviceId, String name, String vendor, String integration, String provider, String legacyDeviceKey) {
             this.deviceId = deviceId;
             this.name = name;
             this.vendor = vendor;
             this.integration = integration;
+            this.provider = provider;
+            this.legacyDeviceKey = legacyDeviceKey;
         }
     }
 

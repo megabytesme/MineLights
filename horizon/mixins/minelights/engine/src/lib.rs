@@ -5,6 +5,7 @@ pub struct DeviceLayout {
     pub keys: HashMap<String, Vec<u32>>,
     pub leds: Vec<u32>,
     pub unique_id: String,
+    pub legacy_id: Option<String>,
     pub display_name: String,
     pub integration: String,
 }

@@ -216,13 +216,7 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                 } else {
                     for (String uniqueId : devices) {
                         String name = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
-                        toggle(options, name, () -> !MineLightsClient.CONFIG.disabledDevices.contains(uniqueId), enabled -> {
-                            if (enabled) {
-                                MineLightsClient.CONFIG.disabledDevices.remove(uniqueId);
-                            } else if (!MineLightsClient.CONFIG.disabledDevices.contains(uniqueId)) {
-                                MineLightsClient.CONFIG.disabledDevices.add(uniqueId);
-                            }
-                        });
+                        toggle(options, name, () -> MineLightsClient.isDeviceEnabled(uniqueId), enabled -> MineLightsClient.setDeviceEnabled(uniqueId, enabled));
                     }
                 }
                 break;

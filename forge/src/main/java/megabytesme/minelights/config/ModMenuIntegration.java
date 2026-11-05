@@ -125,6 +125,7 @@ public final class ModMenuIntegration {
             MineLightsClient.CONFIG.restartProxyAsAdmin = false;
             if (MineLightsClient.CONFIG.clearDisabledDevices) {
                 MineLightsClient.CONFIG.disabledDevices.clear();
+                MineLightsClient.CONFIG.enabledLegacyDevices.clear();
                 MineLightsClient.saveConfig();
                 MineLightsClient.CONFIG.clearDisabledDevices = false;
                 needsRefresh = true;
@@ -261,7 +262,7 @@ public final class ModMenuIntegration {
         ConfigCategory devices = builder.getOrCreateCategory(translatable("category.mine-lights.devices"));
         devices.addEntry(entryBuilder.startTextDescription(translatable("option.mine-lights.device.header")).build());
         MineLightsClient.discoveredDevices.stream().sorted(Comparator.naturalOrder()).forEach(uniqueId -> {
-            boolean isEnabled = !MineLightsClient.CONFIG.disabledDevices.contains(uniqueId);
+            boolean isEnabled = MineLightsClient.isDeviceEnabled(uniqueId);
             String[] parts = uniqueId.split("\\|", 2);
             String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
             String deviceName = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
@@ -274,13 +275,7 @@ public final class ModMenuIntegration {
             devices.addEntry(entryBuilder
                     .startBooleanToggle(label, isEnabled)
                     .setDefaultValue(true)
-                    .setSaveConsumer(newValue -> {
-                        if (newValue) {
-                            MineLightsClient.CONFIG.disabledDevices.remove(uniqueId);
-                        } else if (!MineLightsClient.CONFIG.disabledDevices.contains(uniqueId)) {
-                            MineLightsClient.CONFIG.disabledDevices.add(uniqueId);
-                        }
-                    })
+                    .setSaveConsumer(newValue -> MineLightsClient.setDeviceEnabled(uniqueId, newValue))
                     .build());
         });
         if (!MineLightsClient.CONFIG.disabledDevices.isEmpty()) {

@@ -44,7 +44,6 @@ pub(super) struct Settings {
     pub(super) allow_reviewed_server: bool,
     pub(super) notify_missing_server: bool,
     pub(super) check_server_updates: bool,
-    pub(super) allow_legacy_v1_fallback: bool,
     #[serde(skip)]
     pub(super) server_confirmation_pending: bool,
     pub(super) compass_priority: u8,
@@ -62,6 +61,7 @@ pub(super) struct Settings {
     pub(super) openrgb_endpoints: Vec<OpenRgbEndpoint>,
     pub(super) enable_yeelight: bool,
     pub(super) disabled_devices: Vec<String>,
+    pub(super) enabled_legacy_devices: Vec<String>,
 }
 
 impl Default for Settings {
@@ -90,7 +90,6 @@ impl Default for Settings {
             allow_reviewed_server: false,
             notify_missing_server: true,
             check_server_updates: true,
-            allow_legacy_v1_fallback: false,
             server_confirmation_pending: false,
             compass_priority: 0,
             enable_corsair: true,
@@ -106,6 +105,7 @@ impl Default for Settings {
             openrgb_endpoints: default_openrgb_endpoints(),
             enable_yeelight: true,
             disabled_devices: Vec::new(),
+            enabled_legacy_devices: Vec::new(),
         }
     }
 }
@@ -114,7 +114,7 @@ fn default_openrgb_endpoints() -> Vec<OpenRgbEndpoint> {
     vec![OpenRgbEndpoint::default()]
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 41;
+pub(super) const STATIC_SETTING_COUNT: usize = 40;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -225,10 +225,6 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             "Check for MineLights Server updates: {}",
             on_off(settings.check_server_updates)
         ),
-        format!(
-            "Allow unauthenticated local V1 fallback: {}",
-            on_off(settings.allow_legacy_v1_fallback)
-        ),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
         // The old translations describe different, less restrictive behaviour.
@@ -254,6 +250,25 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
         }
     }
     labels
+}
+
+/// Resolve pre-V2 manufacturer|model exclusions without enabling same-model siblings.
+pub(super) fn device_disabled(settings: &Settings, id: &str, legacy: Option<&str>) -> bool {
+    settings.disabled_devices.iter().any(|v| v == id)
+        || (legacy.is_some_and(|old| settings.disabled_devices.iter().any(|v| v == old))
+            && !settings.enabled_legacy_devices.iter().any(|v| v == id))
+}
+
+pub(super) fn set_device_enabled(settings: &mut Settings, id: &str, legacy: Option<&str>, enabled: bool) {
+    settings.disabled_devices.retain(|v| v != id);
+    settings.enabled_legacy_devices.retain(|v| v != id);
+    if enabled {
+        if legacy.is_some_and(|old| settings.disabled_devices.iter().any(|v| v == old)) {
+            settings.enabled_legacy_devices.push(id.to_owned());
+        }
+    } else {
+        settings.disabled_devices.push(id.to_owned());
+    }
 }
 
 pub(super) fn on_off(value: bool) -> &'static str {
@@ -327,7 +342,6 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         32 => &mut settings.enable_yeelight,
         38 => &mut settings.notify_missing_server,
         39 => &mut settings.check_server_updates,
-        40 => &mut settings.allow_legacy_v1_fallback,
         _ => return,
     };
     *value = !*value;
