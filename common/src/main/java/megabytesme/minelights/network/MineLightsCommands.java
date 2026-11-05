@@ -63,7 +63,7 @@ public final class MineLightsCommands {
         MineLightsClient.LOGGER.warn("Could not find the client command dispatcher for MineLights suggestions.");
     }
 
-    private static <S> void registerCommands(CommandDispatcher<S> dispatcher) {
+    public static <S> void registerCommands(CommandDispatcher<S> dispatcher) {
         LiteralArgumentBuilder<S> root = LiteralArgumentBuilder.<S>literal("minelights")
                 .executes(context -> runRegisteredCommand("minelights"));
 

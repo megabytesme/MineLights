@@ -12,7 +12,7 @@ plugins {
 
 val isUnobfuscatedVersion = stonecutter.eval(stonecutter.current.version, ">=26.1")
 val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3") ||
-        stonecutter.current.version == "1.21.11"
+        stonecutter.current.version == "1.21.11" || stonecutter.current.version == "1.19.3"
 val usesJava8Runtime = stonecutter.eval(stonecutter.current.version, "<1.17")
 
 apply(plugin = if (isUnobfuscatedVersion) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
@@ -169,7 +169,7 @@ tasks.withType<JavaCompile>().configureEach {
 
 sourceSets.named("main") {
     java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/stonecutter/main/java")))
-    if (!stonecutter.eval(stonecutter.current.version, "<1.19")) {
+    if (!stonecutter.eval(stonecutter.current.version, "<1.19.3")) {
         java.exclude("megabytesme/minelights/mixin/ClientPlayerChatMixin.java")
     }
 }
@@ -200,7 +200,7 @@ tasks {
     }
 
     processResources {
-        val needsPlayerChatMixin = stonecutter.eval(stonecutter.current.version, "<1.19")
+        val needsPlayerChatMixin = stonecutter.eval(stonecutter.current.version, "<1.19.3")
         inputs.property("needsPlayerChatMixin", needsPlayerChatMixin)
         if (needsPlayerChatMixin) {
             filesMatching("minelights.mixins.json") {

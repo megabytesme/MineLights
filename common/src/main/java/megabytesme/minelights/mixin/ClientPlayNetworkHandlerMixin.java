@@ -26,6 +26,12 @@ import net.minecraft.network.protocol.game.ClientboundChatPacket;
 /* import net.minecraft.client.network.ClientPlayNetworkHandler;
 //? if 1.14.4 || >=1.19 {
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
+//? if >=1.19 {
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+//?}
+//? if >=1.19.3 {
+import net.minecraft.network.packet.s2c.play.ProfilelessChatMessageS2CPacket;
+//?}
 //?} else if >=1.16 && <=1.18.2 {
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 //?} else {
@@ -69,7 +75,7 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
         }
     }
 //?} else if loader_forge || loader_neoforge {
-    //? if >=1.19 {
+    //? if >=1.19.3 {
     @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true, require = 0)
     private void minelights$interceptChat(String message, CallbackInfo ci) {
         if (MineLightsCommands.handleSlashMessage(message)) {
@@ -85,7 +91,7 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     }
     //?}
 //?} else {
-    //? if >=1.19 {
+    //? if >=1.19.3 {
     @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true, require = 0)
     private void minelights$interceptChat(String message, CallbackInfo ci) {
         if (MineLightsCommands.handleSlashMessage(message)) {
@@ -107,6 +113,7 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     private void minelights$registerCommandSuggestions(CallbackInfo ci) {
         MineLightsCommands.registerClientCommandSuggestions(this);
     }
+//?} else if loader_forge && >=1.19 && <1.19.3 {
 //?} else if >=26.1 || loader_forge || loader_neoforge {
     @Inject(method = "handleCommands", at = @At("TAIL"), require = 0)
     private void minelights$registerCommandSuggestions(CallbackInfo ci) {
@@ -181,6 +188,18 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     private void onChatMessage(ChatMessageS2CPacket packet, CallbackInfo ci) {
         chatReceivedThisTick = true;
     }
+    //? if >=1.19 {
+    @Inject(method = "onGameMessage", at = @At("HEAD"))
+    private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    //?}
+    //? if >=1.19.3 {
+    @Inject(method = "onProfilelessChatMessage", at = @At("HEAD"))
+    private void onProfilelessChatMessage(ProfilelessChatMessageS2CPacket packet, CallbackInfo ci) {
+        chatReceivedThisTick = true;
+    }
+    //?}
     *///?}
 
     @Unique

@@ -12,12 +12,15 @@ import megabytesme.minelights.MineLightsTransitionalConfigScreen;
 import megabytesme.minelights.MineLightsModernConfigScreen;
 //?}
 import net.minecraft.client.Minecraft;
-//? if loader_forge && <1.19 {
+//? if loader_forge && <1.19.3 {
 import megabytesme.minelights.network.MineLightsCommands;
 //?}
 //? if loader_forge && >=1.13.2 && <1.19 {
 import net.minecraftforge.client.event.ClientChatEvent;
 //?}
+//? if loader_forge && >=1.19 && <1.19.3 {
+/* import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+*///?}
 //? if loader_forge && <=1.12.2 {
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraft.command.CommandBase;
@@ -271,6 +274,13 @@ public final class MineLightsForge {
         //?}
     }
     //?}
+
+    //? if loader_forge && >=1.19 && <1.19.3 {
+    /* @SubscribeEvent
+    public void onRegisterClientCommands(RegisterClientCommandsEvent event) {
+        MineLightsCommands.registerCommands(event.getDispatcher());
+    }
+    *///?}
 
     //? if loader_forge && >=1.13.2 && <1.19 {
     @SubscribeEvent
