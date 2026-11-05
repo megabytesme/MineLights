@@ -4,7 +4,7 @@
     "group": "megabytesme.minelights",
     "id": "${id}",
     "version": "${version}",
-    "intermediate_mappings": "org.quiltmc.experimental:mojang",
+    "intermediate_mappings": "net.fabricmc:intermediary",
     "metadata": {
       "name": "${name}",
       "description": "${description}",

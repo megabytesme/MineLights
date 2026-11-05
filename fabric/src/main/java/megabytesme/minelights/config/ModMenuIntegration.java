@@ -12,7 +12,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import megabytesme.minelights.network.CommandClient;
 import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.config.LiveStatusEntry;
 //? if >=26.1 {
@@ -137,18 +136,8 @@ public class ModMenuIntegration implements ModMenuApi {
                 MineLightsClient.CONFIG.refreshDevices = false;
                 needsRefresh = true;
             }
-            if (MineLightsClient.CONFIG.restartProxy) {
-                MineLightsClient.isManualRestart = true;
-                CommandClient.sendCommand("restart");
-                MineLightsClient.CONFIG.restartProxy = false;
-                needsRefresh = false;
-            }
-            if (MineLightsClient.CONFIG.restartProxyAsAdmin) {
-                MineLightsClient.isManualRestart = true;
-                CommandClient.sendCommand("restart_admin");
-                MineLightsClient.CONFIG.restartProxyAsAdmin = false;
-                needsRefresh = false;
-            }
+            MineLightsClient.CONFIG.restartProxy = false;
+            MineLightsClient.CONFIG.restartProxyAsAdmin = false;
             if (MineLightsClient.CONFIG.clearDisabledDevices) {
                 MineLightsClient.CONFIG.disabledDevices.clear();
                 MineLightsClient.saveConfig();
@@ -371,61 +360,16 @@ public class ModMenuIntegration implements ModMenuApi {
                     /* .getString()
                     *///? }
             ).build());
-            serverManagement.addEntry(entryBuilder
-                    .startBooleanToggle(
-                            //? if >=1.19 {
-                            translatable("option.mine-lights.restart.label")
-                            //?} else if <1.19 {
-                            /*new TranslatableText("option.mine-lights.restart.label")
-                            *///?}
-                            //? if <1.16 {
-                            /* .getString()
-                            *///? }
-                            ,
-                            MineLightsClient.CONFIG.restartProxy)
-                    .setDefaultValue(false)
-                    //? if >=1.16 {
-                    .setTooltip(
-                        //? if >=1.19 {
-                        translatable("option.mine-lights.restart.tooltip")
-                        //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.restart.tooltip")
-                        *///?}
-                    )
-                    //?}
+            serverManagement.addEntry(entryBuilder.startTextDescription(
+                    //? if >=1.19 {
+                    translatable("text.mine-lights.server.restart_from_tray")
+                    //?} else if <1.19 {
+                    /*new TranslatableText("text.mine-lights.server.restart_from_tray")
+                    *///?}
                     //? if <1.16 {
-                    /* .setTooltip(new TranslatableText("option.mine-lights.restart.tooltip").getString()) */
-                    //?}
-                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
-                    .build());
-            serverManagement.addEntry(entryBuilder
-                    .startBooleanToggle(
-                            //? if >=1.19 {
-                            translatable("option.mine-lights.restart_admin.label")
-                            //?} else if <1.19 {
-                            /*new TranslatableText("option.mine-lights.restart_admin.label")
-                            *///?}
-                            //? if <1.16 {
-                            /* .getString()
-                            *///? }
-                            ,
-                            MineLightsClient.CONFIG.restartProxyAsAdmin)
-                    .setDefaultValue(false)
-                    //? if >=1.16 {
-                    .setTooltip(
-                        //? if >=1.19 {
-                        translatable("option.mine-lights.restart_admin.tooltip")
-                        //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.restart_admin.tooltip")
-                        *///?}
-                    )
-                    //?}
-                    //? if <1.16 {
-                    /* .setTooltip(new TranslatableText("option.mine-lights.restart_admin.tooltip").getString()) */
-                    //?}
-                    .setSaveConsumer(
-                            newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
-                    .build());
+                    /* .getString()
+                    *///? }
+            ).build());
             
         }
         
@@ -707,7 +651,7 @@ public class ModMenuIntegration implements ModMenuApi {
                             .contains(uniqueId);
                     String[] parts = uniqueId.split("\\|", 2);
                     String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
-                    String deviceName = parts.length > 1 ? parts[1] : uniqueId;
+                    String deviceName = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
                     
                     //? if >=1.19 {
                     //? if >=26.1 {

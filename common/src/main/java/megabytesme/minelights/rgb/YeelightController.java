@@ -148,7 +148,8 @@ public class YeelightController {
         }
     }
 
-    public boolean discover() {
+    public synchronized boolean discover(java.util.function.BooleanSupplier shouldContinue) {
+        if (!shouldContinue.getAsBoolean()) return false;
         LOGGER.info("Starting Yeelight discovery...");
         Map<String, YeelightDevice> foundDevices = new HashMap<>();
 
@@ -164,7 +165,7 @@ public class YeelightController {
             LOGGER.debug("[UDP-SEND] Broadcast sent successfully.");
 
             long startTime = System.currentTimeMillis();
-            while (System.currentTimeMillis() - startTime < DISCOVERY_TIMEOUT_MS) {
+            while (shouldContinue.getAsBoolean() && System.currentTimeMillis() - startTime < DISCOVERY_TIMEOUT_MS) {
                 try {
                     byte[] receiveBuffer = new byte[1500];
                     DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
@@ -201,11 +202,15 @@ public class YeelightController {
             return false;
         }
 
+        if (!shouldContinue.getAsBoolean()) return false;
         this.devices.clear();
         this.devices.addAll(foundDevices.values());
         LOGGER.info("Yeelight discovery process finished. Found {} total devices.", this.devices.size());
         if (!this.devices.isEmpty()) {
-            devices.parallelStream().forEach(YeelightDevice::connect);
+            devices.parallelStream().forEach(device -> {
+                if (shouldContinue.getAsBoolean()) device.connect();
+                if (!shouldContinue.getAsBoolean()) device.disconnect();
+            });
         }
         return true;
     }
@@ -234,7 +239,7 @@ public class YeelightController {
         }
     }
 
-    public void disconnect() {
+    public synchronized void disconnect() {
         devices.forEach(YeelightDevice::disconnect);
     }
 }

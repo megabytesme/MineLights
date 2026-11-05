@@ -4,17 +4,26 @@ import megabytesme.minelights.MineLightsClient;
 import megabytesme.minelights.config.CompassPriority;
 import megabytesme.minelights.config.DimmingMode;
 import megabytesme.minelights.config.MineLightsConfig;
+import megabytesme.minelights.rgb.OpenRGBEndpoint;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+//? if >=1.13 {
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import java.lang.reflect.Field;
+//?}
 
 /** Client-side chat commands for the settings and actions exposed by MineLights. */
 public final class MineLightsCommands {
     private static final String[] SETTING_NAMES = {
-            "enabled", "auto-start-server", "manual-server-management", "notify-missing-server",
+            "enabled", "auto-start-server", "manual-server-management", "notify-missing-server", "legacy-v1-fallback",
             "check-server-updates", "corsair", "asus", "logitech", "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
             "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
@@ -25,6 +34,169 @@ public final class MineLightsCommands {
 
     private MineLightsCommands() {
     }
+
+    //? if >=1.13 {
+    /** Adds MineLights to the client command tree after the server sends its command list. */
+    @SuppressWarnings("unchecked")
+    public static void registerClientCommandSuggestions(Object packetListener) {
+        Class<?> type = packetListener.getClass();
+        while (type != null) {
+            Field[] fields = type.getDeclaredFields();
+            for (Field field : fields) {
+                if (!CommandDispatcher.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(packetListener);
+                    if (value instanceof CommandDispatcher) {
+                        registerCommands((CommandDispatcher<Object>) value);
+                        return;
+                    }
+                } catch (ReflectiveOperationException | RuntimeException exception) {
+                    MineLightsClient.LOGGER.warn("Could not register MineLights client command suggestions.", exception);
+                    return;
+                }
+            }
+            type = type.getSuperclass();
+        }
+        MineLightsClient.LOGGER.warn("Could not find the client command dispatcher for MineLights suggestions.");
+    }
+
+    private static <S> void registerCommands(CommandDispatcher<S> dispatcher) {
+        LiteralArgumentBuilder<S> root = LiteralArgumentBuilder.<S>literal("minelights")
+                .executes(context -> runRegisteredCommand("minelights"));
+
+        String[] simpleCommands = {"help", "list", "status", "refresh",
+                "clear-disabled", "clear-disabled-devices", "restart", "restart-admin", "check-update", "check-updates"};
+        for (String command : simpleCommands) {
+            root.then(localCommand(command, "minelights " + command));
+        }
+
+        root.then(settingCommand("get"));
+        root.then(settingCommand("set"));
+        root.then(settingCommand("toggle"));
+
+        LiteralArgumentBuilder<S> devices = LiteralArgumentBuilder.<S>literal("devices")
+                .executes(context -> runRegisteredCommand("minelights devices"));
+        devices.then(LiteralArgumentBuilder.<S>literal("clear")
+                .executes(context -> runRegisteredCommand("minelights devices clear")));
+        root.then(devices);
+
+        LiteralArgumentBuilder<S> server = LiteralArgumentBuilder.<S>literal("server")
+                .executes(context -> runRegisteredCommand("minelights server"));
+        String[] serverCommands = {"pair-import", "import-pair", "list", "remove", "check-update", "check-updates", "stop"};
+        for (String command : serverCommands) {
+            server.then(localCommand(command, "minelights server " + command));
+        }
+        root.then(server);
+
+        root.then(openRgbCommand("openrgb", "minelights openrgb"));
+        root.then(openRgbCommand("open-rgb", "minelights open-rgb"));
+
+        LiteralArgumentBuilder<S> device = LiteralArgumentBuilder.<S>literal("device")
+                .executes(context -> runRegisteredCommand("minelights device"));
+        RequiredArgumentBuilder<S, String> deviceSelector = RequiredArgumentBuilder.<S, String>argument(
+                "device", StringArgumentType.word()).suggests((context, builder) -> {
+                    List<String> knownDeviceIds = getDeviceIds();
+                    for (int i = 0; i < knownDeviceIds.size(); i++) {
+                        builder.suggest(Integer.toString(i + 1));
+                    }
+                    return builder.buildFuture();
+                });
+        deviceSelector.then(RequiredArgumentBuilder.<S, String>argument("state", StringArgumentType.word())
+                .suggests((context, builder) -> {
+                    builder.suggest("on");
+                    builder.suggest("off");
+                    return builder.buildFuture();
+                })
+                .executes(context -> runRegisteredCommand("minelights device "
+                        + StringArgumentType.getString(context, "device") + " "
+                        + StringArgumentType.getString(context, "state"))));
+        device.then(deviceSelector);
+        root.then(device);
+
+        dispatcher.register(root);
+    }
+
+    private static <S> LiteralArgumentBuilder<S> openRgbCommand(String name, String baseCommand) {
+        LiteralArgumentBuilder<S> command = LiteralArgumentBuilder.<S>literal(name)
+                .executes(context -> runRegisteredCommand(baseCommand));
+        String[] actions = {"list", "add", "remove"};
+        for (String action : actions) {
+            command.then(localCommand(action, baseCommand + " " + action));
+        }
+        return command;
+    }
+
+    private static <S> LiteralArgumentBuilder<S> settingCommand(String action) {
+        LiteralArgumentBuilder<S> command = LiteralArgumentBuilder.<S>literal(action)
+                .executes(context -> runRegisteredCommand("minelights " + action));
+        RequiredArgumentBuilder<S, String> setting = RequiredArgumentBuilder.<S, String>argument(
+                "setting", StringArgumentType.word()).suggests((context, builder) -> {
+                    for (String settingName : SETTING_NAMES) {
+                        if (!"toggle".equals(action) || getBoolean(settingName) != null) {
+                            builder.suggest(settingName);
+                        }
+                    }
+                    return builder.buildFuture();
+                }).executes(context -> runRegisteredCommand("minelights " + action + " "
+                        + StringArgumentType.getString(context, "setting")));
+        if ("set".equals(action)) {
+            setting.then(RequiredArgumentBuilder.<S, String>argument("value", StringArgumentType.greedyString())
+                    .suggests((context, builder) -> suggestSettingValues(
+                            StringArgumentType.getString(context, "setting"), builder))
+                    .executes(context -> runRegisteredCommand("minelights set "
+                            + StringArgumentType.getString(context, "setting") + " "
+                            + StringArgumentType.getString(context, "value"))));
+        }
+        command.then(setting);
+        return command;
+    }
+
+    private static <S> java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions>
+            suggestSettingValues(String setting, com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        if (getBoolean(setting) != null) {
+            builder.suggest("on");
+            builder.suggest("off");
+            builder.suggest("true");
+            builder.suggest("false");
+        } else if ("dimming-mode".equals(normalizeName(setting))) {
+            builder.suggest("local");
+            builder.suggest("sky");
+            builder.suggest("off");
+        } else if ("compass-priority".equals(normalizeName(setting))) {
+            builder.suggest("priority");
+            builder.suggest("standard-first");
+            builder.suggest("lodestone-first");
+            builder.suggest("recovery-first");
+        } else if ("min-brightness".equals(normalizeName(setting))) {
+            builder.suggest("0%");
+            builder.suggest("20%");
+            builder.suggest("40%");
+            builder.suggest("60%");
+            builder.suggest("80%");
+            builder.suggest("100%");
+        }
+        return builder.buildFuture();
+    }
+
+    private static <S> LiteralArgumentBuilder<S> localCommand(String name, String baseCommand) {
+        LiteralArgumentBuilder<S> command = LiteralArgumentBuilder.<S>literal(name)
+                .executes(context -> runRegisteredCommand(baseCommand));
+        RequiredArgumentBuilder<S, String> arguments = RequiredArgumentBuilder.<S, String>argument(
+                "arguments", StringArgumentType.greedyString());
+        arguments.executes(context -> runRegisteredCommand(baseCommand + " "
+                + StringArgumentType.getString(context, "arguments")));
+        command.then(arguments);
+        return command;
+    }
+
+    private static int runRegisteredCommand(String command) {
+        dispatch(command, false);
+        return 1;
+    }
+    //?}
 
     /** Handles slash-prefixed chat messages on versions where chat and commands share a method. */
     public static boolean handleSlashMessage(String message) {
@@ -50,7 +222,7 @@ public final class MineLightsCommands {
             return false;
         }
 
-        String[] args = normalized.isEmpty() ? new String[0] : normalized.split("\\s+");
+        String[] args = tokenize(normalized);
         if (args.length == 0 || !"minelights".equalsIgnoreCase(args[0])) {
             return false;
         }
@@ -121,8 +293,11 @@ public final class MineLightsCommands {
             clearDisabledDevices();
         } else if ("server".equals(action)) {
             serverAction(args, 2);
-        } else if ("restart".equals(action) || "restart-admin".equals(action)
-                || "check-update".equals(action) || "check-updates".equals(action)) {
+        } else if ("openrgb".equals(action) || "open-rgb".equals(action)) {
+            openRgbAction(args, 2);
+        } else if ("restart".equals(action) || "restart-admin".equals(action)) {
+            MineLightsClient.sendChatMessage("[MineLights] The V2 server is shared with other clients and software. Restart it from its system tray menu; Minecraft cannot stop or restart it.");
+        } else if ("check-update".equals(action) || "check-updates".equals(action)) {
             serverAction(args, 1);
         } else {
             throw new IllegalArgumentException("Unknown action '" + args[1] + "'.");
@@ -134,7 +309,10 @@ public final class MineLightsCommands {
         lines.add("[MineLights] Client-side configuration commands:");
         lines.add("[MineLights] /minelights list | get <setting> | set <setting> <value> | toggle <boolean-setting>");
         lines.add("[MineLights] /minelights devices [clear] | device <number-or-id> <on|off> | refresh");
-        lines.add("[MineLights] /minelights server <restart|restart-admin|check-update> | clear-disabled");
+        lines.add("[MineLights] /minelights server <pair-import <file>|list|remove <id>|stop [server-id]|check-update>");
+        lines.add("[MineLights] Restart the shared MineLights Server from its system tray menu.");
+        lines.add("[MineLights] /minelights openrgb <list|add <host> [port]|remove <host> [port]>");
+        lines.add("[MineLights] OpenRGB uses its own native protocol without MineLights V2 TLS or authentication; add only trusted endpoints.");
         lines.add("[MineLights] Dimming: local, sky, off. Brightness accepts 0–100 percent. Compass priority accepts priority, standard-first, lodestone-first, recovery-first.");
         MineLightsClient.sendChatMessages(lines);
     }
@@ -210,6 +388,7 @@ public final class MineLightsCommands {
             case "manual-server-management": return Boolean.valueOf(config.manualServerManagement);
             case "notify-missing-server": return Boolean.valueOf(config.notifyMissingServer);
             case "check-server-updates": return Boolean.valueOf(config.checkServerUpdates);
+            case "legacy-v1-fallback": return Boolean.valueOf(config.allowLegacyV1Fallback);
             case "corsair": return Boolean.valueOf(config.enableCorsair);
             case "asus": return Boolean.valueOf(config.enableAsus);
             case "logitech": return Boolean.valueOf(config.enableLogitech);
@@ -250,6 +429,7 @@ public final class MineLightsCommands {
             case "manual-server-management": config.manualServerManagement = value; break;
             case "notify-missing-server": config.notifyMissingServer = value; break;
             case "check-server-updates": config.checkServerUpdates = value; break;
+            case "legacy-v1-fallback": config.allowLegacyV1Fallback = value; break;
             case "corsair": config.enableCorsair = value; break;
             case "asus": config.enableAsus = value; break;
             case "logitech": config.enableLogitech = value; break;
@@ -313,6 +493,8 @@ public final class MineLightsCommands {
                 || "notify-when-server-missing".equals(name)) return "notify-missing-server";
         if ("server-update-notices".equals(name) || "update-notices".equals(name)
                 || "check-for-server-updates".equals(name)) return "check-server-updates";
+        if ("legacy-fallback".equals(name) || "allow-v1-fallback".equals(name)
+                || "v1-fallback".equals(name)) return "legacy-v1-fallback";
         if ("open-rgb".equals(name)) return "openrgb";
         if (name.endsWith("-integration")) name = name.substring(0, name.length() - "-integration".length());
         if (name.startsWith("enable-") && getBoolean(name.substring("enable-".length())) != null) {
@@ -421,7 +603,7 @@ public final class MineLightsCommands {
         for (int i = 0; i < devices.size(); i++) {
             String id = devices.get(i);
             boolean enabled = !MineLightsClient.CONFIG.disabledDevices.contains(id);
-            lines.add("[MineLights] " + (i + 1) + ". " + id + " = " + (enabled ? "on" : "off"));
+            lines.add("[MineLights] " + (i + 1) + ". " + formatDeviceName(id) + " = " + (enabled ? "on" : "off"));
         }
         MineLightsClient.sendChatMessages(lines);
     }
@@ -460,7 +642,7 @@ public final class MineLightsCommands {
             throw new IllegalArgumentException("Unknown device '" + selector + "'. Use /minelights devices.");
         }
         if (MineLightsClient.CONFIG.disabledDevices == null) {
-            MineLightsClient.CONFIG.disabledDevices = new ArrayList<String>();
+            MineLightsClient.CONFIG.disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<String>();
         }
         String existing = findCaseInsensitive(MineLightsClient.CONFIG.disabledDevices, id);
         if (enabled.booleanValue()) {
@@ -470,7 +652,16 @@ public final class MineLightsCommands {
         }
         MineLightsClient.saveConfig();
         MineLightsClient.refreshLightingManager();
-        MineLightsClient.sendChatMessage("[MineLights] Device " + id + " = " + (enabled.booleanValue() ? "on" : "off"));
+        MineLightsClient.sendChatMessage("[MineLights] Device " + formatDeviceName(id) + " = "
+                + (enabled.booleanValue() ? "on" : "off"));
+    }
+
+    private static String formatDeviceName(String id) {
+        String displayName = MineLightsClient.getDiscoveredDeviceDisplayName(id);
+        if (displayName == null || displayName.trim().isEmpty() || id.equals(displayName)) {
+            return id;
+        }
+        return displayName + " [" + id + "]";
     }
 
     private static List<String> getDeviceIds() {
@@ -479,7 +670,7 @@ public final class MineLightsCommands {
             ids.addAll(MineLightsClient.discoveredDevices);
         }
         if (MineLightsClient.CONFIG.disabledDevices == null) {
-            MineLightsClient.CONFIG.disabledDevices = new ArrayList<String>();
+            MineLightsClient.CONFIG.disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<String>();
         }
         for (String id : MineLightsClient.CONFIG.disabledDevices) {
             if (id != null && !containsCaseInsensitive(ids, id)) {
@@ -503,7 +694,7 @@ public final class MineLightsCommands {
 
     private static void clearDisabledDevices() {
         if (MineLightsClient.CONFIG.disabledDevices == null) {
-            MineLightsClient.CONFIG.disabledDevices = new ArrayList<String>();
+            MineLightsClient.CONFIG.disabledDevices = new java.util.concurrent.CopyOnWriteArrayList<String>();
         }
         MineLightsClient.CONFIG.disabledDevices.clear();
         MineLightsClient.saveConfig();
@@ -513,27 +704,208 @@ public final class MineLightsCommands {
 
     private static void serverAction(String[] args, int commandIndex) {
         if (args.length <= commandIndex) {
-            throw new IllegalArgumentException("Usage: /minelights server <restart|restart-admin|check-update>");
+            throw new IllegalArgumentException("Usage: /minelights server <pair-import <file>|list|remove <id>|stop [server-id]|check-update>");
         }
         String action = args[commandIndex].toLowerCase(Locale.ROOT);
-        if ("restart".equals(action)) {
-            if (!MineLightsClient.IS_WINDOWS) {
-                throw new IllegalArgumentException("MineLights Server restart is available on Windows only.");
+        if ("pair-import".equals(action) || "import-pair".equals(action)) {
+            if (args.length < commandIndex + 2) {
+                throw new IllegalArgumentException("Usage: /minelights server pair-import <path-to-mlpair-file>");
             }
-            CommandClient.sendCommand("restart");
-            MineLightsClient.sendChatMessage("[MineLights] MineLights Server restart requested.");
-        } else if ("restart-admin".equals(action) || "restart-admin-as-administrator".equals(action)) {
-            if (!MineLightsClient.IS_WINDOWS) {
-                throw new IllegalArgumentException("MineLights Server restart is available on Windows only.");
+            importPairingFile(join(args, commandIndex + 1, args.length));
+        } else if ("list".equals(action)) {
+            listRemoteServers();
+        } else if ("remove".equals(action)) {
+            if (args.length != commandIndex + 2) {
+                throw new IllegalArgumentException("Usage: /minelights server remove <server-id-or-number>");
             }
-            CommandClient.sendCommand("restart_admin");
-            MineLightsClient.sendChatMessage("[MineLights] MineLights Server administrator restart requested.");
+            removeRemoteServer(args[commandIndex + 1]);
+        } else if ("stop".equals(action)) {
+            MineLightsClient.requestServerShutdown(args.length > commandIndex + 1 ? args[commandIndex + 1] : null);
         } else if ("check-update".equals(action) || "check-updates".equals(action)) {
             new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Manual-Update-Check").start();
             MineLightsClient.sendChatMessage("[MineLights] MineLights Server update check requested.");
         } else {
             throw new IllegalArgumentException("Unknown server action '" + action + "'.");
         }
+    }
+
+    private static void importPairingFile(String path) {
+        try {
+            megabytesme.minelights.network.RemoteServerProfile imported =
+                    megabytesme.minelights.network.V2Endpoint.readPairingFile(Paths.get(path));
+            synchronized (megabytesme.minelights.config.SimpleJsonConfig.configLock()) {
+                List<megabytesme.minelights.network.RemoteServerProfile> profiles = getRemoteServers();
+                for (int i = profiles.size() - 1; i >= 0; i--) {
+                    if (imported.serverId.equals(profiles.get(i).serverId)) {
+                        profiles.remove(i);
+                    }
+                }
+                profiles.add(imported);
+                MineLightsClient.saveConfig();
+            }
+            MineLightsClient.refreshLightingManager();
+            MineLightsClient.sendChatMessage("[MineLights] Pairing file imported for " + imported.displayName()
+                    + ". Connecting securely; the pairing code is not shown in chat.");
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    private static List<megabytesme.minelights.network.RemoteServerProfile> getRemoteServers() {
+        if (MineLightsClient.CONFIG.remoteServers == null) {
+            MineLightsClient.CONFIG.remoteServers = new java.util.concurrent.CopyOnWriteArrayList<megabytesme.minelights.network.RemoteServerProfile>();
+        }
+        return MineLightsClient.CONFIG.remoteServers;
+    }
+
+    private static void listRemoteServers() {
+        List<String> lines = new ArrayList<String>();
+        lines.add("[MineLights] Configured MineLights V2 servers:");
+        synchronized (megabytesme.minelights.config.SimpleJsonConfig.configLock()) {
+            List<megabytesme.minelights.network.RemoteServerProfile> profiles = getRemoteServers();
+            if (profiles.isEmpty()) {
+                lines.add("[MineLights] No remote servers. Import a .mlpair file with /minelights server pair-import <path>.");
+            } else {
+                for (int i = 0; i < profiles.size(); i++) {
+                    megabytesme.minelights.network.RemoteServerProfile profile = profiles.get(i);
+                    boolean paired = profile.clientId != null && profile.clientSecret != null;
+                    lines.add("[MineLights] " + (i + 1) + ". " + profile.displayName() + " — "
+                            + (paired ? "paired" : "pairing pending") + " (" + profile.serverId + ")");
+                }
+            }
+        }
+        MineLightsClient.sendChatMessages(lines);
+    }
+
+    private static void removeRemoteServer(String selector) {
+        megabytesme.minelights.network.RemoteServerProfile removed;
+        synchronized (megabytesme.minelights.config.SimpleJsonConfig.configLock()) {
+            List<megabytesme.minelights.network.RemoteServerProfile> profiles = getRemoteServers();
+            int index = -1;
+            try {
+                index = Integer.parseInt(selector) - 1;
+            } catch (NumberFormatException ignored) {
+                for (int i = 0; i < profiles.size(); i++) {
+                    if (selector.equalsIgnoreCase(profiles.get(i).serverId)) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            if (index < 0 || index >= profiles.size()) {
+                throw new IllegalArgumentException("Unknown server. Use /minelights server list.");
+            }
+            removed = profiles.remove(index);
+            MineLightsClient.saveConfig();
+        }
+        MineLightsClient.refreshLightingManager();
+        MineLightsClient.sendChatMessage("[MineLights] Removed remote server " + removed.displayName() + ".");
+    }
+
+
+    private static void openRgbAction(String[] args, int commandIndex) {
+        if (args.length <= commandIndex) {
+            throw new IllegalArgumentException("Usage: /minelights openrgb <list|add <host> [port]|remove <host> [port]>");
+        }
+        if (MineLightsClient.CONFIG.openRgbEndpoints == null) {
+            MineLightsClient.CONFIG.openRgbEndpoints = new java.util.concurrent.CopyOnWriteArrayList<OpenRGBEndpoint>();
+        }
+        String action = args[commandIndex].toLowerCase(Locale.ROOT);
+        List<OpenRGBEndpoint> endpoints = MineLightsClient.CONFIG.openRgbEndpoints;
+        if ("list".equals(action)) {
+            List<String> lines = new ArrayList<String>();
+            lines.add("[MineLights] OpenRGB endpoints (native OpenRGB protocol; no MineLights V2 TLS/auth):");
+            if (endpoints.isEmpty()) {
+                lines.add("[MineLights] No OpenRGB endpoints configured.");
+            } else {
+                for (int i = 0; i < endpoints.size(); i++) {
+                    lines.add("[MineLights] " + (i + 1) + ". " + endpoints.get(i).address());
+                }
+            }
+            MineLightsClient.sendChatMessages(lines);
+            return;
+        }
+        if (!("add".equals(action) || "remove".equals(action))) {
+            throw new IllegalArgumentException("OpenRGB action must be list, add, or remove.");
+        }
+        if (args.length < commandIndex + 2 || args.length > commandIndex + 3) {
+            throw new IllegalArgumentException("Usage: /minelights openrgb " + action + " <host> [port]");
+        }
+        String host = args[commandIndex + 1].trim();
+        int port = 6742;
+        if (args.length == commandIndex + 3) {
+            try {
+                port = Integer.parseInt(args[commandIndex + 2]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("OpenRGB port must be a number from 1 to 65535.");
+            }
+        }
+        OpenRGBEndpoint endpoint = new OpenRGBEndpoint(host, port);
+        if (!endpoint.isValid()) {
+            throw new IllegalArgumentException("OpenRGB host and port are invalid.");
+        }
+        int existing = -1;
+        for (int i = 0; i < endpoints.size(); i++) {
+            OpenRGBEndpoint current = endpoints.get(i);
+            if (host.equalsIgnoreCase(current.host) && port == current.port) {
+                existing = i;
+                break;
+            }
+        }
+        if ("add".equals(action)) {
+            if (existing >= 0) {
+                throw new IllegalArgumentException("That OpenRGB endpoint is already configured.");
+            }
+            endpoints.add(endpoint);
+            MineLightsClient.sendChatMessage("[MineLights] Added OpenRGB endpoint " + endpoint.address() + ".");
+        } else {
+            if (existing < 0) {
+                throw new IllegalArgumentException("That OpenRGB endpoint is not configured.");
+            }
+            endpoints.remove(existing);
+            MineLightsClient.sendChatMessage("[MineLights] Removed OpenRGB endpoint " + endpoint.address() + ".");
+        }
+        MineLightsClient.saveConfig();
+        MineLightsClient.refreshLightingManager();
+    }
+
+    private static String[] tokenize(String input) {
+        List<String> tokens = new ArrayList<String>();
+        StringBuilder token = new StringBuilder();
+        char quote = 0;
+        boolean escaped = false;
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (escaped) {
+                token.append(c);
+                escaped = false;
+            } else if (c == '\\' && quote != 0 && i + 1 < input.length()
+                    && input.charAt(i + 1) == quote) {
+                escaped = true;
+            } else if (quote != 0) {
+                if (c == quote) {
+                    quote = 0;
+                } else {
+                    token.append(c);
+                }
+            } else if (c == '"' || c == '\'') {
+                quote = c;
+            } else if (Character.isWhitespace(c)) {
+                if (token.length() > 0) {
+                    tokens.add(token.toString());
+                    token.setLength(0);
+                }
+            } else {
+                token.append(c);
+            }
+        }
+        if (escaped || quote != 0) {
+            throw new IllegalArgumentException("Unclosed quote in command.");
+        }
+        if (token.length() > 0) {
+            tokens.add(token.toString());
+        }
+        return tokens.toArray(new String[tokens.size()]);
     }
 
     private static String join(String[] values, int start, int end) {

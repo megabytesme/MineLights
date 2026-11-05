@@ -12,6 +12,20 @@ import megabytesme.minelights.MineLightsTransitionalConfigScreen;
 import megabytesme.minelights.MineLightsModernConfigScreen;
 //?}
 import net.minecraft.client.Minecraft;
+//? if loader_forge && <=1.14.3 {
+import megabytesme.minelights.network.MineLightsCommands;
+//?}
+//? if loader_forge && >=1.11.2 && <=1.14.3 {
+import net.minecraftforge.client.event.ClientChatEvent;
+//?}
+//? if loader_forge && <=1.11 {
+import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
+//? if >=1.9 {
+import net.minecraft.server.MinecraftServer;
+//?}
+//?}
 //? if loader_forge && >=1.14.2 && <1.17 {
 import net.minecraft.client.gui.screen.Screen;
 //?} else if loader_forge && >=1.17 {
@@ -154,6 +168,9 @@ public final class MineLightsForge {
         client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge");
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
+        //? if <=1.11 {
+        ClientCommandHandler.instance.registerCommand(new MineLightsLegacyCommand());
+        //?}
     }
     //?} else if >=26.1 {
     public MineLightsForge(FMLJavaModLoadingContext context) {
@@ -253,6 +270,15 @@ public final class MineLightsForge {
     //?}
 
     //? if loader_forge && <=1.14.3 {
+    //? if >=1.11.2 {
+    @SubscribeEvent
+    public void onClientChatSent(ClientChatEvent event) {
+        if (MineLightsCommands.handleSlashMessage(event.getMessage())) {
+            event.setCanceled(true);
+        }
+    }
+    //?}
+
     public static boolean consumeChatReceivedThisTick() {
         boolean received = chatReceivedThisTick;
         chatReceivedThisTick = false;
@@ -262,6 +288,28 @@ public final class MineLightsForge {
     @SubscribeEvent
     public void onClientChatReceived(ClientChatReceivedEvent event) {
         chatReceivedThisTick = true;
+    }
+    //?}
+
+    //? if loader_forge && <=1.11 {
+    private static final class MineLightsLegacyCommand extends CommandBase {
+        //? if <=1.9.4 {
+        @Override public String getCommandName() { return "minelights"; }
+        @Override public String getCommandUsage(ICommandSender sender) { return "/minelights help"; }
+        //?} else {
+        @Override public String getName() { return "minelights"; }
+        @Override public String getUsage(ICommandSender sender) { return "/minelights help"; }
+        //?}
+        @Override public int getRequiredPermissionLevel() { return 0; }
+        //? if <1.9 {
+        @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override public void processCommand(ICommandSender sender, String[] args) {
+        //?} else {
+        @Override public boolean checkPermission(MinecraftServer server, ICommandSender sender) { return true; }
+        @Override public void execute(MinecraftServer server, ICommandSender sender, String[] args) {
+        //?}
+            MineLightsCommands.handleCommand("minelights " + String.join(" ", args));
+        }
     }
     //?}
 

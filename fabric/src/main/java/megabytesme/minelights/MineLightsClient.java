@@ -7,9 +7,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
-import megabytesme.minelights.network.CommandClient;
 import megabytesme.minelights.network.DiscoveryListener;
 import megabytesme.minelights.network.UDPClient;
+import megabytesme.minelights.network.V2Endpoint;
+import megabytesme.minelights.network.V2ClientConnection;
 import megabytesme.minelights.runtime.LightingManager;
 import net.minecraft.SharedConstants;
 //? if >=26.1 {
@@ -44,6 +45,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
@@ -68,7 +70,7 @@ import java.util.regex.Pattern;
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.3.8.5";
+    public static final String MOD_VERSION = "2.4.0";
     private static Path configDir = Paths.get(".");
     private static String resolvedModVersion = MOD_VERSION;
     private static String resolvedModLoader = "fabric";
@@ -78,14 +80,54 @@ public class MineLightsClient implements ClientModInitializer {
     private static Thread lightingManagerThread;
     private static Thread discoveryThread;
     public static Thread serverMonitorThread;
-    public static volatile boolean isManualRestart = false;
 
     public static final List<String> discoveredDevices = Collections.synchronizedList(new ArrayList<>());
+    public static final java.util.concurrent.ConcurrentMap<String, String> discoveredDeviceNames =
+            new java.util.concurrent.ConcurrentHashMap<String, String>();
+
+    public static String getDiscoveredDeviceDisplayName(String uniqueId) {
+        String displayName = discoveredDeviceNames.get(uniqueId);
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            return displayName;
+        }
+        int separator = uniqueId == null ? -1 : uniqueId.indexOf('|');
+        return separator >= 0 ? uniqueId.substring(separator + 1) : uniqueId;
+    }
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
     public static volatile boolean isProxyConnected = false;
 
     public static String getModVersion() {
         return resolvedModVersion != null ? resolvedModVersion : MOD_VERSION;
+    }
+
+    private static String normalizeModVersion(String version) {
+        if (version == null) {
+            return "";
+        }
+        int buildMetadataIndex = version.indexOf('+');
+        return buildMetadataIndex < 0 ? version : version.substring(0, buildMetadataIndex);
+    }
+
+    private static boolean isNewerModVersion(String latestVersion, String currentVersion) {
+        String latest = normalizeModVersion(latestVersion);
+        String current = normalizeModVersion(currentVersion);
+        if (latest.equals(current)) {
+            return false;
+        }
+        String[] latestParts = latest.split("\\.");
+        String[] currentParts = current.split("\\.");
+        for (int i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+            try {
+                int latestPart = i < latestParts.length ? Integer.parseInt(latestParts[i]) : 0;
+                int currentPart = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
+                if (latestPart != currentPart) {
+                    return latestPart > currentPart;
+                }
+            } catch (NumberFormatException unknownVersionFormat) {
+                return !latest.equals(current);
+            }
+        }
+        return false;
     }
 
     //? if >=1.16 && <1.21.6 {
@@ -147,7 +189,9 @@ public class MineLightsClient implements ClientModInitializer {
 
     public static CountDownLatch proxyDiscoveredLatch = new CountDownLatch(1);
 
-    private static final AtomicBoolean hasPerformedServerCheck = new AtomicBoolean(false);
+    // 0 = no check, 1 = notice-only, 2 = automatic install permitted.
+    private static final java.util.concurrent.atomic.AtomicInteger serverCheckMode = new java.util.concurrent.atomic.AtomicInteger();
+    private static long nextDiscoveryRetry;
     private static final String GITHUB_API_URL = "https://api.github.com/repos/megabytesme/MineLights-Server/releases/latest";
     private static final String SERVER_RELEASES_URL = "https://github.com/megabytesme/MineLights-Server/releases";
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -163,8 +207,17 @@ public class MineLightsClient implements ClientModInitializer {
     private static final AtomicBoolean hasCheckedForMissingServer = new AtomicBoolean(false);
     private static final ConcurrentLinkedQueue<List<String>> pendingServerMessages = new ConcurrentLinkedQueue<>();
     private static final AtomicBoolean serverDownloadInProgress = new AtomicBoolean(false);
+    private static final Object automaticUpdateLock = new Object();
+    private static final Object automaticUpdateExecution = new Object();
+    private static volatile CountDownLatch automaticUpdateDecision;
+    private static volatile long automaticUpdateStartedNanos;
+    private static final java.util.concurrent.atomic.AtomicLong automaticDownloadProgressNanos = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicReference<HttpURLConnection> activeAutomaticDownload = new java.util.concurrent.atomic.AtomicReference<HttpURLConnection>();
 
     private static Process serverProcess = null;
+    private static String serverLaunchId = null;
+    private static final AtomicBoolean manualStopRequested = new AtomicBoolean(false);
+    private static final AtomicBoolean shutdownStarted = new AtomicBoolean(false);
 
     //? if >=26.1 {
     public static Minecraft getMinecraft() {
@@ -263,6 +316,7 @@ public class MineLightsClient implements ClientModInitializer {
 
         CONFIG_MANAGER = new SimpleJsonConfig("minelights");
         CONFIG = CONFIG_MANAGER.load(MineLightsConfig.class, new MineLightsConfig());
+        CONFIG.normalizeCollections();
 
         if (IS_WINDOWS) {
             initializeServerConnection();
@@ -287,8 +341,14 @@ public class MineLightsClient implements ClientModInitializer {
     //?} else {
     /* public void onClientTick(MinecraftClient client) {
     *///?}
-        if (IS_WINDOWS && (!CONFIG.manualServerManagement || CONFIG.checkServerUpdates)
-                && hasPerformedServerCheck.compareAndSet(false, true)) {
+        reconcileLightingState();
+        int checkMode = !IS_WINDOWS || !CONFIG.enableMod ? 0
+                : automaticServerInstallAllowed() ? 2 : CONFIG.checkServerUpdates ? 1 : 0;
+        int previousCheckMode = serverCheckMode.getAndSet(checkMode);
+        if (checkMode != 2) resetAutomaticUpdateWhenDisallowed();
+        if (checkMode == 2 && checkMode != previousCheckMode) {
+            scheduleAutomaticUpdate(false);
+        } else if (checkMode == 1 && checkMode != previousCheckMode) {
             new Thread(MineLightsClient::checkForServerUpdate, "MineLights-Update-Check").start();
         }
 
@@ -383,6 +443,19 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     public void shutdown() {
+        if (!shutdownStarted.compareAndSet(false, true)) {
+            return;
+        }
+        cancelAutomaticDownload();
+        Process process;
+        String launchId;
+        synchronized (MineLightsClient.class) { process = serverProcess; launchId = serverLaunchId; }
+        if (IS_WINDOWS && process != null && process.isAlive() && launchId != null) {
+            String result = lightingManager == null ? "unavailable" : lightingManager.requestServerShutdown(null, launchId);
+            if ("unavailable".equals(result)) result = requestLocalShutdownWithTemporarySession(launchId);
+            LOGGER.info("accepted".equals(result) ? "MineLights Server accepted the shutdown request." :
+                    "MineLights Server remains running (other clients may be connected or the server does not support safe shutdown).");
+        }
         if (lightingManagerThread != null)
             lightingManagerThread.interrupt();
         if (discoveryThread != null)
@@ -390,33 +463,77 @@ public class MineLightsClient implements ClientModInitializer {
         if (serverMonitorThread != null)
             serverMonitorThread.interrupt();
         UDPClient.close();
-        if (IS_WINDOWS) {
-            CommandClient.sendCommandSync("shutdown");
-            Process process = serverProcess;
-            if (process != null && process.isAlive()) {
-                try {
-                    if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                        LOGGER.warn("MineLights server did not exit after shutdown; terminating its process.");
-                        process.destroy();
-                        if (!process.waitFor(2, TimeUnit.SECONDS)) {
-                            LOGGER.warn("MineLights server did not stop after termination; forcing it to exit.");
-                            process.destroyForcibly().waitFor(2, TimeUnit.SECONDS);
-                        }
-                    }
-                    if (!process.isAlive()) {
-                        LOGGER.info("MineLights server process stopped.");
-                        serverProcess = null;
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    process.destroy();
-                    if (process.isAlive()) {
-                        process.destroyForcibly();
-                    }
-                    serverProcess = null;
-                }
+        serverProcess = null;
+    }
+
+    private static String requestLocalShutdownWithTemporarySession(String expectedLaunchId) {
+        if (CONFIG == null) return "unavailable";
+        try {
+            long deadline = System.currentTimeMillis() + 2000;
+            V2Endpoint endpoint;
+            while ((endpoint = V2Endpoint.readLocal()) == null && System.currentTimeMillis() < deadline) {
+                Thread.sleep(100);
+            }
+            if (endpoint == null) return "unavailable";
+            String clientId;
+            String clientSecret;
+            synchronized (SimpleJsonConfig.configLock()) {
+                CONFIG_MANAGER.ensureCredentialStorageAvailable();
+                if (CONFIG.v2ClientId == null || CONFIG.v2ClientId.trim().isEmpty()) CONFIG.v2ClientId = V2ClientConnection.newClientId();
+                if (CONFIG.v2ClientSecret == null || CONFIG.v2ClientSecret.isEmpty()) CONFIG.v2ClientSecret = V2ClientConnection.randomSecret();
+                saveConfig();
+                clientId = CONFIG.v2ClientId;
+                clientSecret = CONFIG.v2ClientSecret;
+            }
+            try (V2ClientConnection connection = V2ClientConnection.connectLocal(endpoint,
+                    clientId, clientSecret, V2Endpoint.readLocalEnrollmentKey(),
+                    "minelights-java", getModVersion(), Collections.singleton("*"))) {
+                if (expectedLaunchId != null && !connection.matchesLaunchId(expectedLaunchId)) return "not_owned";
+                return connection.requestServerShutdown();
+            }
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+            LOGGER.warn("Could not request shutdown of the locally started server: {}", e.getMessage());
+            return "unavailable";
+        }
+    }
+
+    private static String requestRemoteShutdownWithTemporarySession(String serverId) {
+        megabytesme.minelights.network.RemoteServerProfile selected = null;
+        synchronized (SimpleJsonConfig.configLock()) {
+            if (CONFIG == null || CONFIG.remoteServers == null) return "unavailable";
+            for (megabytesme.minelights.network.RemoteServerProfile profile : CONFIG.remoteServers) {
+                if (profile != null && serverId.equals(profile.serverId)
+                        && profile.clientId != null && profile.clientSecret != null) { selected = profile; break; }
             }
         }
+        if (selected != null) {
+            megabytesme.minelights.network.RemoteServerProfile profile = selected;
+            try (V2ClientConnection connection = V2ClientConnection.connectRemote(profile,
+                    profile.clientId, "minelights-java", getModVersion(), Collections.singleton("*"))) {
+                return connection.requestServerShutdown();
+            } catch (IOException e) {
+                LOGGER.warn("Could not request shutdown of the paired server: {}", e.getMessage());
+                return "unavailable";
+            }
+        }
+        return "unavailable";
+    }
+
+    public static void requestServerShutdown(final String serverId) {
+        new Thread(() -> {
+            LightingManager manager = lightingManager;
+            if (serverId == null) manualStopRequested.set(true);
+            String result = manager == null ? "unavailable" : manager.requestServerShutdown(serverId);
+            if ("unavailable".equals(result)) result = serverId == null ?
+                    requestLocalShutdownWithTemporarySession(null) : requestRemoteShutdownWithTemporarySession(serverId);
+            if (serverId == null && !"accepted".equals(result) && !"pending".equals(result)) manualStopRequested.set(false);
+            String message = "accepted".equals(result) ? "Server accepted the stop request." :
+                "pending".equals(result) ? "Other clients are connected; the server will stop if they disconnect shortly." :
+                "other_clients".equals(result) ? "Server remains running because other clients are connected." :
+                "Server stop request unavailable or unsupported.";
+            sendChatMessage("[MineLights] " + message);
+        }, "MineLights-Server-Stop").start();
     }
 
     //? if <= 1.15.2 {
@@ -442,7 +559,7 @@ public class MineLightsClient implements ClientModInitializer {
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (isNewerModVersion(latestVersionNumber, currentVersion)) {
                     String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
                     queueUpdateNotification(latestVersionNumber, modrinthUrl);
                 }
@@ -474,7 +591,7 @@ public class MineLightsClient implements ClientModInitializer {
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (isNewerModVersion(latestVersionNumber, currentVersion)) {
                     String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
                     queueUpdateNotification(latestVersionNumber, modrinthUrl);
                 }
@@ -509,7 +626,7 @@ public class MineLightsClient implements ClientModInitializer {
 
             if (versions.size() > 0) {
                 String latestVersionNumber = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (isNewerModVersion(latestVersionNumber, currentVersion)) {
                     String modrinthUrl = "https://modrinth.com/mod/" + MODRINTH_PROJECT_ID + "/versions?version=" + gameVersion + "#download";
                     queueUpdateNotification(latestVersionNumber, modrinthUrl);
                 }
@@ -575,7 +692,7 @@ public class MineLightsClient implements ClientModInitializer {
                 String latestVersionNumber = latestVersion.get("version_number").getAsString();
                 LOGGER.info("Latest version number from Modrinth: {}", latestVersionNumber);
 
-                if (!currentVersion.equals(latestVersionNumber)) {
+                if (isNewerModVersion(latestVersionNumber, currentVersion)) {
                     LOGGER.info("A new version of MineLights is available: {}", latestVersionNumber);
                     //? if >=26.1 {
                     String gameVersionId = SharedConstants.getCurrentVersion().id();
@@ -615,8 +732,8 @@ public class MineLightsClient implements ClientModInitializer {
             return;
         }
 
-        if (!CONFIG.manualServerManagement) {
-            checkForServerUpdateAutomatically();
+        if (automaticServerInstallAllowed()) {
+            scheduleAutomaticUpdate(true);
             return;
         }
 
@@ -634,7 +751,7 @@ public class MineLightsClient implements ClientModInitializer {
                 return;
             }
 
-            if (release.expectedHash.isEmpty()) {
+            if (!megabytesme.minelights.network.ServerReleaseIntegrity.isValidDigest(release.expectedHash)) {
                 LOGGER.warn("MineLights Server release does not publish a SHA-256 digest; skipping update notice.");
                 queueServerNotification(Collections.singletonList(
                         "[MineLights] Could not verify the latest server release. See " + SERVER_RELEASES_URL));
@@ -665,18 +782,17 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static void checkForServerUpdateAutomatically() {
         try {
+            if (!automaticServerInstallAllowed()) return;
             ServerRelease release = getLatestServerRelease();
             if (release == null) {
                 return;
             }
 
+            megabytesme.minelights.network.ServerReleaseIntegrity.requireValidDigest(release.expectedHash);
+
             Path serverExePath = getServerExePath();
             boolean needsUpdate = !Files.isRegularFile(serverExePath);
             if (!needsUpdate) {
-                if (release.expectedHash.isEmpty()) {
-                    LOGGER.warn("Could not verify MineLights Server from GitHub; assuming it is up to date.");
-                    return;
-                }
                 needsUpdate = !sha256(serverExePath).equalsIgnoreCase(release.expectedHash);
             }
             if (!needsUpdate) {
@@ -687,18 +803,14 @@ public class MineLightsClient implements ClientModInitializer {
                 return;
             }
 
-            Thread downloadThread = new Thread(() -> {
-                try {
-                    LOGGER.info("Downloading MineLights Server {}.", release.version);
-                    downloadAndInstallServer(release, serverExePath, true);
-                } catch (Exception exception) {
-                    LOGGER.error("Failed to download or install MineLights Server", exception);
-                } finally {
-                    serverDownloadInProgress.set(false);
-                }
-            }, "MineLights-Server-Auto-Updater");
-            downloadThread.setDaemon(true);
-            downloadThread.start();
+            try {
+                LOGGER.info("Downloading MineLights Server {}.", release.version);
+                automaticDownloadProgressNanos.set(System.nanoTime());
+                downloadAndInstallServer(release, serverExePath, true);
+            } finally {
+                automaticDownloadProgressNanos.set(0);
+                serverDownloadInProgress.set(false);
+            }
         } catch (Exception e) {
             LOGGER.error("Failed to check for MineLights Server updates", e);
         }
@@ -755,48 +867,42 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static void downloadAndInstallServer(ServerRelease release, Path serverExePath,
             boolean restartAfterInstall) throws IOException {
+        megabytesme.minelights.network.ServerReleaseIntegrity.requireValidDigest(release.expectedHash);
+        if (!automaticServerInstallAllowed()) {
+            throw new IOException("Automatic server installation is disabled in MineLights settings.");
+        }
+        if (isServerRunning()) {
+            throw new IOException("MineLights Server is running as a shared service and was left untouched. Stop it from its tray UI before updating.");
+        }
         Path temporaryPath = serverExePath.resolveSibling("MineLights.exe.new");
         try {
             downloadServerRelease(release, temporaryPath);
 
-            if (Files.isRegularFile(serverExePath) && isServerRunning()) {
-                LOGGER.info("Stopping MineLights Server before replacing its executable.");
-                CommandClient.sendCommand("shutdown");
-                Process process = serverProcess;
-                if (process != null) {
-                    try {
-                        process.waitFor(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new IOException("Interrupted while stopping MineLights Server", e);
-                    }
-                }
-                long shutdownDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-                while (isServerRunning() && System.nanoTime() < shutdownDeadline) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new IOException("Interrupted while stopping MineLights Server", e);
-                    }
-                }
-                if (isServerRunning()) {
-                    throw new IOException("MineLights Server did not stop; its executable was left unchanged.");
-                }
+            if (!automaticServerInstallAllowed()) {
+                throw new IOException("Automatic server installation was disabled during the download.");
+            }
+
+            if (isServerRunning()) {
+                throw new IOException("MineLights Server started during the download and was left untouched. Stop it from its tray UI before updating.");
             }
 
             Files.createDirectories(serverExePath.getParent());
+            if (!automaticServerInstallAllowed()) {
+                throw new IOException("Automatic server installation was disabled before replacement.");
+            }
             try {
                 Files.move(temporaryPath, serverExePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
                         java.nio.file.StandardCopyOption.ATOMIC_MOVE);
             } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                if (!automaticServerInstallAllowed()) {
+                    throw new IOException("Automatic server installation was disabled before replacement.");
+                }
                 Files.move(temporaryPath, serverExePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
 
             LOGGER.info("MineLights Server {} installed successfully.", release.version);
             lightingInitialized.set(false);
             if (restartAfterInstall) {
-                isManualRestart = true;
                 startServerProcess();
             }
         } finally {
@@ -805,12 +911,18 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private static void downloadServerRelease(ServerRelease release, Path destination) throws IOException {
+        megabytesme.minelights.network.ServerReleaseIntegrity.requireValidDigest(release.expectedHash);
+        if (!automaticServerInstallAllowed()) {
+            throw new IOException("Automatic server installation is disabled in MineLights settings.");
+        }
         Files.createDirectories(destination.getParent());
         HttpURLConnection connection = (HttpURLConnection) URI.create(release.downloadUrl).toURL().openConnection();
+        activeAutomaticDownload.set(connection);
         connection.setRequestProperty("User-Agent", "MineLights-Mod/" + getModVersion());
         connection.setConnectTimeout(10000);
         connection.setReadTimeout(30000);
         try {
+            if (!automaticServerInstallAllowed()) throw new IOException("Automatic server installation was disabled before download.");
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 throw new IOException("MineLights Server download responded with HTTP " + responseCode);
@@ -820,13 +932,14 @@ public class MineLightsClient implements ClientModInitializer {
                 byte[] buffer = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = input.read(buffer)) != -1) {
+                    automaticDownloadProgressNanos.set(System.nanoTime());
+                    if (!automaticServerInstallAllowed()) {
+                        throw new IOException("Automatic server installation was disabled during the download.");
+                    }
                     output.write(buffer, 0, bytesRead);
                 }
             }
-            if (!release.expectedHash.isEmpty()
-                    && !sha256(destination).equalsIgnoreCase(release.expectedHash)) {
-                throw new IOException("MineLights Server SHA-256 did not match the release digest.");
-            }
+            megabytesme.minelights.network.ServerReleaseIntegrity.verify(destination, release.expectedHash);
         } catch (Exception e) {
             Files.deleteIfExists(destination);
             if (e instanceof IOException) {
@@ -834,6 +947,7 @@ public class MineLightsClient implements ClientModInitializer {
             }
             throw new IOException("Failed to download MineLights Server", e);
         } finally {
+            activeAutomaticDownload.compareAndSet(connection, null);
             connection.disconnect();
         }
     }
@@ -908,6 +1022,8 @@ public class MineLightsClient implements ClientModInitializer {
                 client.player.sendMessage(new net.minecraft.text.LiteralText(text));
                 //?} else if >=26.1 {
                 client.player.sendSystemMessage(Component.literal(text));
+                //?} else if >=1.16 && <1.17 {
+                /* client.player.sendMessage(new net.minecraft.text.LiteralText(text), false); */
                 //?} else if >=1.19 {
                 /* client.player.sendMessage(Text.literal(text), false); */
                 //?} else {
@@ -942,29 +1058,101 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     private void initializeServerConnection() {
-        discoveryThread = new Thread(new DiscoveryListener(), "MineLights-Discovery");
-        discoveryThread.setDaemon(true);
-        discoveryThread.start();
-
         updateServerMonitorSetting();
+    }
+
+    private static synchronized void reconcileLightingState() {
+        if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()) {
+            if (lightingManager != null) lightingManager.requestStop();
+            if (lightingManagerThread != null) lightingManagerThread.interrupt();
+            if (discoveryThread != null) discoveryThread.interrupt();
+            lightingInitialized.set(false);
+            isProxyConnected = false;
+            return;
+        }
+        if (IS_WINDOWS && (discoveryThread == null || !discoveryThread.isAlive())
+                && System.currentTimeMillis() >= nextDiscoveryRetry) {
+            nextDiscoveryRetry = System.currentTimeMillis() + 10000;
+            discoveryThread = new Thread(new DiscoveryListener(), "MineLights-Discovery");
+            discoveryThread.setDaemon(true);
+            discoveryThread.start();
+        }
+        if (!lightingInitialized.get() && (lightingManagerThread == null || !lightingManagerThread.isAlive())) {
+            triggerLightingInitialization();
+        }
+    }
+
+    private static boolean automaticServerStartAllowed() {
+        return CONFIG != null && CONFIG.mayAutomaticallyStartServer(shutdownStarted.get());
+    }
+
+    private static boolean automaticServerInstallAllowed() {
+        return CONFIG != null && CONFIG.mayAutomaticallyInstallServer(shutdownStarted.get(), manualStopRequested.get());
+    }
+
+    private static void resetAutomaticUpdateWhenDisallowed() {
+        if (!automaticServerInstallAllowed()) synchronized (automaticUpdateLock) {
+            if (!automaticServerInstallAllowed()) {
+                automaticUpdateDecision = null;
+                cancelAutomaticDownload();
+            }
+        }
+    }
+
+    private static void cancelAutomaticDownload() {
+        final HttpURLConnection connection = activeAutomaticDownload.getAndSet(null);
+        if (connection == null) return;
+        Thread cancel = new Thread(connection::disconnect, "MineLights-Download-Cancel");
+        cancel.setDaemon(true);
+        cancel.start();
+    }
+
+    private static CountDownLatch scheduleAutomaticUpdate(boolean force) {
+        synchronized (automaticUpdateLock) {
+            if (!automaticServerInstallAllowed()) { automaticUpdateDecision = null; return null; }
+            if (automaticUpdateDecision != null && (!force || automaticUpdateDecision.getCount() != 0)) return automaticUpdateDecision;
+            final CountDownLatch decision = new CountDownLatch(1);
+            automaticUpdateDecision = decision;
+            automaticUpdateStartedNanos = System.nanoTime();
+            Thread worker = new Thread(() -> {
+                try {
+                    synchronized (automaticUpdateExecution) {
+                        if (automaticUpdateDecision == decision && automaticServerInstallAllowed()) checkForServerUpdateAutomatically();
+                    }
+                } finally { decision.countDown(); }
+            }, "MineLights-Server-Auto-Updater");
+            worker.setDaemon(true);
+            worker.start();
+            return decision;
+        }
+    }
+
+    private static void awaitInitialAutomaticUpdate() throws InterruptedException {
+        CountDownLatch decision = scheduleAutomaticUpdate(false);
+        if (decision == null) return;
+        long metadataDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+        while (automaticServerInstallAllowed() && decision.getCount() != 0) {
+            if (decision.await(250, TimeUnit.MILLISECONDS)) return;
+            long now = System.nanoTime();
+            long progress = automaticDownloadProgressNanos.get();
+            boolean activeTransfer = serverDownloadInProgress.get() && progress != 0
+                    && now - progress < TimeUnit.SECONDS.toNanos(35);
+            if (now >= metadataDeadline && !activeTransfer) return;
+        }
     }
 
     /** Applies changes to the user-controlled automatic server start setting immediately. */
     public static synchronized void updateServerMonitorSetting() {
+        manualStopRequested.set(false);
         if (!IS_WINDOWS || CONFIG == null) {
             return;
         }
 
-        if (CONFIG.autoStartServer) {
-            if (serverMonitorThread == null || !serverMonitorThread.isAlive()
-                    || serverMonitorThread.isInterrupted()) {
-                serverMonitorThread = new Thread(MineLightsClient::serverMonitorLoop, "MineLights-Server-Monitor");
-                serverMonitorThread.setDaemon(true);
-                serverMonitorThread.start();
-            }
-        } else if (serverMonitorThread != null) {
-            serverMonitorThread.interrupt();
-            serverMonitorThread = null;
+        if (serverMonitorThread == null || !serverMonitorThread.isAlive()
+                || serverMonitorThread.isInterrupted()) {
+            serverMonitorThread = new Thread(MineLightsClient::serverMonitorLoop, "MineLights-Server-Monitor");
+            serverMonitorThread.setDaemon(true);
+            serverMonitorThread.start();
         }
     }
 
@@ -972,59 +1160,56 @@ public class MineLightsClient implements ClientModInitializer {
         LOGGER.info("Starting MineLights Server monitor.");
         boolean hasConnected = false;
         long lastLaunchAttemptTime = 0;
+        long nextV2InitializationRetry = 0;
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                if (!automaticServerStartAllowed()) {
+                    resetAutomaticUpdateWhenDisallowed();
+                    Thread.sleep(1000);
+                    continue;
+                }
                 if (isServerRunning()) {
-                    if (isManualRestart) {
-                        LOGGER.info("New server process detected after manual restart. Forcing re-initialization...");
-                        lightingInitialized.set(false);
-                        isManualRestart = false;
-                        hasConnected = false;
-                    }
-
                     if (!hasConnected) {
                         triggerLightingInitialization();
                         hasConnected = true;
+                        nextV2InitializationRetry = System.currentTimeMillis() + 5000;
+                    } else if (isV2ServerRunning() && !isProxyConnected
+                            && System.currentTimeMillis() >= nextV2InitializationRetry) {
+                        LOGGER.info("MineLights Server V2 is ready; retrying lighting initialization.");
+                        lightingInitialized.set(false);
+                        triggerLightingInitialization();
+                        nextV2InitializationRetry = System.currentTimeMillis() + 5000;
                     }
 
-                    Thread.sleep(10000);
+                    Thread.sleep(isV2ServerRunning() && !isProxyConnected ? 1000 : 10000);
                     continue;
                 }
 
+                isProxyConnected = false;
                 lightingInitialized.set(false);
                 hasConnected = false;
+                nextV2InitializationRetry = 0;
 
-                if (isManualRestart) {
-                    LOGGER.info("Manual restart initiated. Waiting for new server process to start...");
-                    Thread.sleep(8000);
+                if (manualStopRequested.get()) {
+                    Thread.sleep(1000);
                     continue;
                 }
-
                 Path serverExePath = getServerExePath();
 
+                awaitInitialAutomaticUpdate();
+                resetAutomaticUpdateWhenDisallowed();
+                if (!automaticServerStartAllowed() || manualStopRequested.get()) continue;
+                if (isServerRunning()) continue;
+
                 if (!Files.isRegularFile(serverExePath)) {
-                    if (CONFIG.manualServerManagement) {
-                        Thread.sleep(10000);
-                        continue;
-                    }
-                    if (!serverDownloadInProgress.compareAndSet(false, true)) {
-                        Thread.sleep(1000);
-                        continue;
-                    }
-                    try {
-                        ServerRelease release = getLatestServerRelease();
-                        if (release == null) {
-                            Thread.sleep(30000);
-                        } else {
-                            downloadAndInstallServer(release, serverExePath, true);
+                    synchronized (automaticUpdateLock) {
+                        if (automaticUpdateDecision != null && automaticUpdateDecision.getCount() == 0
+                                && System.nanoTime() - automaticUpdateStartedNanos >= TimeUnit.SECONDS.toNanos(30)) {
+                            automaticUpdateDecision = null;
                         }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to automatically download MineLights Server", e);
-                        Thread.sleep(30000);
-                    } finally {
-                        serverDownloadInProgress.set(false);
                     }
+                    Thread.sleep(1000);
                     continue;
                 }
 
@@ -1048,6 +1233,9 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     public static boolean isServerRunning() {
+        if (isV2ServerRunning()) {
+            return true;
+        }
         try (Socket ignored = new Socket("127.0.0.1", 63213)) {
             return true;
         } catch (IOException e) {
@@ -1055,7 +1243,23 @@ public class MineLightsClient implements ClientModInitializer {
         }
     }
 
-    private static void startServerProcess() {
+    private static boolean isV2ServerRunning() {
+        try {
+            V2Endpoint endpoint = V2Endpoint.readLocal();
+            if (endpoint == null) {
+                return false;
+            }
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(endpoint.host, endpoint.port), 1000);
+                return true;
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static synchronized void startServerProcess() {
+        if (!automaticServerStartAllowed() || manualStopRequested.get()) return;
         Path serverExePath = getServerExePath();
 
         if (!Files.exists(serverExePath)) {
@@ -1064,11 +1268,14 @@ public class MineLightsClient implements ClientModInitializer {
 
         try {
             LOGGER.info("Launching server from: {}", serverExePath.toAbsolutePath());
-            ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString());
+            ProcessBuilder pb = new ProcessBuilder(serverExePath.toAbsolutePath().toString(), "--client-started");
+            String launchId = java.util.UUID.randomUUID().toString();
+            pb.environment().put("MINELIGHTS_LAUNCH_ID", launchId);
             pb.directory(serverExePath.getParent().toFile());
             pb.redirectErrorStream(true);
             Process process = pb.start();
             serverProcess = process;
+            serverLaunchId = launchId;
             startServerOutputDrain(process);
         } catch (IOException e) {
             LOGGER.warn("Failed to start MineLights.exe process: {}", e.getMessage());
@@ -1095,6 +1302,7 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     public static synchronized void triggerLightingInitialization() {
+        if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()) return;
         if (lightingInitialized.compareAndSet(false, true)) {
             LOGGER.info("Primary initialization trigger. Starting lighting systems...");
             refreshLightingManager();
@@ -1104,18 +1312,29 @@ public class MineLightsClient implements ClientModInitializer {
     }
 
     public static synchronized void refreshLightingManager() {
+        if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()) {
+            reconcileLightingState();
+            return;
+        }
         LOGGER.info("Refreshing lighting manager...");
 
         if (lightingManagerThread != null && lightingManagerThread.isAlive()) {
+            if (lightingManager != null) lightingManager.requestStop();
             lightingManagerThread.interrupt();
             try {
                 lightingManagerThread.join(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            if (lightingManagerThread.isAlive()) {
+                lightingInitialized.set(false);
+                return;
+            }
         }
 
         discoveredDevices.clear();
+        discoveredDeviceNames.clear();
+        isProxyConnected = false;
         proxyDiscoveredLatch = new CountDownLatch(1);
         lightingManager = new LightingManager();
         lightingManagerThread = new Thread(lightingManager, "MineLights-MainLoop");

@@ -32,6 +32,7 @@
   "option.mine-lights.restart.tooltip": "If the server process crashes or stops responding,\ncheck this box and save to restart it.",
   "option.mine-lights.restart_admin.label": "Restart Server as Administrator",
   "option.mine-lights.restart_admin.tooltip": "Use this if integrations like Mystic Light aren't working.\nRequires administrator privileges.",
+  "text.mine-lights.server.restart_from_tray": "The V2 server is shared with other clients and software. Restart or stop it from its system tray menu.",
   "option.mine-lights.device.header": "Enable or disable specific lighting devices below:",
   "option.mine-lights.clear_disabled.label": "Re-enable All Devices",
   "option.mine-lights.clear_disabled.tooltip": "Check this box to clear the list of all disabled devices.",

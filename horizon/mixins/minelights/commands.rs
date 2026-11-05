@@ -1,7 +1,24 @@
-use super::minelights_bridge::{
-    ACTION_CHECK_UPDATE, ACTION_REFRESH, ACTION_RESTART, ACTION_RESTART_ADMIN, BRIDGE, bridge_for,
-};
+use super::minelights_bridge::{ACTION_CHECK_UPDATE, ACTION_REFRESH, BRIDGE, bridge_for};
 use super::minelights_config::{SETTINGS, Settings, on_off, persist_settings, settings_for};
+use super::minelights_protocol;
+use std::path::PathBuf;
+
+#[cfg(test)]
+mod fallback_tests {
+    use super::*;
+
+    #[test]
+    fn explicit_legacy_setting_reports_its_security_properties() {
+        let mut settings = Settings::default();
+        assert!(!settings.allow_legacy_v1_fallback);
+        let message = set_setting(&mut settings, "legacy-v1-fallback", "on").unwrap();
+        assert!(settings.allow_legacy_v1_fallback);
+        assert!(message.contains("unauthenticated"));
+        assert_eq!(setting_value(&settings, "legacy-v1-fallback").as_deref(), Some("On"));
+        set_setting(&mut settings, "legacy-v1-fallback", "off").unwrap();
+        assert!(!settings.allow_legacy_v1_fallback);
+    }
+}
 
 const SETTING_NAMES: &[&str] = &[
     "enabled",
@@ -39,6 +56,7 @@ const SETTING_NAMES: &[&str] = &[
     "yeelight",
     "notify-missing-server",
     "check-server-updates",
+    "legacy-v1-fallback",
 ];
 
 pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran: &mut bool) {
@@ -100,15 +118,60 @@ pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran:
         }
         "refresh" => request_action(game, ACTION_REFRESH, "Refreshing lighting devices."),
         "clear-disabled" | "clear-disabled-devices" => clear_disabled_devices(game),
-        "server" => match parts.next().map(str::to_ascii_lowercase).as_deref() {
-            Some("restart") => {
-                request_action(game, ACTION_RESTART, "Restarting MineLights Server.")
+        "openrgb" => {
+            let action = parts.next().unwrap_or("list").to_ascii_lowercase();
+            match action.as_str() {
+                "list" => list_openrgb_endpoints(game),
+                "add" => {
+                    let (Some(host), Some(port)) = (parts.next(), parts.next()) else {
+                        chat(game, "Usage: /minelights openrgb add <host> <port>");
+                        return;
+                    };
+                    add_openrgb_endpoint(game, host, port);
+                }
+                "remove" => {
+                    let Some(index) = parts.next() else {
+                        chat(game, "Usage: /minelights openrgb remove <number>");
+                        return;
+                    };
+                    remove_openrgb_endpoint(game, index);
+                }
+                _ => chat(
+                    game,
+                    "Usage: /minelights openrgb <list|add <host> <port>|remove <number>>",
+                ),
             }
-            Some("restart-admin") | Some("restart-as-admin") => request_action(
-                game,
-                ACTION_RESTART_ADMIN,
-                "Restarting MineLights Server as administrator.",
-            ),
+        }
+        "server" => match parts.next().map(str::to_ascii_lowercase).as_deref() {
+            Some("import") => {
+                let Some(path) = server_import_path(command) else {
+                    chat(game, "Usage: /minelights server import <path-to-.mlpair>");
+                    return;
+                };
+                import_server_pairing(game, path);
+            }
+            Some("list") => list_remote_servers(game),
+            Some("remove") | Some("forget") => {
+                let Some(server_id) = parts.next() else {
+                    chat(game, "Usage: /minelights server remove <server-id>");
+                    return;
+                };
+                remove_remote_server(game, server_id);
+            }
+            Some("status") => server_status(game),
+            Some("stop") => {
+                let target = parts.next().unwrap_or("").to_owned();
+                let settings = settings_for(game);
+                let bridge = bridge_for(game, &settings);
+                if let Ok(mut request) = bridge.stop_request.lock() { *request = Some(target); }
+                chat(game, "Requesting MineLights Server shutdown.");
+            }
+            Some("restart") | Some("restart-admin") | Some("restart-as-admin") => {
+                chat(
+                    game,
+                    "MineLights Server lifecycle is managed from its tray menu.",
+                );
+            }
             Some("check-update") | Some("check-updates") => request_action(
                 game,
                 ACTION_CHECK_UPDATE,
@@ -116,7 +179,7 @@ pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran:
             ),
             _ => chat(
                 game,
-                "Usage: /minelights server <restart|restart-admin|check-update>",
+                "Usage: /minelights server <status|list|import <path>|remove <server-id>|stop [server-id]|check-update>",
             ),
         },
         _ => {
@@ -124,15 +187,10 @@ pub(super) fn minelights_command(game: &mut super::Game<'_>, command: &str, ran:
                 subcommand.as_str(),
                 "restart" | "restart-admin" | "restart-as-admin"
             ) {
-                let (action, message) = if subcommand == "restart" {
-                    (ACTION_RESTART, "Restarting MineLights Server.")
-                } else {
-                    (
-                        ACTION_RESTART_ADMIN,
-                        "Restarting MineLights Server as administrator.",
-                    )
-                };
-                request_action(game, action, message);
+                chat(
+                    game,
+                    "MineLights Server lifecycle is managed from its tray menu.",
+                );
             } else if matches!(subcommand.as_str(), "check-update" | "check-updates") {
                 request_action(
                     game,
@@ -153,11 +211,19 @@ fn show_help(game: &mut super::Game<'_>) {
     );
     chat(
         game,
-        "Also: confirm server-autostart, devices [clear], device <number> <on|off>, refresh, server <restart|restart-admin|check-update>.",
+        "Also: confirm server-autostart, devices [clear], device <number> <on|off>, refresh, server <status|list|import <path>|remove <server-id>|stop [server-id]|check-update>.",
+    );
+    chat(
+        game,
+        "OpenRGB endpoints: /minelights openrgb list | add <host> <port> | remove <number>.",
     );
     chat(
         game,
         "Boolean values: on/off. Dimming: local/sky/off. Brightness: 0-100. Compass priority: inventory/standard/lodestone/recovery.",
+    );
+    chat(
+        game,
+        "OpenRGB endpoints use the native OpenRGB protocol without MineLights V2 auth/TLS; only add trusted servers.",
     );
 }
 
@@ -408,6 +474,237 @@ fn request_action(game: &mut super::Game<'_>, action: u32, message: &str) {
     chat(game, message);
 }
 
+fn list_openrgb_endpoints(game: &mut super::Game<'_>) {
+    let settings = settings_for(game);
+    if settings.openrgb_endpoints.is_empty() {
+        chat(game, "No OpenRGB endpoints are configured.");
+    } else {
+        for (index, endpoint) in settings.openrgb_endpoints.iter().enumerate() {
+            chat(
+                game,
+                &format!(
+                    "OpenRGB endpoint {}: {}:{}",
+                    index + 1,
+                    endpoint.host,
+                    endpoint.port
+                ),
+            );
+        }
+    }
+    chat(
+        game,
+        "These use the native OpenRGB protocol without MineLights V2 authentication or TLS. Only add trusted endpoints.",
+    );
+}
+
+fn add_openrgb_endpoint(game: &mut super::Game<'_>, host: &str, port: &str) {
+    let Ok(port) = port.parse::<u16>() else {
+        chat(game, "OpenRGB port must be between 1 and 65535.");
+        return;
+    };
+    if port == 0 || host.is_empty() || host.len() > 253 || host.chars().any(char::is_whitespace) {
+        chat(game, "OpenRGB host or port is invalid.");
+        return;
+    }
+    let Some(state) = SETTINGS.get() else {
+        let _ = settings_for(game);
+        add_openrgb_endpoint(game, host, &port.to_string());
+        return;
+    };
+    let mut settings = state
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if settings
+        .openrgb_endpoints
+        .iter()
+        .any(|endpoint| endpoint.host.eq_ignore_ascii_case(host) && endpoint.port == port)
+    {
+        chat(game, "That OpenRGB endpoint is already configured.");
+        return;
+    }
+    if settings.openrgb_endpoints.len() >= 112 {
+        chat(game, "The OpenRGB endpoint limit has been reached.");
+        return;
+    }
+    settings
+        .openrgb_endpoints
+        .push(super::minelights_config::OpenRgbEndpoint {
+            host: host.to_owned(),
+            port,
+        });
+    persist_settings(game, settings.clone());
+    let snapshot = settings.clone();
+    drop(settings);
+    let bridge = bridge_for(game, &snapshot);
+    bridge
+        .actions
+        .fetch_or(ACTION_REFRESH, std::sync::atomic::Ordering::Release);
+    chat(
+        game,
+        "OpenRGB endpoint added. It uses OpenRGB's native protocol without MineLights authentication or TLS; only add trusted endpoints.",
+    );
+}
+
+fn remove_openrgb_endpoint(game: &mut super::Game<'_>, number: &str) {
+    let Ok(number) = number.parse::<usize>() else {
+        chat(
+            game,
+            "OpenRGB endpoint number must be a positive number. Use /minelights openrgb list.",
+        );
+        return;
+    };
+    if number == 0 {
+        chat(game, "OpenRGB endpoint numbers start at 1.");
+        return;
+    }
+    let Some(state) = SETTINGS.get() else {
+        let _ = settings_for(game);
+        remove_openrgb_endpoint(game, &number.to_string());
+        return;
+    };
+    let mut settings = state
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if number > settings.openrgb_endpoints.len() {
+        chat(
+            game,
+            "No OpenRGB endpoint has that number. Use /minelights openrgb list.",
+        );
+        return;
+    }
+    let endpoint = settings.openrgb_endpoints.remove(number - 1);
+    persist_settings(game, settings.clone());
+    let snapshot = settings.clone();
+    drop(settings);
+    let bridge = bridge_for(game, &snapshot);
+    bridge
+        .actions
+        .fetch_or(ACTION_REFRESH, std::sync::atomic::Ordering::Release);
+    chat(
+        game,
+        &format!(
+            "Removed OpenRGB endpoint {}:{}.",
+            endpoint.host, endpoint.port
+        ),
+    );
+}
+
+fn list_remote_servers(game: &mut super::Game<'_>) {
+    let Some(config_dir) = super::Game::native_config_dir().ok() else {
+        chat(game, "MineLights client storage is unavailable.");
+        return;
+    };
+    match minelights_protocol::load_remote_servers(&config_dir) {
+        Ok(remotes) if remotes.is_empty() => chat(game, "No remote MineLights Servers are paired."),
+        Ok(remotes) => {
+            for remote in remotes {
+                chat(
+                    game,
+                    &format!(
+                        "Remote MineLights Server {} at {}:{}",
+                        remote.endpoint.server_id, remote.endpoint.host, remote.endpoint.port
+                    ),
+                );
+            }
+        }
+        Err(_) => chat(game, "Could not read paired MineLights Server profiles."),
+    }
+}
+
+fn server_status(game: &mut super::Game<'_>) {
+    match minelights_protocol::local_endpoint() {
+        Ok(Some(endpoint)) => chat(
+            game,
+            &format!(
+                "Local MineLights Server {} is advertised at {}:{}.",
+                endpoint.server_name, endpoint.host, endpoint.port
+            ),
+        ),
+        Ok(None) => chat(
+            game,
+            "No local V2 MineLights Server endpoint is advertised.",
+        ),
+        Err(_) => chat(game, "The local V2 endpoint document is invalid."),
+    }
+    list_remote_servers(game);
+}
+
+fn server_import_path(command: &str) -> Option<PathBuf> {
+    let command = command.trim().trim_start_matches('/');
+    let mut fields = command.splitn(3, char::is_whitespace);
+    fields.next()?;
+    if !fields.next()?.eq_ignore_ascii_case("server") {
+        return None;
+    }
+    let remainder = fields.next()?.trim();
+    let mut fields = remainder.splitn(2, char::is_whitespace);
+    if !fields.next()?.eq_ignore_ascii_case("import") {
+        return None;
+    }
+    let path = fields.next()?.trim();
+    let path = path
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+        .unwrap_or(path);
+    (!path.is_empty()).then(|| PathBuf::from(path))
+}
+
+fn import_server_pairing(game: &mut super::Game<'_>, path: PathBuf) {
+    let Some(config_dir) = super::Game::native_config_dir().ok() else {
+        chat(game, "MineLights client storage is unavailable.");
+        return;
+    };
+    let settings = settings_for(game);
+    let bridge = bridge_for(game, &settings);
+    let notices = std::sync::Arc::clone(&bridge.notices);
+    let actions = std::sync::Arc::clone(&bridge.actions);
+    let thread_result = std::thread::Builder::new()
+        .name("MineLights-Remote-Pairing-Import".into())
+        .spawn(move || {
+            let result = minelights_protocol::import_remote_pairing(&config_dir, &path);
+            if result.is_ok() {
+                actions.fetch_or(ACTION_REFRESH, std::sync::atomic::Ordering::Release);
+            }
+            let message = match result {
+                Ok(_) => "[MineLights] Remote server pairing imported. Its name and address are visible with /minelights server list; pairing credentials were not displayed.".to_owned(),
+                Err(error) => format!("[MineLights] Could not import the remote server pairing: {error}"),
+            };
+            if let Ok(mut pending) = notices.lock() {
+                pending.push_back(super::minelights_bridge::Notice::Manual(vec![message]));
+            }
+        });
+    if thread_result.is_ok() {
+        chat(
+            game,
+            "Importing the .mlpair file. Its contents and pairing code will not be shown.",
+        );
+    } else {
+        chat(game, "Could not start the remote server pairing import.");
+    }
+}
+
+fn remove_remote_server(game: &mut super::Game<'_>, server_id: &str) {
+    let Some(config_dir) = super::Game::native_config_dir().ok() else {
+        chat(game, "MineLights client storage is unavailable.");
+        return;
+    };
+    match minelights_protocol::remove_remote_server(&config_dir, server_id) {
+        Ok(true) => {
+            if let Some(bridge) = BRIDGE.get() {
+                bridge
+                    .actions
+                    .fetch_or(ACTION_REFRESH, std::sync::atomic::Ordering::Release);
+            }
+            chat(
+                game,
+                "Remote server pairing removed from this client. Revoke its client credential in the server tray to disable access.",
+            );
+        }
+        Ok(false) => chat(game, "That remote server is not paired on this client."),
+        Err(_) => chat(game, "Could not remove the remote server pairing."),
+    }
+}
+
 fn set_setting(
     settings: &mut Settings,
     name: &str,
@@ -502,11 +799,16 @@ fn set_setting(
         "yeelight" => &mut settings.enable_yeelight,
         "notify-missing-server" => &mut settings.notify_missing_server,
         "check-server-updates" => &mut settings.check_server_updates,
+        "legacy-v1-fallback" => &mut settings.allow_legacy_v1_fallback,
         _ => return Err("Unknown setting. Use /minelights list."),
     };
     *field = enabled;
     settings.server_confirmation_pending = false;
-    Ok("Setting updated.")
+    if name == "legacy-v1-fallback" && enabled {
+        Ok("Legacy V1 fallback enabled. V1 is unauthenticated and local only; use it only with a trusted local server.")
+    } else {
+        Ok("Setting updated.")
+    }
 }
 
 fn setting_value(settings: &Settings, name: &str) -> Option<String> {
@@ -549,6 +851,7 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "yeelight" => on_off(settings.enable_yeelight).into(),
         "notify-missing-server" => on_off(settings.notify_missing_server).into(),
         "check-server-updates" => on_off(settings.check_server_updates).into(),
+        "legacy-v1-fallback" => on_off(settings.allow_legacy_v1_fallback).into(),
         _ => return None,
     };
     Some(value)
@@ -587,6 +890,7 @@ fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
         "yeelight" => settings.enable_yeelight,
         "notify-missing-server" => settings.notify_missing_server,
         "check-server-updates" => settings.check_server_updates,
+        "legacy-v1-fallback" => settings.allow_legacy_v1_fallback,
         _ => return None,
     })
 }

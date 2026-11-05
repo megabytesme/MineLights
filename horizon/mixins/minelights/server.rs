@@ -2,13 +2,13 @@
 // The release checker never chooses executable bytes. Changing the executable
 // URL or digest requires a new, reviewed native-mod release.
 
-pub(super) const SERVER_VERSION: &str = "v2.3.5";
+pub(super) const SERVER_VERSION: &str = "v2.4.0";
 #[cfg(windows)]
 pub(super) const SERVER_SHA256: &str =
-    "0c432d431b4484c060625dbbf9064d30f537de2bf9d216ec2cc74d74fbe31bad";
+    "f88c7c844915bde700337f9e407ee2b15813fa0760653c0a7f2a9a974496071c";
 #[cfg(windows)]
 const SERVER_URL: &str =
-    "https://github.com/megabytesme/MineLights-Server/releases/download/v2.3.5/MineLights.exe";
+    "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0/MineLights.exe";
 const RELEASES_URL: &str = "https://github.com/megabytesme/MineLights-Server/releases";
 
 #[derive(Debug, PartialEq, Eq)]

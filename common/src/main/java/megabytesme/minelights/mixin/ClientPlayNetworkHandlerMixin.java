@@ -123,6 +123,23 @@ public abstract class ClientPlayNetworkHandlerMixin implements ChatReceivedAcces
     //?}
 //?}
 
+//? if loader_forge && >=1.13 && <1.17 {
+    @Inject(method = "handleCommandTree", at = @At("TAIL"), require = 0)
+    private void minelights$registerCommandSuggestions(CallbackInfo ci) {
+        MineLightsCommands.registerClientCommandSuggestions(this);
+    }
+//?} else if >=26.1 || (loader_forge || loader_neoforge) && >=1.17 {
+    @Inject(method = "handleCommands", at = @At("TAIL"), require = 0)
+    private void minelights$registerCommandSuggestions(CallbackInfo ci) {
+        MineLightsCommands.registerClientCommandSuggestions(this);
+    }
+//?} else if >=1.13 {
+    @Inject(method = "onCommandTree", at = @At("TAIL"), require = 0)
+    private void minelights$registerCommandSuggestions(CallbackInfo ci) {
+        MineLightsCommands.registerClientCommandSuggestions(this);
+    }
+//?}
+
 //? if loader_forge && <1.17 {
     @Inject(method = "handleChat", at = @At("HEAD"))
     private void onChat(SChatPacket packet, CallbackInfo ci) {

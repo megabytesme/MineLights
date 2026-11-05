@@ -10,7 +10,6 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 //?}
 import megabytesme.minelights.MineLightsClient;
-import megabytesme.minelights.network.CommandClient;
 //? if loader_forge && <1.17 {
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
@@ -122,16 +121,8 @@ public final class ModMenuIntegration {
                 MineLightsClient.CONFIG.refreshDevices = false;
                 needsRefresh = true;
             }
-            if (MineLightsClient.CONFIG.restartProxy) {
-                MineLightsClient.isManualRestart = true;
-                CommandClient.sendCommand("restart");
-                MineLightsClient.CONFIG.restartProxy = false;
-            }
-            if (MineLightsClient.CONFIG.restartProxyAsAdmin) {
-                MineLightsClient.isManualRestart = true;
-                CommandClient.sendCommand("restart_admin");
-                MineLightsClient.CONFIG.restartProxyAsAdmin = false;
-            }
+            MineLightsClient.CONFIG.restartProxy = false;
+            MineLightsClient.CONFIG.restartProxyAsAdmin = false;
             if (MineLightsClient.CONFIG.clearDisabledDevices) {
                 MineLightsClient.CONFIG.disabledDevices.clear();
                 MineLightsClient.saveConfig();
@@ -203,18 +194,8 @@ public final class ModMenuIntegration {
                     .setSaveConsumer(newValue -> MineLightsClient.CONFIG.autoStartServer = newValue)
                     .build());
             serverManagement.addEntry(entryBuilder.startTextDescription(literal("")).build());
-            serverManagement.addEntry(entryBuilder
-                    .startBooleanToggle(translatable("option.mine-lights.restart.label"), MineLightsClient.CONFIG.restartProxy)
-                    .setDefaultValue(false)
-                    .setTooltip(translatable("option.mine-lights.restart.tooltip"))
-                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxy = newValue)
-                    .build());
-            serverManagement.addEntry(entryBuilder
-                    .startBooleanToggle(translatable("option.mine-lights.restart_admin.label"), MineLightsClient.CONFIG.restartProxyAsAdmin)
-                    .setDefaultValue(false)
-                    .setTooltip(translatable("option.mine-lights.restart_admin.tooltip"))
-                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.restartProxyAsAdmin = newValue)
-                    .build());
+            serverManagement.addEntry(entryBuilder.startTextDescription(
+                    translatable("text.mine-lights.server.restart_from_tray")).build());
         }
 
         ConfigCategory general = builder.getOrCreateCategory(translatable("category.mine-lights.general"));
@@ -283,7 +264,7 @@ public final class ModMenuIntegration {
             boolean isEnabled = !MineLightsClient.CONFIG.disabledDevices.contains(uniqueId);
             String[] parts = uniqueId.split("\\|", 2);
             String deviceSdk = parts.length > 1 ? parts[0] : "Unknown";
-            String deviceName = parts.length > 1 ? parts[1] : uniqueId;
+            String deviceName = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
             //? if loader_forge && <1.17 {
             ITextComponent label = literal(deviceName).append(gray(literal(" (" + deviceSdk + ")")));
             //?} else {

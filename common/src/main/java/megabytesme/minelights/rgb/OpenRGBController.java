@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 public class OpenRGBController {
     public static final Logger LOGGER = LogManager.getLogger("MineLights - OpenRGBController");
     private static final int MAX_CLIENT_PROTOCOL_VERSION = 5;
+    private static final int MAX_DEVICE_COUNT = 4096;
+    private static final int MAX_RESPONSE_DATA_SIZE = 64 * 1024 * 1024;
 
     private String processKeyName(String name) {
         return KeyNameStandardizer.standardize(name);
@@ -30,9 +32,11 @@ public class OpenRGBController {
     private DataOutputStream out;
     private DataInputStream in;
     private int serverProtocolVersion;
+    private String endpointAddress = "127.0.0.1:6742";
 
     public static class OpenRGBDevice {
         public String name;
+        public String endpointAddress;
         public int controllerId;
         public int ledCount;
         public Map<String, Integer> keyMap = new HashMap<>();
@@ -41,8 +45,19 @@ public class OpenRGBController {
     private final List<OpenRGBDevice> devices = new ArrayList<>();
 
     public boolean connect() {
+        return connect("127.0.0.1", 6742);
+    }
+
+    public boolean connect(String host, int port) {
         try {
-            socket = new Socket("127.0.0.1", 6742);
+            if (host == null || host.trim().isEmpty() || port < 1 || port > 65535) {
+                LOGGER.warn("Ignoring invalid OpenRGB endpoint.");
+                return false;
+            }
+            endpointAddress = host + ":" + port;
+            socket = new Socket();
+            socket.connect(new java.net.InetSocketAddress(host, port), 2000);
+            socket.setSoTimeout(5000);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
 
@@ -63,6 +78,9 @@ public class OpenRGBController {
             sendPacket(0, 0, new byte[0]);
             ByteBuffer controllerList = readResponse();
             int deviceCount = controllerList.getInt();
+            if (deviceCount < 0 || deviceCount > MAX_DEVICE_COUNT) {
+                throw new IOException("OpenRGB returned an invalid device count: " + deviceCount);
+            }
             int[] controllerIds = new int[deviceCount];
             boolean hasControllerIds = serverMaxProtocolVersion >= 6
                     && controllerList.remaining() >= deviceCount * Integer.BYTES;
@@ -79,6 +97,7 @@ public class OpenRGBController {
                 ByteBuffer response = readResponse();
                 OpenRGBDevice device = parseDeviceData(response);
                 device.controllerId = controllerId;
+                device.endpointAddress = endpointAddress;
                 devices.add(device);
 
                 LOGGER.info("Discovered device #" + i + ": " + device.name);
@@ -95,8 +114,8 @@ public class OpenRGBController {
             }
             return true;
         } catch (IOException e) {
-            LOGGER.warn("Could not connect to OpenRGB server. Is it running?");
-            e.printStackTrace();
+            LOGGER.warn("Could not connect to OpenRGB endpoint {}:{}.", host, port);
+            disconnect();
             return false;
         }
     }
@@ -222,6 +241,10 @@ public class OpenRGBController {
     }
 
     public void updateLeds(int deviceId, List<KeyColorDto> colorsToUpdate) {
+        updateLeds(deviceId, colorsToUpdate, getLedOffsetForDevice(deviceId));
+    }
+
+    public void updateLeds(int deviceId, List<KeyColorDto> colorsToUpdate, int globalLedOffset) {
         if (socket == null || socket.isClosed() || colorsToUpdate.isEmpty()) {
             return;
         }
@@ -264,7 +287,7 @@ public class OpenRGBController {
 
 
         for (KeyColorDto dto : colorsToUpdate) {
-            int localLedId = dto.id - getLedOffsetForDevice(deviceId);
+            int localLedId = dto.id - globalLedOffset;
             if (localLedId >= 0 && localLedId < numLeds) {
                 colorArray[localLedId][0] = (byte) dto.r;
                 colorArray[localLedId][1] = (byte) dto.g;
@@ -315,6 +338,9 @@ public class OpenRGBController {
         ByteBuffer header = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN);
         header.position(12);
         int dataSize = header.getInt();
+        if (dataSize < 0 || dataSize > MAX_RESPONSE_DATA_SIZE) {
+            throw new IOException("OpenRGB response exceeded the 64 MiB limit");
+        }
 
         byte[] dataBytes = new byte[dataSize];
         if (dataSize > 0) {

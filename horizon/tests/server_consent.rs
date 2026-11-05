@@ -14,7 +14,7 @@ mod minelights_lang {
     }
 }
 mod minelights_server {
-    pub const SERVER_VERSION: &str = "v2.3.5";
+    pub const SERVER_VERSION: &str = "v2.4.0";
 }
 #[path = "../mixins/minelights/config.rs"]
 mod config;

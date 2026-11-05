@@ -1,3 +1,19 @@
+# MineLights 2.4.0
+
+This release aligns the Java and Horizon clients with the new authenticated MineLights Server protocol.
+
+## Changes
+
+- Added V2 server communication with per-install credentials, authenticated local enrollment, and optional remote pairing.
+- Kept the shared V2 server running after Minecraft exits; restart and stop it from the system tray.
+- Removed obsolete Java V1 server restart controls and made stale endpoint files detectable after a server crash.
+- Added stable device identities, remote server profiles, device lease handling, and expanded server controls.
+- Added matching `/minelights` settings and control commands across Fabric, Quilt, Forge, NeoForge, and Horizon.
+- Added Horizon chat guidance while server autostart still needs confirmation and kept server downloading opt-in there.
+- Bumped the Java mods, Horizon mod, and MineLights Server to version 2.4.0.
+
+---
+
 # MineLights 2.3.8.5
 
 This release adds an opt-in manual management mode for MineLights Server on Windows. Automatic downloads and updates remain enabled by default.

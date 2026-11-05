@@ -58,14 +58,7 @@ impl Color {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(super) struct DeviceLayout {
-    pub(super) keys: HashMap<String, Vec<u32>>,
-    pub(super) leds: Vec<u32>,
-    pub(super) unique_id: String,
-    pub(super) display_name: String,
-    pub(super) integration: String,
-}
+pub(super) type DeviceLayout = minelights_engine::DeviceLayout;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub(super) struct Snapshot {
@@ -136,6 +129,13 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
             bridge.active.store(false, Ordering::Release);
             bridge.auto_start.store(false, Ordering::Relaxed);
             bridge.in_world.store(false, Ordering::Release);
+            if let Ok(mut notices) = bridge.notices.lock() {
+                while let Some(notice) = notices.pop_front() {
+                    if let Notice::Manual(lines) = notice {
+                        for line in lines { game.native_chat(&line); }
+                    }
+                }
+            }
             let layouts = bridge.layouts.read().map(|v| v.clone()).unwrap_or_default();
             let mut frame = Frame::default();
             for led in layouts.iter().flat_map(|layout| layout.leds.iter()) {
@@ -278,6 +278,9 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
         }
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
+        if button == 40 && settings.allow_legacy_v1_fallback {
+            game.native_chat("[MineLights] Legacy V1 is unauthenticated and local only. Enable fallback only for a trusted local server.");
+        }
         if button == 20 && settings.server_confirmation_pending {
             game.native_chat(&format!("[MineLights] Reviewed server autostart is still off. Confirm with /minelights confirm server-autostart to download MineLights Server {} from GitHub, verify its pinned SHA-256, and run it with your account permissions; or cancel with /minelights set server-autostart off.", super::minelights_server::SERVER_VERSION));
             if BRIDGE

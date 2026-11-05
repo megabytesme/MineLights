@@ -1,5 +1,6 @@
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.jvm.tasks.Jar
+import net.neoforged.gradle.dsl.common.extensions.subsystems.Subsystems
 
 plugins {
     `java-library`
@@ -24,6 +25,15 @@ val mcVersion = stonecutter.current.version
 val buildVersion = "$modVersion+$mcVersion-neoforge"
 val mcDep = property("mod.mc_dep").toString()
 val neoforgeVersion = property("deps.neoforge").toString()
+
+// Binary mode can produce unpatched runtime jars. Minecraft 1.21.11 and later
+// may need extra decompiler heap for their large Blocks static initializer.
+extensions.configure<Subsystems> {
+    decompiler.isDisabled.set(false)
+    if (stonecutter.eval(mcVersion, ">=1.21.11")) {
+        decompiler.maxMemory.set(providers.gradleProperty("neogradle.subsystems.decompiler.maxMemory").orElse("12g"))
+    }
+}
 val clothConfigVersion = when {
     stonecutter.eval(mcVersion, ">=26.1") -> "26.1.154"
     stonecutter.eval(mcVersion, ">=1.21.11") -> "21.11.153"

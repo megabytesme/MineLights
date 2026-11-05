@@ -2,6 +2,21 @@ use std::sync::{Mutex, OnceLock};
 
 const MOD_ID: &str = "minelights";
 
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub(super) struct OpenRgbEndpoint {
+    pub(super) host: String,
+    pub(super) port: u16,
+}
+
+impl Default for OpenRgbEndpoint {
+    fn default() -> Self {
+        Self {
+            host: "127.0.0.1".into(),
+            port: 6742,
+        }
+    }
+}
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub(super) struct Settings {
@@ -29,6 +44,7 @@ pub(super) struct Settings {
     pub(super) allow_reviewed_server: bool,
     pub(super) notify_missing_server: bool,
     pub(super) check_server_updates: bool,
+    pub(super) allow_legacy_v1_fallback: bool,
     #[serde(skip)]
     pub(super) server_confirmation_pending: bool,
     pub(super) compass_priority: u8,
@@ -42,6 +58,8 @@ pub(super) struct Settings {
     pub(super) enable_novation: bool,
     pub(super) enable_picopi: bool,
     pub(super) enable_openrgb: bool,
+    #[serde(default = "default_openrgb_endpoints")]
+    pub(super) openrgb_endpoints: Vec<OpenRgbEndpoint>,
     pub(super) enable_yeelight: bool,
     pub(super) disabled_devices: Vec<String>,
 }
@@ -72,6 +90,7 @@ impl Default for Settings {
             allow_reviewed_server: false,
             notify_missing_server: true,
             check_server_updates: true,
+            allow_legacy_v1_fallback: false,
             server_confirmation_pending: false,
             compass_priority: 0,
             enable_corsair: true,
@@ -84,13 +103,18 @@ impl Default for Settings {
             enable_novation: true,
             enable_picopi: true,
             enable_openrgb: true,
+            openrgb_endpoints: default_openrgb_endpoints(),
             enable_yeelight: true,
             disabled_devices: Vec::new(),
         }
     }
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 40;
+fn default_openrgb_endpoints() -> Vec<OpenRgbEndpoint> {
+    vec![OpenRgbEndpoint::default()]
+}
+
+pub(super) const STATIC_SETTING_COUNT: usize = 41;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -183,11 +207,14 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
         format!("MSI integration: {}", on_off(settings.enable_msi)),
         format!("Novation integration: {}", on_off(settings.enable_novation)),
         format!("PicoPi integration: {}", on_off(settings.enable_picopi)),
-        format!("OpenRGB integration: {}", on_off(settings.enable_openrgb)),
+        format!(
+            "OpenRGB native protocol (no MineLights auth/TLS): {}",
+            on_off(settings.enable_openrgb)
+        ),
         format!("Yeelight integration: {}", on_off(settings.enable_yeelight)),
         "Refresh devices".into(),
-        "Restart MineLights Server".into(),
-        "Restart MineLights Server as administrator".into(),
+        "MineLights Server tray menu: restart".into(),
+        "MineLights Server tray menu: elevated restart".into(),
         "Check for MineLights Server updates".into(),
         "Clear disabled devices".into(),
         format!(
@@ -198,10 +225,14 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             "Check for MineLights Server updates: {}",
             on_off(settings.check_server_updates)
         ),
+        format!(
+            "Allow unauthenticated local V1 fallback: {}",
+            on_off(settings.allow_legacy_v1_fallback)
+        ),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
         // The old translations describe different, less restrictive behaviour.
-        if index == 20 || index == 36 || index >= 38 {
+        if index == 20 || index == 31 || (34..=36).contains(&index) || index >= 38 {
             continue;
         }
         if let Some(translated) = super::minelights_lang::setting_label(language, index) {
@@ -296,6 +327,7 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         32 => &mut settings.enable_yeelight,
         38 => &mut settings.notify_missing_server,
         39 => &mut settings.check_server_updates,
+        40 => &mut settings.allow_legacy_v1_fallback,
         _ => return,
     };
     *value = !*value;

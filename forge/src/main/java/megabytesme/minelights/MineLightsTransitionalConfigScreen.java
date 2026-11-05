@@ -220,8 +220,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                     cycle(options, "No RGB devices discovered yet", () -> "", () -> { });
                 } else {
                     for (String uniqueId : devices) {
-                        String[] parts = uniqueId.split("\\|", 2);
-                        String name = parts.length > 1 ? parts[1] : uniqueId;
+                        String name = MineLightsClient.getDiscoveredDeviceDisplayName(uniqueId);
                         toggle(options, name, () -> !MineLightsClient.CONFIG.disabledDevices.contains(uniqueId), enabled -> {
                             if (enabled) MineLightsClient.CONFIG.disabledDevices.remove(uniqueId);
                             else if (!MineLightsClient.CONFIG.disabledDevices.contains(uniqueId)) MineLightsClient.CONFIG.disabledDevices.add(uniqueId);

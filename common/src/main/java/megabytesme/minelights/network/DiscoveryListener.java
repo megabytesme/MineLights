@@ -14,6 +14,7 @@ public class DiscoveryListener implements Runnable {
         try (DatagramSocket socket = new DatagramSocket(null)) {
             socket.setReuseAddress(true);
             socket.bind(new InetSocketAddress(DISCOVERY_PORT));
+            socket.setSoTimeout(1000);
             byte[] buffer = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             MineLightsClient.LOGGER.info("Discovery listener started on port {}.", DISCOVERY_PORT);
