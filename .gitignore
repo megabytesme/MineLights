@@ -29,6 +29,7 @@ forge/src/main/java/megabytesme/minelights/runtime/
 forge/src/main/java/megabytesme/minelights/MineLightsClient.java
 forge/src/main/java/megabytesme/minelights/config/CompassPriority.java
 forge/src/main/java/megabytesme/minelights/config/DimmingMode.java
+forge/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java
 forge/src/main/java/megabytesme/minelights/config/MineLightsConfig.java
 forge/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java
 forge/src/main/resources/assets/minelights/
@@ -50,8 +51,10 @@ quilt/src/main/java/megabytesme/minelights/runtime/
 quilt/src/main/java/megabytesme/minelights/MineLightsClient.java
 quilt/src/main/java/megabytesme/minelights/config/CompassPriority.java
 quilt/src/main/java/megabytesme/minelights/config/DimmingMode.java
+quilt/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java
 quilt/src/main/java/megabytesme/minelights/config/MineLightsConfig.java
 quilt/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java
+quilt/src/main/java/megabytesme/minelights/config/KeyListEntry.java
 quilt/src/main/java/megabytesme/minelights/config/LiveStatusEntry.java
 quilt/src/main/java/megabytesme/minelights/config/ModMenuIntegration.java
 quilt/src/main/resources/assets/minelights/

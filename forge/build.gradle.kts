@@ -99,6 +99,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
+            "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
             "src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java",
             "src/main/resources/assets/minelights",
@@ -126,6 +127,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
         copyShared("../common/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/CompassPriority.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/DimmingMode.java", "src/main/java/megabytesme/minelights/config")
+        copyShared("../common/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/MineLightsConfig.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/resources/assets/minelights", "src/main/resources/assets/minelights")
         copyShared("../common/src/main/resources/minelights.mixins.json", "src/main/resources")

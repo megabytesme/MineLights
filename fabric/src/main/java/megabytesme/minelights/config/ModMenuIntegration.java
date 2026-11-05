@@ -33,7 +33,7 @@ import net.minecraft.text.TranslatableText;
 //?}
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-//? if >=1.19 {
+//? if >=1.16 {
 import net.minecraft.text.MutableText;
 //?}
 *///?}
@@ -88,6 +88,18 @@ public class ModMenuIntegration implements ModMenuApi {
     private static MutableText gray(MutableText text) {
         return text.formatted(Formatting.GRAY);
     }
+    *///?} else if >=1.16 {
+    /* private static MutableText translatable(String key, Object... args) {
+        return new TranslatableText(key, args);
+    }
+
+    private static MutableText literal(String text) {
+        return new LiteralText(text);
+    }
+
+    private static MutableText gray(MutableText text) {
+        return text.formatted(Formatting.GRAY);
+    }
     *///?}
 
     //? if >=1.19 && <1.20 {
@@ -104,6 +116,8 @@ public class ModMenuIntegration implements ModMenuApi {
             case "category.mine-lights.player_status" -> "Player Status";
             case "category.mine-lights.environment" -> "Environment";
             case "category.mine-lights.about" -> "About";
+            case "category.mine-lights.key_layout" -> "Key Layout";
+            case "category.mine-lights.colors" -> "Colors";
             default -> key;
         };
     }
@@ -735,7 +749,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableHealthBar")
+                        translatable("option.mine-lights.enableHealthBar", keysLabel(MineLightsClient.CONFIG.healthBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableHealthBar")
                         *///?}
@@ -750,7 +764,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableHungerBar")
+                        translatable("option.mine-lights.enableHungerBar", keysLabel(MineLightsClient.CONFIG.hungerBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableHungerBar")
                         *///?}
@@ -765,7 +779,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableSaturationBar")
+                        translatable("option.mine-lights.enableSaturationBar", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableSaturationBar")
                         *///?}
@@ -793,7 +807,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableExperienceBar")
+                        translatable("option.mine-lights.enableExperienceBar", keysLabel(MineLightsClient.CONFIG.experienceBarKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableExperienceBar")
                         *///?}
@@ -818,6 +832,9 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                 .build());
+        //? if >=1.16 {
+        addPlayerStatusExtras(playerStatus, entryBuilder);
+        //?}
 
         //? if >=26.1 {
         playerStatus.addEntry(entryBuilder
@@ -833,7 +850,7 @@ public class ModMenuIntegration implements ModMenuApi {
         playerStatus.addEntry(entryBuilder
                 .startBooleanToggle(
                         //? if >=1.19 {
-                        translatable("option.mine-lights.enableCompassEffect")
+                        translatable("option.mine-lights.enableCompassEffect", keysLabel(MineLightsClient.CONFIG.compassKeys))
                         //?} else if <1.19 {
                         /*new TranslatableText("option.mine-lights.enableCompassEffect")
                         *///?}
@@ -1192,6 +1209,10 @@ public class ModMenuIntegration implements ModMenuApi {
                         newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
                 .build());
 
+        //? if >=1.16 {
+        addLayoutCategories(builder, entryBuilder);
+        //?}
+
         ConfigCategory aboutCategory = builder
                 .getOrCreateCategory(
                         //? if >=1.19 && <1.20 {
@@ -1332,5 +1353,200 @@ public class ModMenuIntegration implements ModMenuApi {
 
         return builder.build();
     }
-}
 
+    private static String keysLabel(java.util.List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return "-";
+        }
+        return String.join(" ", keys);
+    }
+
+    //? if >=1.16 {
+    private static void addLayoutCategories(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
+        MineLightsConfig defaults = new MineLightsConfig();
+        ConfigCategory layout = builder.getOrCreateCategory(categoryName("category.mine-lights.key_layout"));
+        layout.addEntry(description(entryBuilder, "text.mine-lights.key_layout.help"));
+
+        addKeyList(layout, entryBuilder, "healthBarKeys", MineLightsClient.CONFIG.healthBarKeys,
+                defaults.healthBarKeys, 24, v -> MineLightsClient.CONFIG.healthBarKeys = v);
+        addKeyList(layout, entryBuilder, "hungerBarKeys", MineLightsClient.CONFIG.hungerBarKeys,
+                defaults.hungerBarKeys, 24, v -> MineLightsClient.CONFIG.hungerBarKeys = v);
+        addKeyList(layout, entryBuilder, "saturationBarKeys", MineLightsClient.CONFIG.saturationBarKeys,
+                defaults.saturationBarKeys, 24, v -> MineLightsClient.CONFIG.saturationBarKeys = v);
+        addKeyList(layout, entryBuilder, "experienceBarKeys", MineLightsClient.CONFIG.experienceBarKeys,
+                defaults.experienceBarKeys, 24, v -> MineLightsClient.CONFIG.experienceBarKeys = v);
+        addKeyList(layout, entryBuilder, "locatorBarKeys", MineLightsClient.CONFIG.locatorBarKeys,
+                defaults.locatorBarKeys, 24, v -> MineLightsClient.CONFIG.locatorBarKeys = v);
+        layout.addEntry(entryBuilder.startFloatField(translatable("option.mine-lights.locatorDotSize"),
+                        MineLightsClient.CONFIG.locatorDotSize)
+                .setDefaultValue(defaults.locatorDotSize)
+                .setMin(0.5F)
+                .setMax(5.0F)
+                .setTooltip(translatable("option.mine-lights.locatorDotSize.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.locatorDotSize = v)
+                .build());
+        layout.addEntry(description(entryBuilder, "option.mine-lights.locatorDotSize.description"));
+        addKeyList(layout, entryBuilder, "heartbeatRedKeys", MineLightsClient.CONFIG.heartbeatRedKeys,
+                defaults.heartbeatRedKeys, 48, v -> MineLightsClient.CONFIG.heartbeatRedKeys = v);
+        addKeyList(layout, entryBuilder, "heartbeatWhiteKeys", MineLightsClient.CONFIG.heartbeatWhiteKeys,
+                defaults.heartbeatWhiteKeys, 48, v -> MineLightsClient.CONFIG.heartbeatWhiteKeys = v);
+        addKeyList(layout, entryBuilder, "compassKeys", MineLightsClient.CONFIG.compassKeys,
+                defaults.compassKeys, 16, v -> MineLightsClient.CONFIG.compassKeys = v);
+        addKeyList(layout, entryBuilder, "compassCenterKey",
+                java.util.Collections.singletonList(MineLightsClient.CONFIG.compassCenterKey),
+                java.util.Collections.singletonList(defaults.compassCenterKey), 1,
+                v -> MineLightsClient.CONFIG.compassCenterKey = v.isEmpty() ? "" : v.get(0));
+        layout.addEntry(entryBuilder.startStrList(translatable("option.mine-lights.ledOverrides"),
+                        new java.util.ArrayList<>(MineLightsClient.CONFIG.ledOverrides))
+                .setDefaultValue(new java.util.ArrayList<>())
+                .setExpanded(true)
+                .setTooltip(translatable("option.mine-lights.ledOverrides.tooltip"))
+                .setSaveConsumer(v -> {
+                    if (!v.equals(MineLightsClient.CONFIG.ledOverrides)) {
+                        MineLightsClient.CONFIG.ledOverrides = new java.util.ArrayList<>(v);
+                        MineLightsClient.CONFIG.refreshDevices = true;
+                    }
+                })
+                .build());
+        layout.addEntry(description(entryBuilder, "option.mine-lights.ledOverrides.description"));
+
+        ConfigCategory colors = builder.getOrCreateCategory(categoryName("category.mine-lights.colors"));
+        colors.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.restoreLightingOutsideWorld"),
+                        MineLightsClient.CONFIG.restoreLightingOutsideWorld)
+                .setDefaultValue(defaults.restoreLightingOutsideWorld)
+                .setTooltip(translatable("option.mine-lights.restoreLightingOutsideWorld.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = v)
+                .build());
+        colors.addEntry(entryBuilder.startStrField(translatable("option.mine-lights.outsideWorldProfile"),
+                        MineLightsClient.CONFIG.outsideWorldProfile)
+                .setDefaultValue(defaults.outsideWorldProfile)
+                .setTooltip(translatable("option.mine-lights.outsideWorldProfile.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.outsideWorldProfile = v)
+                .build());
+        colors.addEntry(description(entryBuilder, "text.mine-lights.colors.help"));
+        colors.addEntry(colorField(entryBuilder, "healthColor", MineLightsClient.CONFIG.healthColor,
+                defaults.healthColor, v -> MineLightsClient.CONFIG.healthColor = v));
+        colors.addEntry(colorField(entryBuilder, "healthDimColor", MineLightsClient.CONFIG.healthDimColor,
+                defaults.healthDimColor, v -> MineLightsClient.CONFIG.healthDimColor = v));
+        colors.addEntry(colorField(entryBuilder, "absorptionColor", MineLightsClient.CONFIG.absorptionColor,
+                defaults.absorptionColor, v -> MineLightsClient.CONFIG.absorptionColor = v));
+        colors.addEntry(colorField(entryBuilder, "hungerColor", MineLightsClient.CONFIG.hungerColor,
+                defaults.hungerColor, v -> MineLightsClient.CONFIG.hungerColor = v));
+        colors.addEntry(colorField(entryBuilder, "hungerDimColor", MineLightsClient.CONFIG.hungerDimColor,
+                defaults.hungerDimColor, v -> MineLightsClient.CONFIG.hungerDimColor = v));
+        colors.addEntry(colorField(entryBuilder, "saturationColor", MineLightsClient.CONFIG.saturationColor,
+                defaults.saturationColor, v -> MineLightsClient.CONFIG.saturationColor = v));
+        colors.addEntry(colorField(entryBuilder, "saturationDimColor", MineLightsClient.CONFIG.saturationDimColor,
+                defaults.saturationDimColor, v -> MineLightsClient.CONFIG.saturationDimColor = v));
+        colors.addEntry(colorField(entryBuilder, "airColor", MineLightsClient.CONFIG.airColor,
+                defaults.airColor, v -> MineLightsClient.CONFIG.airColor = v));
+        colors.addEntry(colorField(entryBuilder, "airDimColor", MineLightsClient.CONFIG.airDimColor,
+                defaults.airDimColor, v -> MineLightsClient.CONFIG.airDimColor = v));
+        colors.addEntry(colorField(entryBuilder, "locatorBarColor", MineLightsClient.CONFIG.locatorBarColor,
+                defaults.locatorBarColor, v -> MineLightsClient.CONFIG.locatorBarColor = v));
+        colors.addEntry(colorField(entryBuilder, "experienceColor", MineLightsClient.CONFIG.experienceColor,
+                defaults.experienceColor, v -> MineLightsClient.CONFIG.experienceColor = v));
+        colors.addEntry(colorField(entryBuilder, "experienceDimColor", MineLightsClient.CONFIG.experienceDimColor,
+                defaults.experienceDimColor, v -> MineLightsClient.CONFIG.experienceDimColor = v));
+        colors.addEntry(colorField(entryBuilder, "heartbeatColor", MineLightsClient.CONFIG.heartbeatColor,
+                defaults.heartbeatColor, v -> MineLightsClient.CONFIG.heartbeatColor = v));
+    }
+
+    private static void addPlayerStatusExtras(ConfigCategory playerStatus, ConfigEntryBuilder entryBuilder) {
+        MineLightsConfig defaults = new MineLightsConfig();
+        //? if <26.1 {
+        /*playerStatus.addEntry(entryBuilder.startBooleanToggle(
+                        translatable("option.mine-lights.enableLocatorBar", keysLabel(MineLightsClient.CONFIG.locatorBarKeys)),
+                        MineLightsClient.CONFIG.enableLocatorBar)
+                .setDefaultValue(true)
+                .setTooltip(translatable("option.mine-lights.enableLocatorBar.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.enableLocatorBar = v)
+                .build());
+        *///?}
+        ExperienceLocatorMode mode = MineLightsClient.CONFIG.experienceLocatorMode != null
+                ? MineLightsClient.CONFIG.experienceLocatorMode
+                : ExperienceLocatorMode.AUTO;
+        playerStatus.addEntry(entryBuilder.startEnumSelector(translatable("option.mine-lights.experienceLocatorMode"),
+                        ExperienceLocatorMode.class, mode)
+                .setDefaultValue(defaults.experienceLocatorMode)
+                .setEnumNameProvider(value -> translatable(
+                        "enum.mine-lights.experienceLocatorMode." + value.toString().toLowerCase()))
+                .setTooltip(translatable("option.mine-lights.experienceLocatorMode.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.experienceLocatorMode = v)
+                .build());
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.mergeSaturationIntoHunger"),
+                        MineLightsClient.CONFIG.mergeSaturationIntoHunger)
+                .setDefaultValue(defaults.mergeSaturationIntoHunger)
+                .setTooltip(translatable("option.mine-lights.mergeSaturationIntoHunger.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = v)
+                .build());
+        playerStatus.addEntry(entryBuilder.startFloatField(translatable("option.mine-lights.saturationTintStrength"),
+                        MineLightsClient.CONFIG.saturationTintStrength)
+                .setDefaultValue(defaults.saturationTintStrength)
+                .setMin(0.0F)
+                .setMax(1.0F)
+                .setTooltip(translatable("option.mine-lights.saturationTintStrength.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.saturationTintStrength = v)
+                .build());
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableAbsorptionOverlay"),
+                        MineLightsClient.CONFIG.enableAbsorptionOverlay)
+                .setDefaultValue(defaults.enableAbsorptionOverlay)
+                .setTooltip(translatable("option.mine-lights.enableAbsorptionOverlay.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.enableAbsorptionOverlay = v)
+                .build());
+        playerStatus.addEntry(entryBuilder.startFloatField(translatable("option.mine-lights.lowHealthThreshold"),
+                        MineLightsClient.CONFIG.lowHealthThreshold)
+                .setDefaultValue(defaults.lowHealthThreshold)
+                .setMin(1.0F)
+                .setMax(20.0F)
+                .setTooltip(translatable("option.mine-lights.lowHealthThreshold.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.lowHealthThreshold = v)
+                .build());
+    }
+
+    //? if >=26.1 {
+    private static MutableComponent categoryName(String key) {
+        return translatable(key);
+    }
+    //?} else if >=1.19 && <1.20 {
+    /*private static MutableText categoryName(String key) {
+        return literal(stableCategoryName(key));
+    }
+    *///?} else {
+    /*private static MutableText categoryName(String key) {
+        return translatable(key);
+    }
+    *///?}
+
+    private static me.shedaniel.clothconfig2.api.AbstractConfigListEntry<?> description(ConfigEntryBuilder entryBuilder,
+            String key) {
+        return entryBuilder.startTextDescription(gray(translatable(key))).build();
+    }
+
+    private static void addKeyList(ConfigCategory category, ConfigEntryBuilder entryBuilder, String option,
+            java.util.List<String> current, java.util.List<String> defaults, int maxKeys,
+            java.util.function.Consumer<java.util.List<String>> save) {
+        //? if >=26.1 {
+        category.addEntry(new KeyListEntry(translatable("option.mine-lights." + option),
+                current, defaults, maxKeys,
+                new Component[] { translatable("option.mine-lights." + option + ".tooltip") },
+                v -> save.accept(new java.util.ArrayList<>(v))));
+        //?} else {
+        /*category.addEntry(new KeyListEntry(translatable("option.mine-lights." + option),
+                current, defaults, maxKeys,
+                new Text[] { translatable("option.mine-lights." + option + ".tooltip") },
+                v -> save.accept(new java.util.ArrayList<>(v))));
+        *///?}
+        category.addEntry(description(entryBuilder, "option.mine-lights." + option + ".description"));
+    }
+
+    private static me.shedaniel.clothconfig2.api.AbstractConfigListEntry<?> colorField(ConfigEntryBuilder entryBuilder,
+            String option, int current, int defaultValue, java.util.function.Consumer<Integer> save) {
+        return entryBuilder.startColorField(translatable("option.mine-lights." + option), current)
+                .setDefaultValue(defaultValue)
+                .setTooltip(translatable("option.mine-lights." + option + ".tooltip"))
+                .setSaveConsumer(save)
+                .build();
+    }
+    //?}
+}

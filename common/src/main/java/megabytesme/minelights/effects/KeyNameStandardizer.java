@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 
 public class KeyNameStandardizer {
     private static final Map<String, String> EXACT_MATCH_MAP = new HashMap<>();
+    private static final Map<String, String> SYMBOL_MAP = new HashMap<>();
+    private static final Map<String, String> ALIAS_MAP = new HashMap<>();
     private static final Pattern TRAILING_NUMBER_PATTERN = Pattern.compile("\\d+$");
 
     static {
@@ -16,6 +18,45 @@ public class KeyNameStandardizer {
         EXACT_MATCH_MAP.put("MEDIA_PREVIOUS", "MEDIA_PREVIOUS");
         EXACT_MATCH_MAP.put("MEDIA_MUTE", "MEDIA_MUTE");
         EXACT_MATCH_MAP.put("WINLOCK", "WINLOCK");
+
+        SYMBOL_MAP.put("`", "BACKTICK");
+        SYMBOL_MAP.put("-", "MINUS");
+        SYMBOL_MAP.put("=", "EQUALS");
+        SYMBOL_MAP.put("[", "LEFT_BRACKET");
+        SYMBOL_MAP.put("]", "RIGHT_BRACKET");
+        SYMBOL_MAP.put("\\", "BACKSLASH");
+        SYMBOL_MAP.put("\\ (ANSI)", "BACKSLASH");
+        SYMBOL_MAP.put("\\ (ISO)", "ISO_BACKSLASH");
+        SYMBOL_MAP.put("#", "HASH");
+        SYMBOL_MAP.put("# (ISO)", "HASH");
+        SYMBOL_MAP.put(";", "SEMICOLON");
+        SYMBOL_MAP.put("'", "APOSTROPHE");
+        SYMBOL_MAP.put(",", "COMMA");
+        SYMBOL_MAP.put(".", "PERIOD");
+        SYMBOL_MAP.put("/", "SLASH");
+
+        ALIAS_MAP.put("LEFT_CTRL", "LCTRL");
+        ALIAS_MAP.put("RIGHT_CTRL", "RCTRL");
+        ALIAS_MAP.put("LEFT_SHIFT", "LSHIFT");
+        ALIAS_MAP.put("RIGHT_SHIFT", "RSHIFT");
+        ALIAS_MAP.put("LEFT_ALT", "LALT");
+        ALIAS_MAP.put("RIGHT_ALT", "RALT");
+        ALIAS_MAP.put("LEFT_WIN", "LWIN");
+        ALIAS_MAP.put("RIGHT_WIN", "RWIN");
+        ALIAS_MAP.put("LEFT_SUPER", "LWIN");
+        ALIAS_MAP.put("LEFT_FN", "FN");
+        ALIAS_MAP.put("RIGHT_FN", "FN");
+        ALIAS_MAP.put("CAPS_LOCK", "CAPSLOCK");
+        ALIAS_MAP.put("NUM_LOCK", "NUMLOCK");
+        ALIAS_MAP.put("SCROLL_LOCK", "SCROLLLOCK");
+        ALIAS_MAP.put("PRINT_SCREEN", "PRINTSCREEN");
+        ALIAS_MAP.put("UP_ARROW", "UP");
+        ALIAS_MAP.put("DOWN_ARROW", "DOWN");
+        ALIAS_MAP.put("LEFT_ARROW", "LEFT");
+        ALIAS_MAP.put("RIGHT_ARROW", "RIGHT");
+        ALIAS_MAP.put("GRAVE", "BACKTICK");
+        ALIAS_MAP.put("GRAVE_ACCENT", "BACKTICK");
+        ALIAS_MAP.put("ESC", "ESCAPE");
     }
 
     public static String standardize(String originalName) {
@@ -30,6 +71,14 @@ public class KeyNameStandardizer {
 
         if (upperName.startsWith("KEY: ")) {
             upperName = upperName.substring(5);
+        }
+
+        if (SYMBOL_MAP.containsKey(upperName)) {
+            return SYMBOL_MAP.get(upperName);
+        }
+
+        if (upperName.startsWith("NUMBER PAD ")) {
+            return standardizeNumpad(upperName.substring(11).trim());
         }
 
         if (EXACT_MATCH_MAP.containsKey(upperName)) {
@@ -62,7 +111,27 @@ public class KeyNameStandardizer {
             return "PLAYER" + numberSuffix;
         }
 
-        return upperName.replaceAll("\\s+", "_")
+        String normalized = upperName.replaceAll("\\s+", "_")
                 .replaceAll("[^A-Z0-9_]", "");
+        return ALIAS_MAP.getOrDefault(normalized, normalized);
+    }
+
+    private static String standardizeNumpad(String key) {
+        switch (key) {
+            case "/":
+                return "NUMPAD_DIVIDE";
+            case "*":
+                return "NUMPAD_MULTIPLY";
+            case "-":
+                return "NUMPAD_SUBTRACT";
+            case "+":
+                return "NUMPAD_ADD";
+            case ".":
+                return "NUMPAD_DECIMAL";
+            case "ENTER":
+                return "NUMPAD_ENTER";
+            default:
+                return "NUMPAD" + key.replaceAll("[^A-Z0-9]", "");
+        }
     }
 }

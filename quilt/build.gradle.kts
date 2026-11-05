@@ -30,6 +30,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
+            "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
             "src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java",
             "src/main/java/megabytesme/minelights/MineLightsClient.java",
@@ -51,7 +52,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             }
         }
 
-        listOf("CompassPriority.java", "DimmingMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
+        listOf("CompassPriority.java", "DimmingMode.java", "ExperienceLocatorMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
             copy {
                 from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/$fileName"))
                 into(rootProject.file("src/main/java/megabytesme/minelights/config"))
@@ -88,7 +89,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             from(rootProject.file("../common/src/main/resources/minelights.mixins.json"))
             into(rootProject.file("src/main/resources"))
         }
-        listOf("LiveStatusEntry.java", "ModMenuIntegration.java").forEach { fileName ->
+        listOf("KeyListEntry.java", "LiveStatusEntry.java", "ModMenuIntegration.java").forEach { fileName ->
             copy {
                 from(rootProject.file("../fabric/src/main/java/megabytesme/minelights/config/$fileName"))
                 into(rootProject.file("src/main/java/megabytesme/minelights/config"))
@@ -107,7 +108,7 @@ repositories {
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.fabricmc.net/", "FabricMC", "net.fabricmc")
     strictMaven("https://maven.quiltmc.org/repository/release", "QuiltMC", "org.quiltmc")
-    strictMaven("https://maven.shedaniel.me/", "Shedaniel", "me.shedaniel")
+    strictMaven("https://maven.shedaniel.me/", "Shedaniel", "me.shedaniel", "me.shedaniel.cloth")
     strictMaven("https://maven.terraformersmc.com/releases", "TerraformersMC", "com.terraformersmc")
 }
 
@@ -137,6 +138,7 @@ dependencies {
             compileOnly("curse.maven:${property("deps.modmenu")}")
         }
     }
+    compileOnly("me.shedaniel.cloth:basic-math:0.6.1")
 }
 
 java {

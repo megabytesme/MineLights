@@ -69,6 +69,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
+            "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
             "src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java",
             "src/main/resources/assets/minelights",
@@ -125,6 +126,10 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
         }
         copy {
             from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/DimmingMode.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/config"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java"))
             into(rootProject.file("src/main/java/megabytesme/minelights/config"))
         }
         copy {

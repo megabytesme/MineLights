@@ -5,6 +5,9 @@ import java.util.List;
 public class PlayerDto {
     private boolean inGame;
     private float health;
+    private float absorption;
+    private String hudBar;
+    private Boolean airBarVisible;
     private int hunger;
     private float saturation;
     private int air;
@@ -32,6 +35,30 @@ public class PlayerDto {
 
     public boolean getInGame() {
         return inGame;
+    }
+
+    public Boolean getAirBarVisible() {
+        return airBarVisible;
+    }
+
+    public void setAirBarVisible(Boolean airBarVisible) {
+        this.airBarVisible = airBarVisible;
+    }
+
+    public String getHudBar() {
+        return hudBar;
+    }
+
+    public void setHudBar(String hudBar) {
+        this.hudBar = hudBar;
+    }
+
+    public float getAbsorption() {
+        return absorption;
+    }
+
+    public void setAbsorption(float absorption) {
+        this.absorption = absorption;
     }
 
     public float getHealth() {

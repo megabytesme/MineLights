@@ -1,25 +1,32 @@
 package megabytesme.minelights.effects;
 
+import megabytesme.minelights.MineLightsClient;
+
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class KeyMap {
     public static List<String> getExperienceBar() {
-        return Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9", "0");
+        return configured(MineLightsClient.CONFIG.experienceBarKeys);
+    }
+
+    public static List<String> getLocatorBar() {
+        return configured(MineLightsClient.CONFIG.locatorBarKeys);
     }
 
     public static List<String> getHealthBar() {
-        return Arrays.asList("F1", "F2", "F3", "F4");
+        return configured(MineLightsClient.CONFIG.healthBarKeys);
     }
 
     public static List<String> getHungerBar() {
-        return Arrays.asList("F5", "F6", "F7", "F8");
+        return configured(MineLightsClient.CONFIG.hungerBarKeys);
     }
 
     public static List<String> getSaturationBar() {
-        return Arrays.asList("F9", "F10", "F11", "F12");
+        return configured(MineLightsClient.CONFIG.saturationBarKeys);
     }
 
     public static List<String> getFunctionKeys() {
@@ -71,11 +78,11 @@ public class KeyMap {
     }
 
     public static List<String> getNumpadDirectional() {
-        return Arrays.asList("NUMPAD8", "NUMPAD9", "NUMPAD6", "NUMPAD3", "NUMPAD2", "NUMPAD1", "NUMPAD4", "NUMPAD7");
+        return configured(MineLightsClient.CONFIG.compassKeys);
     }
 
     public static String getNumpadCenter() {
-        return "NUMPAD5";
+        return KeyNameStandardizer.standardize(MineLightsClient.CONFIG.compassCenterKey);
     }
 
     public static List<String> getMovementKeys() {
@@ -83,11 +90,21 @@ public class KeyMap {
     }
 
     public static List<String> getHeartbeatRed() {
-        return Arrays.asList("4", "5", "6", "7", "E", "T", "U", "D", "F", "H", "V", "B", "SPACE");
+        return configured(MineLightsClient.CONFIG.heartbeatRedKeys);
     }
 
     public static List<String> getHeartbeatWhite() {
-        return Arrays.asList("R", "Y", "G");
+        return configured(MineLightsClient.CONFIG.heartbeatWhiteKeys);
+    }
+
+    private static List<String> configured(List<String> keys) {
+        if (keys == null) {
+            return Collections.emptyList();
+        }
+        return keys.stream()
+                .map(KeyNameStandardizer::standardize)
+                .filter(k -> !k.isEmpty())
+                .collect(Collectors.toList());
     }
 
     public static List<String> getFullKeyboard() {

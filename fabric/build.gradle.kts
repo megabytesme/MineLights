@@ -32,6 +32,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
+            "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
             "src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java",
             "src/main/resources/assets/minelights",
@@ -83,6 +84,10 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             into(rootProject.file("src/main/java/megabytesme/minelights/config"))
         }
         copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/config"))
+        }
+        copy {
             from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/MineLightsConfig.java"))
             into(rootProject.file("src/main/java/megabytesme/minelights/config"))
         }
@@ -109,7 +114,7 @@ repositories {
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.fabricmc.net/", "FabricMC", "net.fabricmc")
-    strictMaven("https://maven.shedaniel.me/", "Shedaniel", "me.shedaniel")
+    strictMaven("https://maven.shedaniel.me/", "Shedaniel", "me.shedaniel", "me.shedaniel.cloth")
     strictMaven("https://maven.terraformersmc.com/releases", "TerraformersMC", "com.terraformersmc")
 }
 
@@ -138,6 +143,8 @@ dependencies {
             compileOnly("curse.maven:${property("deps.modmenu")}")
         }
     }
+    // Cloth Config's color fields need me.shedaniel.math.Color, which isn't pulled in transitively.
+    compileOnly("me.shedaniel.cloth:basic-math:0.6.1")
 }
 
 java {

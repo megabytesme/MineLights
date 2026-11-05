@@ -52,6 +52,7 @@ public class LightingManager implements Runnable {
     private Set<String> lastPolicy;
     private static int nextV2InternalId = Integer.MIN_VALUE;
     private static final AtomicBoolean LEGACY_REMINDER_SENT = new AtomicBoolean(false);
+    private boolean devicesReleased = false;
 
     private final YeelightController yeelightController = new YeelightController();
     private final Map<Integer, Integer> yeelightLedToDeviceMap = new HashMap<>();
@@ -296,12 +297,17 @@ public class LightingManager implements Runnable {
                 }
 
                 DeviceLayout layout = new DeviceLayout(device.name + " (" + endpointAddress + ")", "OPENRGB");
-                Map<String, Integer> openRgbMap = device.keyMap;
+                Map<Integer, String> overrides = getLedOverrides(device.name);
                 int openRgbLedOffset = 2000 + (openRgbDeviceIndex * 1000);
 
-                for (Map.Entry<String, Integer> entry : openRgbMap.entrySet()) {
-                    String standardizedName = KeyNameStandardizer.standardize(entry.getKey());
-                    int globalLedId = openRgbLedOffset + entry.getValue();
+                for (int i = 0; i < device.ledNames.size(); i++) {
+                    String keyName = device.ledNames.get(i);
+                    if (overrides.containsKey(i)) {
+                        LOGGER.info("  LED {} \"{}\" overridden as \"{}\"", i, keyName, overrides.get(i));
+                        keyName = overrides.get(i);
+                    }
+                    String standardizedName = KeyNameStandardizer.standardize(keyName);
+                    int globalLedId = openRgbLedOffset + i;
                     layout.addMapping(standardizedName, globalLedId);
                     openRgbLedToDeviceMap.put(globalLedId,
                             new OpenRGBDeviceRef(controller, localDeviceIndex, openRgbLedOffset));
@@ -309,6 +315,52 @@ public class LightingManager implements Runnable {
                 deviceLayouts.add(layout);
                 LOGGER.info("> Mapped device [OpenRGB]: {} ({} LEDs)", device.name, layout.getAllLeds().size());
                 openRgbDeviceIndex++;
+            }
+        }
+    }
+
+    private Map<Integer, String> getLedOverrides(String deviceName) {
+        Map<Integer, String> overrides = new HashMap<>();
+        if (MineLightsClient.CONFIG.ledOverrides == null) {
+            return overrides;
+        }
+        for (String entry : MineLightsClient.CONFIG.ledOverrides) {
+            int separator = entry.lastIndexOf('|');
+            int equals = entry.indexOf('=', separator + 1);
+            if (separator < 0 || equals < 0) {
+                LOGGER.warn("Ignoring LED override \"{}\": expected \"Device name|LED index=KEY\"", entry);
+                continue;
+            }
+            String device = entry.substring(0, separator).trim().toLowerCase();
+            if (!deviceName.toLowerCase().contains(device)) {
+                continue;
+            }
+            try {
+                int ledIndex = Integer.parseInt(entry.substring(separator + 1, equals).trim());
+                overrides.put(ledIndex, entry.substring(equals + 1).trim());
+            } catch (NumberFormatException e) {
+                LOGGER.warn("Ignoring LED override \"{}\": LED index is not a number", entry);
+            }
+        }
+        return overrides;
+    }
+
+    private void releaseOpenRgbDevices() {
+        String profile = MineLightsClient.CONFIG.outsideWorldProfile;
+        synchronized (openRgbControllers) {
+            for (OpenRGBController controller : openRgbControllers) {
+                controller.restoreOriginalModes();
+                if (profile != null && !profile.trim().isEmpty()) {
+                    controller.loadProfile(profile.trim());
+                }
+            }
+        }
+    }
+
+    private void takeOverOpenRgbDevices() {
+        synchronized (openRgbControllers) {
+            for (OpenRGBController controller : openRgbControllers) {
+                controller.enterCustomMode();
             }
         }
     }
@@ -338,6 +390,17 @@ public class LightingManager implements Runnable {
                     playerState.setInGame(false);
                 } else {
                     playerState = PlayerDataCollector.getCurrentState(client);
+                }
+
+                boolean releaseOpenRgb = !playerState.getInGame() && MineLightsClient.CONFIG.restoreLightingOutsideWorld;
+                if (releaseOpenRgb != devicesReleased) {
+                    if (releaseOpenRgb) {
+                        releaseOpenRgbDevices();
+                    } else {
+                        takeOverOpenRgbDevices();
+                    }
+                    devicesReleased = releaseOpenRgb;
+                    lastSentFrame = null;
                 }
 
                 FrameStateDto frameState = effectPainter.paint(playerState);
@@ -378,7 +441,7 @@ public class LightingManager implements Runnable {
                 sendV2Frames(frameState);
                 lastV2KeepaliveFrame = System.currentTimeMillis();
 
-                if (!openRgbUpdates.isEmpty()) {
+                if (!devicesReleased && !openRgbUpdates.isEmpty()) {
                     for (Map.Entry<OpenRGBDeviceRef, List<KeyColorDto>> deviceUpdate : openRgbUpdates.entrySet()) {
                         OpenRGBDeviceRef deviceRef = deviceUpdate.getKey();
                         deviceRef.controller.updateLeds(deviceRef.deviceIndex, deviceUpdate.getValue(),
@@ -397,6 +460,9 @@ public class LightingManager implements Runnable {
             LOGGER.error("Error in lighting loop", e);
         } finally {
             stopping.set(true);
+            if (MineLightsClient.CONFIG.restoreLightingOutsideWorld) {
+                releaseOpenRgbDevices();
+            }
             synchronized (openRgbControllers) {
                 for (OpenRGBController controller : openRgbControllers) controller.disconnect();
             }
