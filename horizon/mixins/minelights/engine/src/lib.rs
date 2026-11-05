@@ -19,6 +19,42 @@ pub fn standardize_key(key: &str) -> String {
     if let Some(stripped) = name.strip_prefix("KEY: ") {
         name = stripped.to_owned();
     }
+    let symbol = match name.as_str() {
+        "`" => Some("BACKTICK"),
+        "-" => Some("MINUS"),
+        "=" => Some("EQUALS"),
+        "[" => Some("LEFT_BRACKET"),
+        "]" => Some("RIGHT_BRACKET"),
+        "\\" | "\\ (ANSI)" => Some("BACKSLASH"),
+        "\\ (ISO)" => Some("ISO_BACKSLASH"),
+        "#" | "# (ISO)" => Some("HASH"),
+        ";" => Some("SEMICOLON"),
+        "'" => Some("APOSTROPHE"),
+        "," => Some("COMMA"),
+        "." => Some("PERIOD"),
+        "/" => Some("SLASH"),
+        _ => None,
+    };
+    if let Some(symbol) = symbol {
+        return symbol.into();
+    }
+    if let Some(key) = name.strip_prefix("NUMBER PAD ") {
+        return match key.trim() {
+            "/" => "NUMPAD_DIVIDE".into(),
+            "*" => "NUMPAD_MULTIPLY".into(),
+            "-" => "NUMPAD_SUBTRACT".into(),
+            "+" => "NUMPAD_ADD".into(),
+            "." => "NUMPAD_DECIMAL".into(),
+            "ENTER" => "NUMPAD_ENTER".into(),
+            other => format!(
+                "NUMPAD{}",
+                other
+                    .chars()
+                    .filter(|c| c.is_ascii_alphanumeric())
+                    .collect::<String>()
+            ),
+        };
+    }
     if name.contains("PROGRAMMABLE") {
         return format!("G{}", trailing_number(&name));
     }
@@ -59,12 +95,36 @@ pub fn standardize_key(key: &str) -> String {
             format!("PLAYER_{number}")
         };
     }
-    name.split_whitespace()
+    let normalized: String = name
+        .split_whitespace()
         .collect::<Vec<_>>()
         .join("_")
         .chars()
         .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
-        .collect()
+        .collect();
+    match normalized.as_str() {
+        "LEFT_CTRL" => "LCTRL",
+        "RIGHT_CTRL" => "RCTRL",
+        "LEFT_SHIFT" => "LSHIFT",
+        "RIGHT_SHIFT" => "RSHIFT",
+        "LEFT_ALT" => "LALT",
+        "RIGHT_ALT" => "RALT",
+        "LEFT_WIN" | "LEFT_SUPER" => "LWIN",
+        "RIGHT_WIN" => "RWIN",
+        "LEFT_FN" | "RIGHT_FN" => "FN",
+        "CAPS_LOCK" => "CAPSLOCK",
+        "NUM_LOCK" => "NUMLOCK",
+        "SCROLL_LOCK" => "SCROLLLOCK",
+        "PRINT_SCREEN" => "PRINTSCREEN",
+        "UP_ARROW" => "UP",
+        "DOWN_ARROW" => "DOWN",
+        "LEFT_ARROW" => "LEFT",
+        "RIGHT_ARROW" => "RIGHT",
+        "GRAVE" | "GRAVE_ACCENT" => "BACKTICK",
+        "ESC" => "ESCAPE",
+        _ => &normalized,
+    }
+    .into()
 }
 
 fn trailing_number(value: &str) -> String {

@@ -11,7 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use super::minelights::{DeviceLayout, Frame, trailing_number};
+use super::minelights::{DeviceLayout, Frame};
 use super::minelights_config::Settings;
 use super::minelights_direct::DirectOutputs;
 use super::minelights_protocol::{self, V2Connection};
@@ -433,7 +433,7 @@ fn bridge_worker(
                     next_yeelight_discovery = Instant::now() + Duration::from_secs(5);
                 }
                 direct_layouts = direct
-                    .layouts()
+                    .layouts_with_overrides(&config.led_overrides)
                     .into_iter()
                     .map(|device| DeviceLayout {
                         keys: device.keys,
@@ -516,6 +516,14 @@ fn bridge_worker(
             publish_layouts(&layouts, &v2_layouts, &direct_layouts);
         }
 
+        if is_active {
+            if let Some(config) = settings.read().ok().map(|value| value.clone()) {
+                direct.set_openrgb_state(
+                    in_world.load(Ordering::Acquire), config.restore_lighting_outside_world,
+                    &config.disabled_devices, &config.outside_world_profile,
+                );
+            }
+        }
         match receiver.recv_timeout(Duration::from_millis(25)) {
             Ok(frame) => {
                 if let Some(connection) = local_v2.as_mut() {
@@ -681,12 +689,7 @@ fn start_installed_server(path: Option<&std::path::Path>, permission: &AtomicBoo
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        let mut random = [0u8; 16];
-        if getrandom::fill(&mut random).is_err() { return false; }
-        random[6] = (random[6] & 0x0f) | 0x40;
-        random[8] = (random[8] & 0x3f) | 0x80;
-        let hex = hex::encode(random);
-        let launch_id = format!("{}-{}-{}-{}-{}", &hex[..8], &hex[8..12], &hex[12..16], &hex[16..20], &hex[20..]);
+        let Ok(launch_id) = minelights_engine::new_launch_id() else { return false };
         let mut command = std::process::Command::new(path);
         command
             .arg("--client-started")
@@ -813,61 +816,4 @@ fn publish_layouts(
     if let Ok(mut current) = target.write() {
         *current = all;
     }
-}
-
-pub(super) fn standardize_key(key: &str) -> String {
-    let mut name = key
-        .trim()
-        .to_ascii_uppercase()
-        .replace("CONTROL", "CTRL")
-        .replace("WINDOWS", "WIN");
-    if let Some(stripped) = name.strip_prefix("KEY: ") {
-        name = stripped.to_owned();
-    }
-    if name.contains("PROGRAMMABLE") {
-        return format!("G{}", trailing_number(&name));
-    }
-    if name.contains("DRAM") || name.contains("CORSAIR PRO LED") || name.contains("RAM") {
-        let number = trailing_number(&name);
-        if name.contains("CORSAIR PRO LED") {
-            if let Ok(index) = number.parse::<u32>() {
-                return format!("RAM_{}", index.saturating_add(1));
-            }
-        }
-        return if number.is_empty() {
-            "RAM".into()
-        } else {
-            format!("RAM_{number}")
-        };
-    }
-    if name.contains("LEDSTRIPE") || name.contains("UNDERGLOW") {
-        let number = trailing_number(&name);
-        return if number.is_empty() {
-            "UNDERGLOW".into()
-        } else {
-            format!("UNDERGLOW_{number}")
-        };
-    }
-    if name.contains("CUSTOM") || name.contains("WHEEL") {
-        let number = trailing_number(&name);
-        return if number.is_empty() {
-            "WHEEL".into()
-        } else {
-            format!("WHEEL_{number}")
-        };
-    }
-    if name.contains("PLAYER") {
-        let number = trailing_number(&name);
-        return if number.is_empty() {
-            "PLAYER".into()
-        } else {
-            format!("PLAYER_{number}")
-        };
-    }
-    name.split_whitespace()
-        .collect::<Vec<_>>()
-        .join("_")
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
-        .collect()
 }
