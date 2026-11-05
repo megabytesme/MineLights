@@ -25,7 +25,7 @@ public interface LightningAccessor {
     //?} else if loader_forge && <=1.15.2 {
     @Accessor("life")
     //?} else if loader_forge && <1.17 {
-    @Accessor("ambientTick")
+    @Accessor("life")
     //?} else if loader_neoforge || >=26.1 {
     @Accessor("life")
     //?} else {
@@ -40,7 +40,7 @@ public interface LightningAccessor {
     //?} else if loader_forge && <=1.15.2 {
     @Accessor("flashes")
     //?} else if loader_forge && <1.17 {
-    @Accessor("remainingActions")
+    @Accessor("flashes")
     //?} else if loader_neoforge || >=26.1 {
     @Accessor("flashes")
     //?} else {
