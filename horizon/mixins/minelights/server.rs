@@ -5,7 +5,7 @@
 pub(super) const SERVER_VERSION: &str = "v2.4.0";
 #[cfg(windows)]
 pub(super) const SERVER_SHA256: &str =
-    "427ea566e752500db27c8161e36c8d9492d7c06ffe7ea588fb8f813dafaa6624";
+    "1144b9336fc42208737cbf12160d7dd65d401508e96f8087fb33a9f24ef93e2d";
 #[cfg(windows)]
 const SERVER_URL: &str =
     "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0/MineLights.exe";
