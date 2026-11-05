@@ -10,6 +10,7 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 //?}
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.network.EffectSettings;
 //? if loader_forge && <1.17 {
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
@@ -156,6 +157,36 @@ public final class ModMenuIntegration {
         });
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+
+        ConfigCategory effectSettings = builder.getOrCreateCategory(translatable("category.mine-lights.key_layout"));
+        MineLightsConfig effectDefaults = new MineLightsConfig();
+        for (String name : EffectSettings.NAMES) {
+            effectSettings.addEntry(entryBuilder.startStrField(translatable(EffectSettings.labelKey(name)),
+                            EffectSettings.get(MineLightsClient.CONFIG, name))
+                    .setDefaultValue(EffectSettings.get(effectDefaults, name))
+                    .setErrorSupplier(value -> {
+                        try { EffectSettings.set(new MineLightsConfig(), name, value); return java.util.Optional.empty(); }
+                        catch (IllegalArgumentException exception) { return java.util.Optional.of(literal(exception.getMessage())); }
+                    })
+                    .setSaveConsumer(value -> {
+                        boolean changed = !EffectSettings.get(MineLightsClient.CONFIG, name).equals(value);
+                        EffectSettings.set(MineLightsClient.CONFIG, name, value);
+                        if (changed && name.equals("led-overrides")) MineLightsClient.CONFIG.refreshDevices = true;
+                    }).build());
+        }
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableAbsorptionOverlay"),
+                        MineLightsClient.CONFIG.enableAbsorptionOverlay)
+                .setDefaultValue(effectDefaults.enableAbsorptionOverlay)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.enableAbsorptionOverlay = value).build());
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.mergeSaturationIntoHunger"),
+                        MineLightsClient.CONFIG.mergeSaturationIntoHunger)
+                .setDefaultValue(effectDefaults.mergeSaturationIntoHunger)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value).build());
+        effectSettings.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.restoreLightingOutsideWorld"),
+                        MineLightsClient.CONFIG.restoreLightingOutsideWorld)
+                .setDefaultValue(effectDefaults.restoreLightingOutsideWorld)
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value).build());
+
 
         if (MineLightsClient.IS_WINDOWS) {
             ConfigCategory serverManagement = builder.getOrCreateCategory(translatable("category.mine-lights.server_management"));

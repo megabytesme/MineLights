@@ -180,6 +180,11 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                 });
                 toggle(options, "Low-health warning", () -> MineLightsClient.CONFIG.enableLowHealthWarning,
                         value -> MineLightsClient.CONFIG.enableLowHealthWarning = value);
+                toggle(options, "Absorption overlay", () -> MineLightsClient.CONFIG.enableAbsorptionOverlay, value -> MineLightsClient.CONFIG.enableAbsorptionOverlay = value);
+                toggle(options, "Merge saturation into hunger", () -> MineLightsClient.CONFIG.mergeSaturationIntoHunger, value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value);
+                toggle(options, "Restore OpenRGB outside worlds", () -> MineLightsClient.CONFIG.restoreLightingOutsideWorld, value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value);
+                cycle(options, "Low-health threshold", () -> String.format("%.0f", MineLightsClient.CONFIG.lowHealthThreshold), () -> MineLightsClient.CONFIG.lowHealthThreshold = MineLightsClient.CONFIG.lowHealthThreshold >= 20.0F ? 1.0F : Math.min(20.0F, MineLightsClient.CONFIG.lowHealthThreshold + 1.0F));
+                cycle(options, "Saturation tint strength", () -> String.format("%.1f", MineLightsClient.CONFIG.saturationTintStrength), () -> MineLightsClient.CONFIG.saturationTintStrength = MineLightsClient.CONFIG.saturationTintStrength >= 1.0F ? 0.0F : Math.min(1.0F, MineLightsClient.CONFIG.saturationTintStrength + 0.1F));
                 toggle(options, "Highlight movement keys", () -> MineLightsClient.CONFIG.highlightMovementKeys,
                         value -> MineLightsClient.CONFIG.highlightMovementKeys = value);
                 toggle(options, "Pulse chat key", () -> MineLightsClient.CONFIG.pulseChatKey,

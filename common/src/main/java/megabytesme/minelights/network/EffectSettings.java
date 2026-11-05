@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Locale;
 
 /** Command access to the configurable effect layout shared by every Java loader. */
-final class EffectSettings {
-    static final String[] NAMES = {
+public final class EffectSettings {
+    public static final String[] NAMES = {
         "health-bar-keys", "hunger-bar-keys", "saturation-bar-keys", "experience-bar-keys",
         "locator-bar-keys", "heartbeat-red-keys", "heartbeat-white-keys", "compass-keys",
         "compass-center-key", "led-overrides", "outside-world-profile", "low-health-threshold",
@@ -37,7 +37,9 @@ final class EffectSettings {
         catch (NoSuchFieldException e) { throw new IllegalStateException("Unknown effect setting " + name, e); }
     }
 
-    static String get(MineLightsConfig config, String name) {
+    public static String labelKey(String name) { return "option.mine-lights." + field(name).getName(); }
+
+    public static String get(MineLightsConfig config, String name) {
         try {
             Object value = field(name).get(config);
             if (name.endsWith("-color")) return String.format(Locale.ROOT, "#%06X", ((Integer) value) & 0xFFFFFF);
@@ -47,7 +49,7 @@ final class EffectSettings {
         } catch (IllegalAccessException e) { throw new IllegalStateException(e); }
     }
 
-    static void set(MineLightsConfig config, String name, String raw) {
+    public static void set(MineLightsConfig config, String name, String raw) {
         String value = raw.trim();
         Object parsed;
         if (name.endsWith("-color")) {
@@ -60,8 +62,8 @@ final class EffectSettings {
             float n;
             try { n = Float.parseFloat(value); }
             catch (NumberFormatException e) { throw new IllegalArgumentException("Expected a number for " + name + "."); }
-            float min = name.equals("locator-dot-size") ? 0.5F : 0F;
-            float max = name.equals("saturation-tint-strength") ? 1F : name.equals("low-health-threshold") ? 20F : 10F;
+            float min = name.equals("locator-dot-size") ? 0.5F : name.equals("low-health-threshold") ? 1F : 0F;
+            float max = name.equals("saturation-tint-strength") ? 1F : name.equals("low-health-threshold") ? 20F : 5F;
             if (Float.isNaN(n) || Float.isInfinite(n) || n < min || n > max) throw new IllegalArgumentException(name + " must be between " + min + " and " + max + ".");
             parsed = Float.valueOf(n);
         } else if (name.endsWith("-keys") || name.equals("led-overrides")) {

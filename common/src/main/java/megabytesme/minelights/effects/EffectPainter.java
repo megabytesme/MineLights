@@ -190,6 +190,9 @@ public class EffectPainter {
         ExperienceLocatorMode barMode = MineLightsClient.CONFIG.experienceLocatorMode == null
                 ? ExperienceLocatorMode.AUTO
                 : MineLightsClient.CONFIG.experienceLocatorMode;
+        //? if <1.21.6 {
+        /* barMode = ExperienceLocatorMode.EXPERIENCE; */
+        //?}
         boolean showExperience;
         boolean showLocator;
         if (barMode == ExperienceLocatorMode.AUTO) {

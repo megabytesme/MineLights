@@ -1375,6 +1375,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 defaults.saturationBarKeys, 24, v -> MineLightsClient.CONFIG.saturationBarKeys = v);
         addKeyList(layout, entryBuilder, "experienceBarKeys", MineLightsClient.CONFIG.experienceBarKeys,
                 defaults.experienceBarKeys, 24, v -> MineLightsClient.CONFIG.experienceBarKeys = v);
+        //? if >=1.21.6 {
         addKeyList(layout, entryBuilder, "locatorBarKeys", MineLightsClient.CONFIG.locatorBarKeys,
                 defaults.locatorBarKeys, 24, v -> MineLightsClient.CONFIG.locatorBarKeys = v);
         layout.addEntry(entryBuilder.startFloatField(translatable("option.mine-lights.locatorDotSize"),
@@ -1386,6 +1387,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(v -> MineLightsClient.CONFIG.locatorDotSize = v)
                 .build());
         layout.addEntry(description(entryBuilder, "option.mine-lights.locatorDotSize.description"));
+        //?}
         addKeyList(layout, entryBuilder, "heartbeatRedKeys", MineLightsClient.CONFIG.heartbeatRedKeys,
                 defaults.heartbeatRedKeys, 48, v -> MineLightsClient.CONFIG.heartbeatRedKeys = v);
         addKeyList(layout, entryBuilder, "heartbeatWhiteKeys", MineLightsClient.CONFIG.heartbeatWhiteKeys,
@@ -1463,6 +1465,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(v -> MineLightsClient.CONFIG.enableLocatorBar = v)
                 .build());
         *///?}
+        //? if >=1.21.6 {
         ExperienceLocatorMode mode = MineLightsClient.CONFIG.experienceLocatorMode != null
                 ? MineLightsClient.CONFIG.experienceLocatorMode
                 : ExperienceLocatorMode.AUTO;
@@ -1474,6 +1477,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setTooltip(translatable("option.mine-lights.experienceLocatorMode.tooltip"))
                 .setSaveConsumer(v -> MineLightsClient.CONFIG.experienceLocatorMode = v)
                 .build());
+        //?}
         playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.mergeSaturationIntoHunger"),
                         MineLightsClient.CONFIG.mergeSaturationIntoHunger)
                 .setDefaultValue(defaults.mergeSaturationIntoHunger)
