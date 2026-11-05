@@ -751,7 +751,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         //? if >=1.19 {
                         translatable("option.mine-lights.enableHealthBar.configured", keysLabel(MineLightsClient.CONFIG.healthBarKeys))
                         //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.enableHealthBar")
+                        /*new TranslatableText("option.mine-lights.enableHealthBar.configured", keysLabel(MineLightsClient.CONFIG.healthBarKeys))
                         *///?}
                         //? if <1.16 {
                         /* .getString()
@@ -766,7 +766,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         //? if >=1.19 {
                         translatable("option.mine-lights.enableHungerBar.configured", keysLabel(MineLightsClient.CONFIG.hungerBarKeys))
                         //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.enableHungerBar")
+                        /*new TranslatableText("option.mine-lights.enableHungerBar.configured", keysLabel(MineLightsClient.CONFIG.hungerBarKeys))
                         *///?}
                         //? if <1.16 {
                         /* .getString()
@@ -781,7 +781,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         //? if >=1.19 {
                         translatable("option.mine-lights.enableSaturationBar.configured", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                         //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.enableSaturationBar")
+                        /*new TranslatableText("option.mine-lights.enableSaturationBar.configured", keysLabel(MineLightsClient.CONFIG.saturationBarKeys))
                         *///?}
                         //? if <1.16 {
                         /* .getString()
@@ -809,7 +809,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         //? if >=1.19 {
                         translatable("option.mine-lights.enableExperienceBar.configured", keysLabel(MineLightsClient.CONFIG.experienceBarKeys))
                         //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.enableExperienceBar")
+                        /*new TranslatableText("option.mine-lights.enableExperienceBar.configured", keysLabel(MineLightsClient.CONFIG.experienceBarKeys))
                         *///?}
                         //? if <1.16 {
                         /* .getString()
@@ -852,7 +852,7 @@ public class ModMenuIntegration implements ModMenuApi {
                         //? if >=1.19 {
                         translatable("option.mine-lights.enableCompassEffect.configured", keysLabel(MineLightsClient.CONFIG.compassKeys))
                         //?} else if <1.19 {
-                        /*new TranslatableText("option.mine-lights.enableCompassEffect")
+                        /*new TranslatableText("option.mine-lights.enableCompassEffect.configured", keysLabel(MineLightsClient.CONFIG.compassKeys))
                         *///?}
                         //? if <1.16 {
                         /* .getString()

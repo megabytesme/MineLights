@@ -178,6 +178,11 @@ public final class MineLightsCommands {
             builder.suggest("standard-first");
             builder.suggest("lodestone-first");
             builder.suggest("recovery-first");
+        } else if ("experience-locator-mode".equals(normalizeName(setting))) {
+            builder.suggest("auto");
+            builder.suggest("experience");
+            builder.suggest("locator");
+            builder.suggest("both");
         } else if ("min-brightness".equals(normalizeName(setting))) {
             builder.suggest("0%");
             builder.suggest("20%");

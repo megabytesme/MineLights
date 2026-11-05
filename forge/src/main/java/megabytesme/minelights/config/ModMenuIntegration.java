@@ -320,24 +320,24 @@ public final class ModMenuIntegration {
         }
 
         ConfigCategory playerStatus = builder.getOrCreateCategory(translatable("category.mine-lights.player_status"));
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHealthBar"), MineLightsClient.CONFIG.enableHealthBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHealthBar.configured", String.join(" ", MineLightsClient.CONFIG.healthBarKeys)), MineLightsClient.CONFIG.enableHealthBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHealthBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHungerBar"), MineLightsClient.CONFIG.enableHungerBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableHungerBar.configured", String.join(" ", MineLightsClient.CONFIG.hungerBarKeys)), MineLightsClient.CONFIG.enableHungerBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableHungerBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableSaturationBar"), MineLightsClient.CONFIG.enableSaturationBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableSaturationBar.configured", String.join(" ", MineLightsClient.CONFIG.saturationBarKeys)), MineLightsClient.CONFIG.enableSaturationBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableSaturationBar = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableExperienceBar"), MineLightsClient.CONFIG.enableExperienceBar)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableExperienceBar.configured", String.join(" ", MineLightsClient.CONFIG.experienceBarKeys)), MineLightsClient.CONFIG.enableExperienceBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableExperienceBar = newValue)
                 .build());
-        //? if >=26.1 {
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLocatorBar"), MineLightsClient.CONFIG.enableLocatorBar)
+        //? if >=1.21.6 {
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableLocatorBar.configured", String.join(" ", MineLightsClient.CONFIG.locatorBarKeys)), MineLightsClient.CONFIG.enableLocatorBar)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableLocatorBar = newValue)
                 .build());
@@ -356,7 +356,7 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.pulseChatKey.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.pulseChatKey = newValue)
                 .build());
-        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableCompassEffect"), MineLightsClient.CONFIG.enableCompassEffect)
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enableCompassEffect.configured", String.join(" ", MineLightsClient.CONFIG.compassKeys)), MineLightsClient.CONFIG.enableCompassEffect)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enableCompassEffect = newValue)
                 .build());
