@@ -13,14 +13,14 @@ iconFile = "assets/minelights/icon.png"
 logoFile = "assets/minelights/icon.png"
 mixins = "minelights.mixins.json"
 
-[["dependencies.minelights"]]
+[[dependencies.minelights]]
 modId = "neoforge"
 type = "required"
 versionRange = "[${forge_version},)"
 ordering = "NONE"
 side = "CLIENT"
 
-[["dependencies.minelights"]]
+[[dependencies.minelights]]
 modId = "minecraft"
 type = "required"
 versionRange = "${minecraft}"
