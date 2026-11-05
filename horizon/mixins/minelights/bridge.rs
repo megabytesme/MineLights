@@ -187,7 +187,11 @@ fn bridge_worker(
             {
                 direct_black.insert(*led, [0, 0, 0]);
             }
-            direct.update(&direct_black);
+            let disabled = settings
+                .read()
+                .map(|config| config.disabled_devices.clone())
+                .unwrap_or_default();
+            direct.update(&direct_black, &disabled);
             direct.disconnect_openrgb();
             direct.disconnect_yeelights();
             direct_layouts.clear();
@@ -549,7 +553,7 @@ fn bridge_worker(
                     .iter()
                     .map(|(id, color)| (*id, [color.0, color.1, color.2]))
                     .collect();
-                direct.update(&direct_frame);
+                direct.update(&direct_frame, &current_policy.disabled_devices);
             }
             Err(mpsc::RecvTimeoutError::Timeout) => {}
             Err(mpsc::RecvTimeoutError::Disconnected) => break,

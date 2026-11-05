@@ -200,15 +200,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
         return;
     }
     painter.last_paint = now;
-    let mut frame = painter.render(player, &layouts, config.clone(), now);
-    for layout in layouts
-        .iter()
-        .filter(|layout| device_disabled(&config, &layout.unique_id, layout.legacy_id.as_deref()))
-    {
-        for led in &layout.leds {
-            frame.keys.insert(*led, Color::BLACK);
-        }
-    }
+    let frame = painter.render(player, &layouts, config.clone(), now);
     send_frame_if_needed(bridge, &mut painter, frame, now);
 }
 

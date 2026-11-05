@@ -148,13 +148,24 @@ impl DirectOutputs {
         result
     }
 
-    pub fn update(&mut self, frame: &HashMap<u32, [u8; 3]>) {
+    pub fn update(&mut self, frame: &HashMap<u32, [u8; 3]>, disabled: &[String]) {
         self.openrgb.retain_mut(|client| client.update(frame));
         for (index, device) in self.yeelights.iter_mut().enumerate() {
-            let color = frame
+            let name = if device.name.is_empty() {
+                device.id.as_str()
+            } else {
+                device.name.as_str()
+            };
+            let unique_id = format!("Yeelight|{name}");
+            if disabled.iter().any(|entry| entry == &unique_id) {
+                continue;
+            }
+            let Some(color) = frame
                 .get(&YEELIGHT_LED_BASE.saturating_add(index as u32))
                 .copied()
-                .unwrap_or([0, 0, 0]);
+            else {
+                continue;
+            };
             device.set_color(color);
         }
     }
@@ -805,6 +816,31 @@ mod tests {
         assert_eq!(command["params"][0], 0x123456);
         assert_eq!(command["params"][1], "smooth");
         assert_eq!(command["params"][2], 400);
+    }
+
+    #[test]
+    fn excluded_yeelight_does_not_receive_a_black_or_color_update() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let device = YeelightDevice {
+            id: "test".into(),
+            name: String::new(),
+            address: listener.local_addr().unwrap(),
+            stream: None,
+            last_color: None,
+            command_id: 1,
+        };
+        let mut outputs = DirectOutputs {
+            openrgb: Vec::new(),
+            yeelights: vec![device],
+        };
+        let frame = HashMap::from([(YEELIGHT_LED_BASE, [0, 0, 0])]);
+        outputs.update(&frame, &["Yeelight|test".into()]);
+
+        assert_eq!(
+            listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
     }
 
     #[test]
