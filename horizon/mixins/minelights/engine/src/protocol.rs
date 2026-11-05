@@ -1572,6 +1572,11 @@ fn random_request_id() -> Result<String, String> {
     Ok(format_uuid(bytes))
 }
 
+/// Generates the same cryptographically random UUID used for server launch ownership.
+pub fn new_launch_id() -> Result<String, String> {
+    random_request_id()
+}
+
 fn decode_secret(encoded: &str) -> Result<[u8; 32], String> {
     decode_base64_32(encoded)
 }
