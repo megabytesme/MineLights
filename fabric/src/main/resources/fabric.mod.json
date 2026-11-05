@@ -19,7 +19,8 @@
   },
   "mixins": ["minelights.mixins.json"],
   "depends": {
-    "minecraft": "${minecraft}"
+    "minecraft": "${minecraft}",
+    "${fabric_api_id}": "*"
   },
   "suggests": {},
   "custom": {

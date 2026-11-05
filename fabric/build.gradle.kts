@@ -220,6 +220,10 @@ tasks {
         inputs.property("icon", project.property("mod.icon"))
         inputs.property("environment", project.property("mod.environment"))
         inputs.property("modmenu_entrypoint_class", "megabytesme.minelights.config.ModMenuIntegration")
+        // Fabric API renamed its root mod from "fabric" to "fabric-api"
+        // at the 1.19.3 boundary. Newer 1.19.2 releases provide "fabric".
+        val fabricApiId = if (stonecutter.eval(stonecutter.current.version, "<1.19.3")) "fabric" else "fabric-api"
+        inputs.property("fabric_api_id", fabricApiId)
 
         val props = mapOf(
             "id" to project.property("mod.id"),
@@ -237,7 +241,8 @@ tasks {
             "modrinth" to project.property("mod.modrinth"),
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
-            "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration"
+            "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration",
+            "fabric_api_id" to fabricApiId
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
@@ -290,10 +295,11 @@ publishMods {
         accessToken = modrinthToken
         val targets = property("mod.mc_targets").toString().split(" ")
         minecraftVersions.addAll(targets)
-        requires {
-            slug = "fabric-api"
-            version = property("deps.fabric_api").toString()
-        }
+        // A single MineLights artifact can target several Minecraft releases,
+        // but the compile-time Fabric API version may target only one of them.
+        // Let Modrinth select the latest Fabric API compatible with the user's
+        // Minecraft version rather than installing that exact build everywhere.
+        requires("fabric-api")
     }
 
     /*

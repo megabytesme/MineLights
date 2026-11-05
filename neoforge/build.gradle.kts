@@ -288,5 +288,8 @@ publishMods {
         accessToken = modrinthToken
         val targets = property("mod.mc_targets").toString().split(" ")
         minecraftVersions.addAll(targets)
+        // The NeoForge settings screen is implemented with Cloth Config.
+        // Resolve a version for the player's Minecraft version when installing.
+        requires("cloth-config")
     }
 }

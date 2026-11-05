@@ -27,5 +27,12 @@ versionRange = "${minecraft}"
 ordering = "NONE"
 side = "CLIENT"
 
+[[dependencies.minelights]]
+modId = "cloth_config"
+type = "required"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "CLIENT"
+
 [[mixins]]
 config = "minelights.mixins.json"
