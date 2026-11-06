@@ -14,6 +14,7 @@ const OPENRGB_ENDPOINT_STRIDE: u32 = 0x0100_0000;
 const OPENRGB_DEVICE_STRIDE: u32 = 0x0001_0000;
 const MAX_OPENRGB_ENDPOINTS: usize =
     ((YEELIGHT_LED_BASE - OPENRGB_LED_BASE) / OPENRGB_ENDPOINT_STRIDE) as usize;
+const OPENRGB_STATE_RETRY_DELAY: Duration = Duration::from_secs(1);
 const YEELIGHT_MULTICAST: &str = "239.255.255.250:1982";
 const YEELIGHT_DISCOVERY: &[u8] = b"M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1982\r\nMAN: \"ssdp:discover\"\r\nST: wifi_bulb\r\n\r\n";
 
@@ -178,6 +179,8 @@ struct OpenRgbDevice {
     key_leds: Vec<(usize, String)>,
     original: Option<OriginalMode>,
     owned: bool,
+    restore_pending: bool,
+    next_state_retry: Option<Instant>,
 }
 
 struct OriginalMode {
@@ -274,6 +277,8 @@ impl OpenRgbClient {
                 key_leds,
                 original,
                 owned: false,
+                restore_pending: false,
+                next_state_retry: None,
             });
         }
         Ok(Self {
@@ -289,6 +294,7 @@ impl OpenRgbClient {
 
     fn set_state(&mut self, take_over: bool, disabled: &[String], profile: &str) {
         let mut has_disabled = false;
+        let mut restoration_pending = false;
         for device in &mut self.devices {
             let id = format!(
                 "OpenRGB|{}:{}|{}|{}",
@@ -297,29 +303,102 @@ impl OpenRgbClient {
             let is_disabled = disabled.iter().any(|entry| entry == &id);
             has_disabled |= is_disabled;
             let should_own = take_over && !is_disabled;
-            if should_own && !device.owned {
-                let capture = send_packet(
+            let restoring = device.restore_pending || (!should_own && device.owned);
+            let taking_over = should_own && !device.owned && !device.restore_pending;
+            let state_change_needed = restoring || taking_over;
+            if !state_change_needed
+                || device
+                    .next_state_retry
+                    .is_some_and(|retry_at| Instant::now() < retry_at)
+            {
+                if restoring {
+                    restoration_pending = true;
+                }
+                continue;
+            }
+
+            if restoring {
+                device.restore_pending = true;
+                match restore_device(&mut self.stream, device) {
+                    Ok(()) => {
+                        device.owned = false;
+                        device.restore_pending = false;
+                        device.original = None;
+                        device.next_state_retry = None;
+                    }
+                    Err(error) => {
+                        restoration_pending = true;
+                        device.owned = true;
+                        device.next_state_retry = Some(Instant::now() + OPENRGB_STATE_RETRY_DELAY);
+                        log_openrgb_error(
+                            "could not restore the original mode; restoration will be retried",
+                            device,
+                            &error,
+                        );
+                    }
+                }
+            } else if should_own {
+                match capture_original_mode(
                     &mut self.stream,
                     device.controller_id,
-                    1,
-                    &self.protocol_version.to_le_bytes(),
-                )
-                .and_then(|_| read_response(&mut self.stream))
-                .and_then(|bytes| parse_openrgb_device(&bytes, self.protocol_version));
-                if let Ok((_, _, _, original)) = capture {
-                    device.original = original;
+                    self.protocol_version,
+                ) {
+                    Ok(original) => {
+                        // Keep the snapshot before the mode change. A failed TCP write may have
+                        // sent a partial packet, so the saved state must remain available for
+                        // an immediate rollback and later release retries.
+                        device.original = Some(original);
+                        device.next_state_retry = None;
+                    }
+                    Err(error) => {
+                        device.next_state_retry = Some(Instant::now() + OPENRGB_STATE_RETRY_DELAY);
+                        log_openrgb_error(
+                            "could not capture the original mode; takeover skipped",
+                            device,
+                            &error,
+                        );
+                        continue;
+                    }
                 }
-                if send_packet(&mut self.stream, device.controller_id, 1100, &[]).is_ok() {
-                    device.owned = true;
+
+                match send_packet(&mut self.stream, device.controller_id, 1100, &[]) {
+                    Ok(()) => {
+                        device.owned = true;
+                        device.restore_pending = false;
+                    }
+                    Err(takeover_error) => {
+                        log_openrgb_error("could not enter Direct mode", device, &takeover_error);
+                        match restore_device(&mut self.stream, device) {
+                            Ok(()) => {
+                                device.original = None;
+                                device.next_state_retry =
+                                    Some(Instant::now() + OPENRGB_STATE_RETRY_DELAY);
+                            }
+                            Err(restore_error) => {
+                                // Retain ownership so regular state reconciliation and Drop can
+                                // retry restoration if the takeover packet was partially sent.
+                                device.owned = true;
+                                device.restore_pending = true;
+                                device.next_state_retry =
+                                    Some(Instant::now() + OPENRGB_STATE_RETRY_DELAY);
+                                log_openrgb_error(
+                                    "rollback failed; restoration will be retried",
+                                    device,
+                                    &restore_error,
+                                );
+                            }
+                        }
+                    }
                 }
-            } else if !should_own && device.owned {
-                restore_device(&mut self.stream, device);
-                device.owned = false;
             }
         }
         if take_over {
             self.profile_loaded = false;
-        } else if !self.profile_loaded && !has_disabled && !profile.trim().is_empty() {
+        } else if !self.profile_loaded
+            && !has_disabled
+            && !restoration_pending
+            && !profile.trim().is_empty()
+        {
             let mut payload = profile.trim().as_bytes().to_vec();
             payload.push(0);
             if send_packet(&mut self.stream, 0, 152, &payload).is_ok() {
@@ -372,7 +451,7 @@ impl OpenRgbClient {
 
     fn update(&mut self, frame: &HashMap<u32, [u8; 3]>) -> bool {
         for (device_index, device) in self.devices.iter().enumerate() {
-            if !device.owned {
+            if !device.owned || device.restore_pending {
                 continue;
             }
             if device.led_count == 0 || device.key_leds.is_empty() {
@@ -422,29 +501,63 @@ impl OpenRgbClient {
 impl Drop for OpenRgbClient {
     fn drop(&mut self) {
         for device in &mut self.devices {
-            if device.owned {
-                restore_device(&mut self.stream, device);
+            if device.owned || device.restore_pending {
+                if let Err(error) = restore_device(&mut self.stream, device) {
+                    log_openrgb_error("final restoration attempt failed", device, &error);
+                }
             }
         }
     }
 }
 
-fn restore_device(stream: &mut TcpStream, device: &OpenRgbDevice) {
-    let Some(original) = &device.original else {
-        return;
-    };
+fn capture_original_mode(
+    stream: &mut TcpStream,
+    controller_id: u32,
+    protocol_version: u32,
+) -> Result<OriginalMode, String> {
+    send_packet(stream, controller_id, 1, &protocol_version.to_le_bytes())?;
+    let bytes = read_response(stream)?;
+    let (_, _, _, original) = parse_openrgb_device(&bytes, protocol_version)?;
+    original.ok_or_else(|| "OpenRGB did not return an active mode snapshot".to_owned())
+}
+
+fn restore_device(stream: &mut TcpStream, device: &OpenRgbDevice) -> Result<(), String> {
+    let original = device
+        .original
+        .as_ref()
+        .ok_or_else(|| "the original OpenRGB mode snapshot is unavailable".to_owned())?;
     let mut mode = Vec::with_capacity(8 + original.data.len());
     mode.extend_from_slice(&((8 + original.data.len()) as u32).to_le_bytes());
     mode.extend_from_slice(&original.index.to_le_bytes());
     mode.extend_from_slice(&original.data);
-    let _ = send_packet(stream, device.controller_id, 1101, &mode);
+    send_packet(stream, device.controller_id, 1101, &mode)
+        .map_err(|error| format!("could not restore the original mode: {error}"))?;
     if original.per_led && !original.colors.is_empty() {
         let mut colors = Vec::with_capacity(6 + original.colors.len());
         colors.extend_from_slice(&((6 + original.colors.len()) as u32).to_le_bytes());
         colors.extend_from_slice(&((original.colors.len() / 4) as u16).to_le_bytes());
         colors.extend_from_slice(&original.colors);
-        let _ = send_packet(stream, device.controller_id, 1050, &colors);
+        send_packet(stream, device.controller_id, 1050, &colors)
+            .map_err(|error| format!("could not restore the original per-LED colors: {error}"))?;
     }
+    Ok(())
+}
+
+fn log_openrgb_error(action: &str, device: &OpenRgbDevice, reason: &str) {
+    let clean = |value: &str| {
+        value
+            .chars()
+            .filter(|character| !character.is_control())
+            .take(180)
+            .collect::<String>()
+    };
+    let _ = writeln!(
+        std::io::stderr().lock(),
+        "[MineLights] OpenRGB {} for {}: {}",
+        clean(action),
+        clean(&device.display_name),
+        clean(reason)
+    );
 }
 
 struct Cursor<'a> {
@@ -776,6 +889,43 @@ mod tests {
     use super::*;
     use std::net::{Ipv4Addr, TcpListener};
 
+    fn openrgb_device_packet(include_active_mode: bool) -> Vec<u8> {
+        fn string(out: &mut Vec<u8>, value: &str) {
+            out.extend_from_slice(&((value.len() + 1) as u16).to_le_bytes());
+            out.extend_from_slice(value.as_bytes());
+            out.push(0);
+        }
+
+        let mut packet = vec![0; 8];
+        for value in ["Keyboard", "", "", "", ""] {
+            string(&mut packet, value);
+        }
+        packet.extend_from_slice(&(if include_active_mode { 1u16 } else { 0u16 }).to_le_bytes());
+        packet.extend_from_slice(&0u32.to_le_bytes());
+        if include_active_mode {
+            string(&mut packet, "Static");
+            for index in 0..9 {
+                packet.extend_from_slice(&(if index == 8 { 1u32 } else { 0u32 }).to_le_bytes());
+            }
+            packet.extend_from_slice(&0u16.to_le_bytes());
+        }
+        packet.extend_from_slice(&0u16.to_le_bytes());
+        packet.extend_from_slice(&0u16.to_le_bytes());
+        packet.extend_from_slice(&0u16.to_le_bytes());
+        packet
+    }
+
+    fn read_openrgb_packet(stream: &mut TcpStream) -> (u32, Vec<u8>) {
+        let mut header = [0u8; 16];
+        stream.read_exact(&mut header).unwrap();
+        assert_eq!(&header[..4], b"ORGB");
+        let command = u32::from_le_bytes(header[8..12].try_into().unwrap());
+        let length = u32::from_le_bytes(header[12..16].try_into().unwrap()) as usize;
+        let mut payload = vec![0; length];
+        stream.read_exact(&mut payload).unwrap();
+        (command, payload)
+    }
+
     #[test]
     fn openrgb_packet_uses_little_endian_header_and_payload() {
         let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
@@ -952,6 +1102,8 @@ mod tests {
                 key_leds: vec![(0, "Q".into()), (1, "Q".into())],
                 original: None,
                 owned: false,
+                restore_pending: false,
+                next_state_retry: None,
             }],
         });
         let layout = output
@@ -992,6 +1144,8 @@ mod tests {
                     per_led: true,
                     colors: vec![1, 2, 3, 4],
                 }),
+                restore_pending: false,
+                next_state_retry: None,
             }],
         };
         client.set_state(false, &[], "");
@@ -1003,5 +1157,141 @@ mod tests {
         assert_eq!(u32::from_le_bytes(mode[4..8].try_into().unwrap()), 2);
         peer.read_exact(&mut header).unwrap();
         assert_eq!(u32::from_le_bytes(header[8..12].try_into().unwrap()), 1050);
+        assert!(!client.devices[0].owned);
+        assert!(client.devices[0].original.is_none());
+    }
+
+    #[test]
+    fn openrgb_takeover_is_skipped_when_original_mode_cannot_be_captured() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let address = listener.local_addr().unwrap();
+        let peer_thread = thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            peer.set_read_timeout(Some(Duration::from_millis(200)))
+                .unwrap();
+            let (command, _) = read_openrgb_packet(&mut peer);
+            assert_eq!(command, 1, "expected active device state request");
+            send_packet(&mut peer, 3, 1, &openrgb_device_packet(false)).unwrap();
+            let mut next_packet = [0u8; 16];
+            let error = peer.read(&mut next_packet).unwrap_err();
+            assert!(
+                matches!(
+                    error.kind(),
+                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                ),
+                "unexpected packet after a missing mode snapshot: {error}"
+            );
+        });
+        let stream = TcpStream::connect(address).unwrap();
+        let mut client = OpenRgbClient {
+            endpoint_host: "127.0.0.1".into(),
+            endpoint_port: 6742,
+            endpoint_slot: 0,
+            stream,
+            protocol_version: 0,
+            profile_loaded: false,
+            devices: vec![OpenRgbDevice {
+                controller_id: 3,
+                led_count: 1,
+                display_name: "Keyboard".into(),
+                key_leds: vec![(0, "Q".into())],
+                original: None,
+                owned: false,
+                restore_pending: false,
+                next_state_retry: None,
+            }],
+        };
+
+        client.set_state(true, &[], "");
+        assert!(!client.devices[0].owned);
+        assert!(client.devices[0].original.is_none());
+        peer_thread.join().unwrap();
+    }
+
+    #[test]
+    fn openrgb_takeover_uses_captured_state_and_releases_it() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let address = listener.local_addr().unwrap();
+        let peer_thread = thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            let (capture_command, _) = read_openrgb_packet(&mut peer);
+            assert_eq!(capture_command, 1);
+            send_packet(&mut peer, 3, 1, &openrgb_device_packet(true)).unwrap();
+            let (takeover_command, _) = read_openrgb_packet(&mut peer);
+            assert_eq!(takeover_command, 1100);
+            let (restore_command, _) = read_openrgb_packet(&mut peer);
+            assert_eq!(restore_command, 1101);
+        });
+        let stream = TcpStream::connect(address).unwrap();
+        let mut client = OpenRgbClient {
+            endpoint_host: "127.0.0.1".into(),
+            endpoint_port: 6742,
+            endpoint_slot: 0,
+            stream,
+            protocol_version: 0,
+            profile_loaded: false,
+            devices: vec![OpenRgbDevice {
+                controller_id: 3,
+                led_count: 1,
+                display_name: "Keyboard".into(),
+                key_leds: vec![(0, "Q".into())],
+                original: None,
+                owned: false,
+                restore_pending: false,
+                next_state_retry: None,
+            }],
+        };
+
+        client.set_state(true, &[], "");
+        assert!(client.devices[0].owned);
+        assert!(client.devices[0].original.is_some());
+        client.set_state(false, &[], "");
+        assert!(!client.devices[0].owned);
+        assert!(client.devices[0].original.is_none());
+        peer_thread.join().unwrap();
+    }
+
+    #[test]
+    fn failed_openrgb_restore_keeps_snapshot_and_ownership_for_retry() {
+        use std::net::Shutdown;
+
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let stream = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (_peer, _) = listener.accept().unwrap();
+        stream.shutdown(Shutdown::Both).unwrap();
+        let mut client = OpenRgbClient {
+            endpoint_host: "127.0.0.1".into(),
+            endpoint_port: 6742,
+            endpoint_slot: 0,
+            stream,
+            protocol_version: 5,
+            profile_loaded: false,
+            devices: vec![OpenRgbDevice {
+                controller_id: 3,
+                led_count: 1,
+                display_name: "Keyboard".into(),
+                key_leds: vec![(0, "Q".into())],
+                owned: true,
+                original: Some(OriginalMode {
+                    index: 2,
+                    data: vec![7, 8],
+                    per_led: false,
+                    colors: Vec::new(),
+                }),
+                restore_pending: false,
+                next_state_retry: None,
+            }],
+        };
+
+        client.set_state(false, &[], "");
+        assert!(client.devices[0].owned);
+        assert!(client.devices[0].restore_pending);
+        assert!(client.devices[0].original.is_some());
+        assert!(client.devices[0].next_state_retry.is_some());
+        let frame = [(OPENRGB_LED_BASE, [255, 0, 0])].into_iter().collect();
+        assert!(
+            client.update(&frame),
+            "update tried to write while restoration was pending"
+        );
     }
 }
