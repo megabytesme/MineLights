@@ -336,8 +336,9 @@ public class MineLightsClient {
         MineLightsClient.configDir = configDir;
         MineLightsClient.resolvedModVersion = modVersion;
         MineLightsClient.resolvedModLoader = modLoader;
-        if ("forge".equalsIgnoreCase(modLoader) || "neoforge".equalsIgnoreCase(modLoader)) {
-            preloadFmlShutdownClasses();
+        if ("forge".equalsIgnoreCase(modLoader) || "neoforge".equalsIgnoreCase(modLoader)
+                || "quilt".equalsIgnoreCase(modLoader)) {
+            preloadShutdownClasses();
         }
         if (shutdownHookRegistered.compareAndSet(false, true)) {
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown, "MineLights-Shutdown"));
@@ -360,7 +361,7 @@ public class MineLightsClient {
         }, "MineLights-Initializer-Waiter").start();
     }
 
-    private static void preloadFmlShutdownClasses() {
+    private static void preloadShutdownClasses() {
         ClassLoader classLoader = MineLightsClient.class.getClassLoader();
         String[] classNames = {
                 "megabytesme.minelights.rgb.YeelightController$YeelightDevice"
@@ -369,7 +370,7 @@ public class MineLightsClient {
             try {
                 Class.forName(className, false, classLoader);
             } catch (ClassNotFoundException | LinkageError e) {
-                LOGGER.warn("Could not preload Forge shutdown class {}.", className, e);
+                LOGGER.warn("Could not preload shutdown class {}.", className, e);
             }
         }
     }

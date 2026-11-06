@@ -343,6 +343,9 @@ public class MineLightsClient implements ClientModInitializer {
         MineLightsClient.configDir = configDir;
         MineLightsClient.resolvedModVersion = modVersion;
         MineLightsClient.resolvedModLoader = modLoader;
+        if ("quilt".equalsIgnoreCase(modLoader)) {
+            preloadShutdownClasses();
+        }
 
         if (shutdownHookRegistered.compareAndSet(false, true)) {
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown, "MineLights-Fabric-Shutdown"));
@@ -527,6 +530,20 @@ public class MineLightsClient implements ClientModInitializer {
             if (e instanceof InterruptedException) Thread.currentThread().interrupt();
             LOGGER.warn("Could not request shutdown of the locally started server: {}", e.getMessage());
             return "unavailable";
+        }
+    }
+
+    private static void preloadShutdownClasses() {
+        ClassLoader classLoader = MineLightsClient.class.getClassLoader();
+        String[] classNames = {
+                "megabytesme.minelights.rgb.YeelightController$YeelightDevice"
+        };
+        for (String className : classNames) {
+            try {
+                Class.forName(className, false, classLoader);
+            } catch (ClassNotFoundException | LinkageError e) {
+                LOGGER.warn("Could not preload shutdown class {}.", className, e);
+            }
         }
     }
 
