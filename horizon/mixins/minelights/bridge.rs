@@ -909,6 +909,14 @@ fn start_reviewed_server_async(
             fn drop(&mut self) { MANAGED_SERVER_BUSY.store(false, Ordering::Release); }
         }
         let _guard = BusyGuard;
+        let _operation_lock = match minelights_server::ServerOperationLock::try_acquire() {
+            Ok(Some(lock)) => lock,
+            Ok(None) => return,
+            Err(error) => {
+                log_server_diagnostic("MineLights Server operation lock", &error.to_string());
+                return;
+            }
+        };
         if !path.exists() {
             if !permission.load(Ordering::Acquire) {
                 return;
@@ -943,13 +951,17 @@ fn start_reviewed_server_async(
                 && path.is_file()
                 && minelights_server::is_reviewed_binary(&path)
             {
-                start_downloaded_server_and_wait_ready(&path, &permission)
+                if server_is_running_fresh() {
+                    DownloadedServerStart::AlreadyRunning
+                } else {
+                    start_downloaded_server_and_wait_ready(&path, &permission)
+                }
             } else {
                 DownloadedServerStart::Failed
             };
             let server_started = matches!(server_start, DownloadedServerStart::Ready);
             let server_readiness_failed = matches!(server_start, DownloadedServerStart::ReadinessFailed);
-            let server_running_after = !server_started && server_is_running();
+            let server_running_after = !server_started && server_is_running_fresh();
             if let Ok(mut pending) = notices.lock() {
                 pending.push_back(Notice::ServerDownloadFinished {
                     result,
@@ -1032,7 +1044,7 @@ fn start_installed_server(path: Option<&std::path::Path>, permission: &AtomicBoo
     if !minelights_server::is_reviewed_binary(path) || !permission.load(Ordering::Acquire) {
         return false;
     }
-    if server_is_running() {
+    if server_is_running_fresh() {
         return false;
     }
     #[cfg(windows)]
@@ -1126,7 +1138,7 @@ fn start_downloaded_server_and_wait_ready(
     if !path.is_file() || !minelights_server::is_reviewed_binary(path) {
         return DownloadedServerStart::Failed;
     }
-    if server_is_running() {
+    if server_is_running_fresh() {
         return DownloadedServerStart::AlreadyRunning;
     }
 
@@ -1229,6 +1241,31 @@ fn server_is_running() -> bool {
         }
     }
     cached_server_process_running()
+}
+
+/// Bypasses the UI polling cache at file replacement and process launch boundaries.
+fn server_is_running_fresh() -> bool {
+    if let Ok(Some(endpoint)) = minelights_protocol::local_endpoint() {
+        let reachable = (endpoint.host.as_str(), endpoint.port)
+            .to_socket_addrs()
+            .ok()
+            .into_iter()
+            .flatten()
+            .any(|address| {
+                TcpStream::connect_timeout(&address, Duration::from_millis(150)).is_ok()
+            });
+        if reachable {
+            return true;
+        }
+    }
+    #[cfg(windows)]
+    {
+        return legacy_server_process_running();
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
 }
 
 #[cfg(windows)]

@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] La baixada de MineLights Server encara està en curs.",
   "message.minelights.server.download.finished_started": "[MineLights] S'ha acabat de baixar MineLights Server i el servidor s'ha iniciat.",
   "message.minelights.server.download.finished_restarting": "[MineLights] L'actualització de MineLights Server ha acabat i el servidor s'ha reiniciat.",
-  "message.minelights.server.download.restart_required": "[MineLights] La baixada de MineLights Server està a punt. Si ja hi ha un servidor en marxa, reinicia'l des de la safata del sistema per aplicar l'actualització.",
+  "message.minelights.server.download.restart_required": "[MineLights] Actualització de MineLights Server verificada, però encara no instal·lada. Si hi ha un MineLights Server en execució, atura’l des de la safata del sistema; després reinicia Minecraft per instal·lar i iniciar l’actualització.",
   "message.minelights.server.download.start_failed": "[MineLights] No s’ha pogut iniciar MineLights Server automàticament. Inicia’l des de la safata o instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] No s’ha pogut completar la configuració automàtica de MineLights Server. Si el servidor està en funcionament, atura’l des de la safata; si no, instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] Ha fallat la comprovació d’actualitzacions de MineLights Server. Revisa les actualitzacions manualment: https://github.com/megabytesme/MineLights-Server/releases"

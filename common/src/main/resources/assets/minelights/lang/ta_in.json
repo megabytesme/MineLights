@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server பதிவிறக்கம் இன்னும் நடைபெறுகிறது.",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server பதிவிறக்கம் முடிந்தது; சேவையகமும் தொடங்கிவிட்டது.",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது.",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server பதிவிறக்கம் தயாராக உள்ளது. சேவையகம் ஏற்கெனவே இயங்கினால், புதுப்பிப்பைப் பயன்படுத்த அதன் தட்டு மெனுவிலிருந்து அதை மீண்டும் தொடங்கவும்.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server புதுப்பிப்பு சரிபார்க்கப்பட்டது, ஆனால் இன்னும் நிறுவப்படவில்லை. MineLights Server இயங்கிக்கொண்டிருந்தால், கணினித் தட்டு மெனுவிலிருந்து அதை நிறுத்துங்கள்; பின்னர் புதுப்பிப்பை நிறுவி தொடங்க Minecraft-ஐ மறுதொடக்கம் செய்யுங்கள்.",
   "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases"

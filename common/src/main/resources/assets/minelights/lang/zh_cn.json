@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server 下载仍在进行中。",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server 下载完成，服务器已启动。",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server 更新完成，服务器已重新启动。",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server 下载已就绪。如果服务器已经在运行，请从系统托盘图标重启服务器以使用此更新。",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server 更新已验证，但尚未安装。如果 MineLights Server 正在运行，请从系统托盘菜单将其停止；然后重新启动 Minecraft 以安装并启动更新。",
   "message.minelights.server.download.start_failed": "[MineLights] 无法自动启动 MineLights Server。请从系统托盘启动它，或手动安装：https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] 无法完成 MineLights Server 的自动设置。如果服务器正在运行，请从系统托盘停止它；否则请手动安装：https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server 更新检查失败。请手动查看更新：https://github.com/megabytesme/MineLights-Server/releases"

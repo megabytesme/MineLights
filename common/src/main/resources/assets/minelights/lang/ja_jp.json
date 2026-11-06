@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server のダウンロードはまだ進行中です。",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server のダウンロードが完了し、サーバーが起動しました。",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server の更新が完了し、サーバーが再起動しました。",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server のダウンロードが完了しました。サーバーがすでに実行中の場合は、更新を適用するため通知領域のアイコンから再起動してください。",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server の更新は検証済みですが、まだインストールされていません。MineLights Server が実行中の場合は、システムトレイのアイコンから停止してください。その後、Minecraft を再起動して更新をインストールし、起動してください。",
   "message.minelights.server.download.start_failed": "[MineLights] MineLights Server を自動で起動できませんでした。トレイから起動するか、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] MineLights Server の自動セットアップを完了できませんでした。サーバーが実行中の場合は、トレイから停止してください。実行中でない場合は、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server の更新確認に失敗しました。更新を手動で確認してください: https://github.com/megabytesme/MineLights-Server/releases"

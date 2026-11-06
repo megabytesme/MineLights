@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] Quá trình tải MineLights Server vẫn đang diễn ra.",
   "message.minelights.server.download.finished_started": "[MineLights] Đã tải xong MineLights Server và máy chủ đã khởi động.",
   "message.minelights.server.download.finished_restarting": "[MineLights] Đã cập nhật MineLights Server và máy chủ đã khởi động lại.",
-  "message.minelights.server.download.restart_required": "[MineLights] Đã tải xong MineLights Server. Nếu máy chủ đang chạy, hãy khởi động lại từ menu khay hệ thống của máy chủ để dùng bản cập nhật.",
+  "message.minelights.server.download.restart_required": "[MineLights] Bản cập nhật MineLights Server đã được xác minh nhưng chưa được cài đặt. Nếu MineLights Server đang chạy, hãy dừng nó từ biểu tượng khay hệ thống; sau đó khởi động lại Minecraft để cài đặt và khởi chạy bản cập nhật.",
   "message.minelights.server.download.start_failed": "[MineLights] Không thể khởi động MineLights Server tự động. Hãy khởi động từ khay hệ thống hoặc cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] Không thể hoàn tất thiết lập MineLights Server tự động. Nếu máy chủ đang chạy, hãy dừng máy chủ từ khay hệ thống; nếu không, hãy cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] Không thể kiểm tra bản cập nhật MineLights Server. Hãy xem các bản cập nhật thủ công: https://github.com/megabytesme/MineLights-Server/releases"

@@ -9,6 +9,7 @@ public final class ServerDownloadNotificationStateTest {
         preWorldTransferReportsProgressOnceAfterWorldEntry();
         disabledSettingSuppressesEveryNotice();
         failureCategoryMatchesWhetherTransferStarted();
+        runningServerUsesRestartRequiredNotice();
     }
 
     private static void startedInWorldReportsStartAndConfirmedReadiness() {
@@ -43,6 +44,12 @@ public final class ServerDownloadNotificationStateTest {
         ServerDownloadNotificationState state = new ServerDownloadNotificationState();
         equal(ServerDownloadNotificationState.DOWNLOAD_FAILED, state.failed(true, true));
         equal(ServerDownloadNotificationState.UPDATE_CHECK_FAILED, state.failed(true, false));
+    }
+
+    private static void runningServerUsesRestartRequiredNotice() {
+        ServerDownloadNotificationState state = new ServerDownloadNotificationState();
+        equal(ServerDownloadNotificationState.RESTART_REQUIRED, state.restartRequired(true));
+        equal(null, state.restartRequired(false));
     }
 
     private static void equal(Object expected, Object actual) {

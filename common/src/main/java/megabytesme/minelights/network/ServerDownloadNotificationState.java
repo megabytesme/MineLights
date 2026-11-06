@@ -5,6 +5,7 @@ public final class ServerDownloadNotificationState {
     public static final String STARTED = "message.minelights.server.download.started";
     public static final String IN_PROGRESS = "message.minelights.server.download.in_progress";
     public static final String FINISHED_STARTED = "message.minelights.server.download.finished_started";
+    public static final String RESTART_REQUIRED = "message.minelights.server.download.restart_required";
     public static final String START_FAILED = "message.minelights.server.download.start_failed";
     public static final String DOWNLOAD_FAILED = "message.minelights.server.download.failed";
     public static final String UPDATE_CHECK_FAILED = "message.minelights.server.update_check_failed";
@@ -34,9 +35,14 @@ public final class ServerDownloadNotificationState {
         return serverReady ? FINISHED_STARTED : START_FAILED;
     }
 
-    public synchronized String failed(boolean notificationsEnabled, boolean downloadAttempted) {
+    /** The verified update is staged but cannot be installed while a shared server is running. */
+    public synchronized String restartRequired(boolean notificationsEnabled) {
+        return notificationsEnabled ? RESTART_REQUIRED : null;
+    }
+
+    public synchronized String failed(boolean notificationsEnabled, boolean setupAttempted) {
         if (!notificationsEnabled) return null;
-        return downloadAttempted ? DOWNLOAD_FAILED : UPDATE_CHECK_FAILED;
+        return setupAttempted ? DOWNLOAD_FAILED : UPDATE_CHECK_FAILED;
     }
 
     public synchronized void reset() {

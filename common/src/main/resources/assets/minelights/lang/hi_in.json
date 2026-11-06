@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server का डाउनलोड अभी जारी है।",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server का डाउनलोड पूरा हो गया है और सर्वर शुरू हो गया है।",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server का अपडेट पूरा हो गया है और सर्वर फिर से शुरू हो गया है।",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server का डाउनलोड तैयार है। यदि कोई सर्वर पहले से चल रहा है, तो अपडेट इस्तेमाल करने के लिए उसे उसके सिस्टम ट्रे मेनू से फिर से शुरू करें।",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server अपडेट सत्यापित किया गया है, लेकिन अभी इंस्टॉल नहीं हुआ है। यदि MineLights Server चल रहा है, तो सिस्टम ट्रे में उसके आइकन से उसे रोकें; फिर अपडेट इंस्टॉल और शुरू करने के लिए Minecraft दोबारा शुरू करें।",
   "message.minelights.server.download.start_failed": "[MineLights] MineLights Server अपने-आप शुरू नहीं हो सका। इसे ट्रे से शुरू करें या मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] MineLights Server का स्वचालित सेटअप पूरा नहीं हो सका। यदि सर्वर चल रहा है, तो उसे ट्रे से रोकें; अन्यथा उसे मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server के अपडेट की जाँच विफल हुई। अपडेट मैन्युअल रूप से देखें: https://github.com/megabytesme/MineLights-Server/releases"

@@ -248,7 +248,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
                                 game.native_chat(&server_download_message(
                                     &language,
                                     6,
-                                    "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+                                    "[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update.",
                                 ));
                             }
                             ServerDownloadCompletion::Started => {

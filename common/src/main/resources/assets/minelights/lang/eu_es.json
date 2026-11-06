@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server-en deskargak oraindik martxan jarraitzen du.",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server-en deskarga amaitu da, eta zerbitzaria abiarazi da.",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server-en eguneratzea amaitu da, eta zerbitzaria berrabiarazi da.",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server-en deskarga prest dago. Zerbitzari bat dagoeneko martxan badago, berrabiarazi haren erretilu-menutik eguneraketa erabiltzeko.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server-en eguneraketa egiaztatu da, baina oraindik ez da instalatu. MineLights Server bat martxan badago, gelditu sistemaren erretilutik; ondoren berrabiarazi Minecraft eguneraketa instalatu eta abiarazteko.",
   "message.minelights.server.download.start_failed": "[MineLights] Ezin izan da MineLights Server automatikoki abiarazi. Abiarazi sistemaren erretilutik edo instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] Ezin izan da MineLights Server-en konfigurazio automatikoa osatu. Zerbitzaria martxan badago, gelditu sistemaren erretilutik; bestela, instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] Ezin izan da MineLights Server-en eguneratzerik dagoen egiaztatu. Aztertu eguneratzeak eskuz: https://github.com/megabytesme/MineLights-Server/releases"

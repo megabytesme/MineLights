@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] La descarga de MineLights Server sigue en curso.",
   "message.minelights.server.download.finished_started": "[MineLights] La descarga de MineLights Server terminó y el servidor se inició.",
   "message.minelights.server.download.finished_restarting": "[MineLights] La actualización de MineLights Server terminó y el servidor se reinició.",
-  "message.minelights.server.download.restart_required": "[MineLights] La descarga de MineLights Server está lista. Si ya hay un servidor en ejecución, reinícialo desde su icono de la bandeja del sistema para aplicar la actualización.",
+  "message.minelights.server.download.restart_required": "[MineLights] La actualización de MineLights Server se verificó, pero aún no se ha instalado. Si hay un MineLights Server en ejecución, detenlo desde la bandeja del sistema; después reinicia Minecraft para instalar e iniciar la actualización.",
   "message.minelights.server.download.start_failed": "[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] Falló la búsqueda de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases"

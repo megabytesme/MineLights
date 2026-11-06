@@ -11,6 +11,141 @@ const SERVER_URL: &str =
     "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0/MineLights.exe";
 const RELEASES_URL: &str = "https://github.com/megabytesme/MineLights-Server/releases";
 
+#[cfg(windows)]
+pub(super) struct ServerOperationLock {
+    file: std::fs::File,
+    overlapped: windows_sys::Win32::System::IO::OVERLAPPED,
+}
+
+#[cfg(windows)]
+impl ServerOperationLock {
+    pub(super) fn try_acquire() -> std::io::Result<Option<Self>> {
+        let path = server_operation_lock_path()
+            .map_err(|reason| std::io::Error::new(std::io::ErrorKind::NotFound, reason))?;
+        Self::try_acquire_at(&path)
+    }
+
+    fn try_acquire_at(path: &std::path::Path) -> std::io::Result<Option<Self>> {
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::{
+            Foundation::{ERROR_LOCK_VIOLATION, HANDLE},
+            Storage::FileSystem::{LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY, LockFileEx},
+            System::IO::OVERLAPPED,
+        };
+
+        let parent = path.parent().ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "server lock folder is unavailable",
+            )
+        })?;
+        std::fs::create_dir_all(parent)?;
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(path)?;
+        let handle = file.as_raw_handle() as HANDLE;
+        let mut overlapped = OVERLAPPED::default();
+        let locked = unsafe {
+            LockFileEx(
+                handle,
+                LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
+                0,
+                u32::MAX,
+                0x7fff_ffff,
+                &mut overlapped,
+            )
+        };
+        if locked == 0 {
+            let error = std::io::Error::last_os_error();
+            if error.raw_os_error() == Some(ERROR_LOCK_VIOLATION as i32) {
+                return Ok(None);
+            }
+            return Err(error);
+        }
+
+        Ok(Some(Self { file, overlapped }))
+    }
+}
+
+#[cfg(windows)]
+impl Drop for ServerOperationLock {
+    fn drop(&mut self) {
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::{Storage::FileSystem::UnlockFileEx, System::IO::OVERLAPPED};
+
+        let handle = self.file.as_raw_handle() as windows_sys::Win32::Foundation::HANDLE;
+        // Rebuild the start offsets; LockFileEx uses the same byte range as Java's whole-file FileLock.
+        let mut overlapped = OVERLAPPED::default();
+        unsafe {
+            UnlockFileEx(handle, 0, u32::MAX, 0x7fff_ffff, &mut overlapped);
+        }
+        let _ = &self.overlapped;
+    }
+}
+
+#[cfg(not(windows))]
+pub(super) struct ServerOperationLock;
+
+#[cfg(not(windows))]
+impl ServerOperationLock {
+    pub(super) fn try_acquire() -> std::io::Result<Option<Self>> {
+        Ok(Some(Self))
+    }
+}
+
+fn server_operation_lock_path() -> Result<std::path::PathBuf, String> {
+    let windows = cfg!(windows);
+    let directory = server_v2_directory_from(
+        std::env::var_os("LOCALAPPDATA"),
+        std::env::var_os("USERPROFILE"),
+        std::env::var_os("XDG_DATA_HOME"),
+        std::env::var_os("HOME"),
+        windows,
+    )
+    .ok_or_else(|| "MineLights V2 data directory is unavailable".to_owned())?;
+    Ok(directory.join("server-operation.lock"))
+}
+
+fn server_v2_directory_from(
+    local_app_data: Option<std::ffi::OsString>,
+    user_profile: Option<std::ffi::OsString>,
+    xdg_data_home: Option<std::ffi::OsString>,
+    home: Option<std::ffi::OsString>,
+    windows: bool,
+) -> Option<std::path::PathBuf> {
+    if windows {
+        let local = local_app_data
+            .filter(|value| !value.to_string_lossy().trim().is_empty())
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                user_profile
+                    .filter(|value| !value.to_string_lossy().trim().is_empty())
+                    .map(std::path::PathBuf::from)
+                    .map(|profile| profile.join("AppData").join("Local"))
+            })?;
+        return Some(local.join("MineLights").join("v2"));
+    }
+
+    if let Some(local) = local_app_data {
+        return Some(
+            std::path::PathBuf::from(local)
+                .join("MineLights")
+                .join("v2"),
+        );
+    }
+    if let Some(xdg) = xdg_data_home {
+        return Some(std::path::PathBuf::from(xdg).join("MineLights").join("v2"));
+    }
+    home.map(std::path::PathBuf::from).map(|path| {
+        path.join(".local")
+            .join("share")
+            .join("MineLights")
+            .join("v2")
+    })
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct UpdateNotice {
     pub(super) version: String,
@@ -296,14 +431,19 @@ pub(super) fn download_pinned_detailed_with_started(
         .spawn()
         .map_err(|error| format!("could not start the HTTPS downloader ({:?})", error.kind()))?;
     on_started();
-    let status = match downloader.wait() {
-        Ok(status) => status,
-        Err(error) => {
-            let _ = std::fs::remove_file(&temporary);
-            return Err(format!(
-                "could not wait for the HTTPS downloader ({:?})",
-                error.kind()
-            ));
+    let status = loop {
+        match downloader.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) => {
+                std::thread::sleep(std::time::Duration::from_millis(250));
+            }
+            Err(error) => {
+                let _ = std::fs::remove_file(&temporary);
+                return Err(format!(
+                    "could not wait for the HTTPS downloader ({:?})",
+                    error.kind()
+                ));
+            }
         }
     };
     if !status.success() {
@@ -391,6 +531,124 @@ pub(super) fn download_pinned_detailed(
     _allowed: bool,
 ) -> Result<(), String> {
     Err("automatic server installation is available on Windows only".into())
+}
+
+#[cfg(test)]
+mod server_operation_lock_tests {
+    use super::server_v2_directory_from;
+    use std::ffi::OsString;
+    use std::path::PathBuf;
+
+    fn value(value: &str) -> Option<OsString> {
+        Some(OsString::from(value))
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_uses_localappdata_then_userprofile_fallback() {
+        assert_eq!(
+            server_v2_directory_from(
+                value(r"C:\Users\Ben\AppData\Local"),
+                value(r"C:\Users\Ben"),
+                None,
+                None,
+                true,
+            ),
+            Some(PathBuf::from(r"C:\Users\Ben\AppData\Local\MineLights\v2")),
+        );
+        assert_eq!(
+            server_v2_directory_from(
+                Some(OsString::new()),
+                value(r"C:\Users\Ben"),
+                None,
+                None,
+                true
+            ),
+            Some(PathBuf::from(r"C:\Users\Ben\AppData\Local\MineLights\v2")),
+        );
+        assert_eq!(
+            server_v2_directory_from(None, value(r"C:\Users\Ben"), None, None, true),
+            Some(PathBuf::from(r"C:\Users\Ben\AppData\Local\MineLights\v2")),
+        );
+    }
+
+    #[test]
+    fn non_windows_data_directory_order_is_preserved() {
+        assert_eq!(
+            server_v2_directory_from(None, None, value("/xdg"), value("/home/ben"), false),
+            Some(PathBuf::from("/xdg/MineLights/v2")),
+        );
+        assert_eq!(
+            server_v2_directory_from(None, None, None, value("/home/ben"), false),
+            Some(PathBuf::from("/home/ben/.local/share/MineLights/v2")),
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn lock_conflicts_across_processes_and_reopens_after_release() {
+        use super::ServerOperationLock;
+        use std::process::Command;
+
+        let directory = std::env::temp_dir().join(format!(
+            "minelights-operation-lock-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        let lock_path = directory.join("server-operation.lock");
+        let lock = ServerOperationLock::try_acquire_at(&lock_path)
+            .unwrap()
+            .expect("first process should acquire the lock");
+        run_lock_probe(&lock_path, true);
+        drop(lock);
+        run_lock_probe(&lock_path, false);
+        let _ = std::fs::remove_file(lock_path);
+        let _ = std::fs::remove_dir(directory);
+
+        fn run_lock_probe(path: &std::path::Path, expect_busy: bool) {
+            let executable = std::env::current_exe().unwrap();
+            let output = Command::new(executable)
+                .args([
+                    "--exact",
+                    "minelights_server::server_operation_lock_tests::child_process_lock_probe",
+                    "--nocapture",
+                ])
+                .env("MINELIGHTS_TEST_LOCK_PATH", path)
+                .env("MINELIGHTS_TEST_LOCK_BUSY", expect_busy.to_string())
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stdout)
+            );
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            assert!(
+                stdout.contains(if expect_busy {
+                    "LOCK_PROBE=busy"
+                } else {
+                    "LOCK_PROBE=acquired"
+                }),
+                "child lock probe did not run: {stdout}"
+            );
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn child_process_lock_probe() {
+        use super::ServerOperationLock;
+        let Some(path) = std::env::var_os("MINELIGHTS_TEST_LOCK_PATH").map(PathBuf::from) else {
+            return;
+        };
+        let expect_busy = std::env::var("MINELIGHTS_TEST_LOCK_BUSY").as_deref() == Ok("true");
+        let lock = ServerOperationLock::try_acquire_at(&path).unwrap();
+        println!(
+            "LOCK_PROBE={}",
+            if lock.is_none() { "busy" } else { "acquired" }
+        );
+        assert_eq!(lock.is_none(), expect_busy);
+    }
 }
 
 #[cfg(not(windows))]

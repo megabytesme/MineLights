@@ -186,7 +186,7 @@
   "message.minelights.server.download.in_progress": "[MineLights] Mae lawrlwythiad MineLights Server yn dal i fynd rhagddo.",
   "message.minelights.server.download.finished_started": "[MineLights] Mae lawrlwythiad MineLights Server wedi gorffen ac mae’r gweinydd wedi cychwyn.",
   "message.minelights.server.download.finished_restarting": "[MineLights] Mae diweddariad MineLights Server wedi gorffen ac mae’r gweinydd wedi ailgychwyn.",
-  "message.minelights.server.download.restart_required": "[MineLights] Mae lawrlwythiad MineLights Server yn barod. Os yw gweinydd eisoes yn rhedeg, ailgychwynnwch ef o ddewislen hambwrdd y system i ddefnyddio’r diweddariad.",
+  "message.minelights.server.download.restart_required": "[MineLights] Mae diweddariad MineLights Server wedi’i ddilysu, ond nid yw wedi’i osod eto. Os yw MineLights Server yn rhedeg, stopiwch ef o ddewislen hambwrdd y system; yna ailgychwynnwch Minecraft i osod a chychwyn y diweddariad.",
   "message.minelights.server.download.start_failed": "[MineLights] Nid oedd modd cychwyn MineLights Server yn awtomatig. Cychwynnwch ef o’r hambwrdd neu gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.download.failed": "[MineLights] Nid oedd modd cwblhau gosod MineLights Server yn awtomatig. Os yw’r gweinydd yn rhedeg, stopiwch ef o’r hambwrdd; fel arall, gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] Methodd gwirio am ddiweddariadau MineLights Server. Adolygwch y diweddariadau â llaw: https://github.com/megabytesme/MineLights-Server/releases"

@@ -2104,551 +2104,265 @@ pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
         "ca_es" => match index {
             0 => Some("[MineLights] S'està baixant MineLights Server…"),
             1 => Some("[MineLights] La baixada de MineLights Server encara està en curs."),
-            2 => Some(
-                "[MineLights] S'ha acabat de baixar MineLights Server i el servidor s'ha iniciat.",
-            ),
-            3 => Some(
-                "[MineLights] L'actualització de MineLights Server ha acabat i el servidor s'ha reiniciat.",
-            ),
-            4 => Some(
-                "[MineLights] No s’ha pogut completar la configuració automàtica de MineLights Server. Si el servidor està en funcionament, atura’l des de la safata; si no, instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] No s’ha pogut iniciar MineLights Server automàticament. Inicia’l des de la safata o instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] La baixada de MineLights Server està a punt. Si ja hi ha un servidor en marxa, reinicia'l des de la safata del sistema per aplicar l'actualització.",
-            ),
-            7 => Some(
-                "[MineLights] Ha fallat la comprovació d’actualitzacions de MineLights Server. Revisa les actualitzacions manualment: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] S'ha acabat de baixar MineLights Server i el servidor s'ha iniciat."),
+            3 => Some("[MineLights] L'actualització de MineLights Server ha acabat i el servidor s'ha reiniciat."),
+            4 => Some("[MineLights] No s’ha pogut completar la configuració automàtica de MineLights Server. Si el servidor està en funcionament, atura’l des de la safata; si no, instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] No s’ha pogut iniciar MineLights Server automàticament. Inicia’l des de la safata o instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Actualització de MineLights Server verificada, però encara no instal·lada. Si hi ha un MineLights Server en execució, atura’l des de la safata del sistema; després reinicia Minecraft per instal·lar i iniciar l’actualització."),
+            7 => Some("[MineLights] Ha fallat la comprovació d’actualitzacions de MineLights Server. Revisa les actualitzacions manualment: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "cy_gb" => match index {
             0 => Some("[MineLights] Yn lawrlwytho MineLights Server…"),
             1 => Some("[MineLights] Mae lawrlwythiad MineLights Server yn dal i fynd rhagddo."),
-            2 => Some(
-                "[MineLights] Mae lawrlwythiad MineLights Server wedi gorffen ac mae’r gweinydd wedi cychwyn.",
-            ),
-            3 => Some(
-                "[MineLights] Mae diweddariad MineLights Server wedi gorffen ac mae’r gweinydd wedi ailgychwyn.",
-            ),
-            4 => Some(
-                "[MineLights] Nid oedd modd cwblhau gosod MineLights Server yn awtomatig. Os yw’r gweinydd yn rhedeg, stopiwch ef o’r hambwrdd; fel arall, gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Nid oedd modd cychwyn MineLights Server yn awtomatig. Cychwynnwch ef o’r hambwrdd neu gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Mae lawrlwythiad MineLights Server yn barod. Os yw gweinydd eisoes yn rhedeg, ailgychwynnwch ef o ddewislen hambwrdd y system i ddefnyddio’r diweddariad.",
-            ),
-            7 => Some(
-                "[MineLights] Methodd gwirio am ddiweddariadau MineLights Server. Adolygwch y diweddariadau â llaw: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Mae lawrlwythiad MineLights Server wedi gorffen ac mae’r gweinydd wedi cychwyn."),
+            3 => Some("[MineLights] Mae diweddariad MineLights Server wedi gorffen ac mae’r gweinydd wedi ailgychwyn."),
+            4 => Some("[MineLights] Nid oedd modd cwblhau gosod MineLights Server yn awtomatig. Os yw’r gweinydd yn rhedeg, stopiwch ef o’r hambwrdd; fel arall, gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Nid oedd modd cychwyn MineLights Server yn awtomatig. Cychwynnwch ef o’r hambwrdd neu gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Mae diweddariad MineLights Server wedi’i ddilysu, ond nid yw wedi’i osod eto. Os yw MineLights Server yn rhedeg, stopiwch ef o ddewislen hambwrdd y system; yna ailgychwynnwch Minecraft i osod a chychwyn y diweddariad."),
+            7 => Some("[MineLights] Methodd gwirio am ddiweddariadau MineLights Server. Adolygwch y diweddariadau â llaw: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "de_de" => match index {
             0 => Some("[MineLights] MineLights Server wird heruntergeladen …"),
             1 => Some("[MineLights] Der Download von MineLights Server läuft noch."),
-            2 => Some(
-                "[MineLights] Der Download von MineLights Server ist abgeschlossen und der Server wurde gestartet.",
-            ),
-            3 => Some(
-                "[MineLights] Das Update von MineLights Server ist abgeschlossen und der Server wurde neu gestartet.",
-            ),
-            4 => Some(
-                "[MineLights] Die automatische Einrichtung von MineLights Server konnte nicht abgeschlossen werden. Wenn der Server läuft, beende ihn über das Infobereichssymbol; andernfalls installiere ihn manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server konnte nicht automatisch gestartet werden. Starte es über das Infobereichssymbol oder installiere es manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Der Download von MineLights Server ist bereit. Wenn bereits ein Server läuft, starte ihn über sein Taskleistensymbol neu, um das Update zu verwenden.",
-            ),
-            7 => Some(
-                "[MineLights] Die Suche nach Updates für MineLights Server ist fehlgeschlagen. Prüfe Updates manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Der Download von MineLights Server ist abgeschlossen und der Server wurde gestartet."),
+            3 => Some("[MineLights] Das Update von MineLights Server ist abgeschlossen und der Server wurde neu gestartet."),
+            4 => Some("[MineLights] Die automatische Einrichtung von MineLights Server konnte nicht abgeschlossen werden. Wenn der Server läuft, beende ihn über das Infobereichssymbol; andernfalls installiere ihn manuell: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server konnte nicht automatisch gestartet werden. Starte es über das Infobereichssymbol oder installiere es manuell: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Das Update für MineLights Server wurde überprüft, ist aber noch nicht installiert. Falls MineLights Server läuft, beende ihn über sein Symbol im Infobereich. Starte Minecraft anschließend neu, um das Update zu installieren und den Server zu starten."),
+            7 => Some("[MineLights] Die Suche nach Updates für MineLights Server ist fehlgeschlagen. Prüfe Updates manuell: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_au" => match index {
             0 => Some("[MineLights] Downloading MineLights Server…"),
             1 => Some("[MineLights] MineLights Server download is still in progress."),
-            2 => {
-                Some("[MineLights] MineLights Server download finished and the server has started.")
-            }
-            3 => {
-                Some("[MineLights] MineLights Server update finished and the server has restarted.")
-            }
-            4 => Some(
-                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server download finished and the server has started."),
+            3 => Some("[MineLights] MineLights Server update finished and the server has restarted."),
+            4 => Some("[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update."),
+            7 => Some("[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_ca" => match index {
             0 => Some("[MineLights] Downloading MineLights Server…"),
             1 => Some("[MineLights] MineLights Server download is still in progress."),
-            2 => {
-                Some("[MineLights] MineLights Server download finished and the server has started.")
-            }
-            3 => {
-                Some("[MineLights] MineLights Server update finished and the server has restarted.")
-            }
-            4 => Some(
-                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server download finished and the server has started."),
+            3 => Some("[MineLights] MineLights Server update finished and the server has restarted."),
+            4 => Some("[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update."),
+            7 => Some("[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_gb" => match index {
             0 => Some("[MineLights] Downloading MineLights Server…"),
             1 => Some("[MineLights] MineLights Server download is still in progress."),
-            2 => {
-                Some("[MineLights] MineLights Server download finished and the server has started.")
-            }
-            3 => {
-                Some("[MineLights] MineLights Server update finished and the server has restarted.")
-            }
-            4 => Some(
-                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server download finished and the server has started."),
+            3 => Some("[MineLights] MineLights Server update finished and the server has restarted."),
+            4 => Some("[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update."),
+            7 => Some("[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_nz" => match index {
             0 => Some("[MineLights] Downloading MineLights Server…"),
             1 => Some("[MineLights] MineLights Server download is still in progress."),
-            2 => {
-                Some("[MineLights] MineLights Server download finished and the server has started.")
-            }
-            3 => {
-                Some("[MineLights] MineLights Server update finished and the server has restarted.")
-            }
-            4 => Some(
-                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server download finished and the server has started."),
+            3 => Some("[MineLights] MineLights Server update finished and the server has restarted."),
+            4 => Some("[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update."),
+            7 => Some("[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_pt" => match index {
             0 => Some("[MineLights] Downloadin' MineLights Server…"),
             1 => Some("[MineLights] The MineLights Server download be still underway."),
-            2 => Some(
-                "[MineLights] The MineLights Server download be finished, and the server has set sail.",
-            ),
-            3 => Some(
-                "[MineLights] The MineLights Server update be finished and the server has restarted.",
-            ),
-            4 => Some(
-                "[MineLights] Arrr, automatic MineLights Server setup could not be completed. If it be running, stop it from its tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Arrr, MineLights Server could not be started automatically. Start it from its tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download be ready. If a server be already runnin', restart it from its tray to use the update, matey.",
-            ),
-            7 => Some(
-                "[MineLights] Arrr, the MineLights Server update check failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] The MineLights Server download be finished, and the server has set sail."),
+            3 => Some("[MineLights] The MineLights Server update be finished and the server has restarted."),
+            4 => Some("[MineLights] Arrr, automatic MineLights Server setup could not be completed. If it be running, stop it from its tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Arrr, MineLights Server could not be started automatically. Start it from its tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update be verified, but not installed yet. If a MineLights Server be runnin’, stop it from its system tray; then restart Minecraft to install and start the update, matey."),
+            7 => Some("[MineLights] Arrr, the MineLights Server update check failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_ud" => match index {
             0 => Some("…ɹǝʌɹǝS sʇɥƃı˥ǝuıW ƃuıpɐoןuʍo◖ [sʇɥƃı˥ǝuıW]"),
             1 => Some("˙ssǝɹƃoɹd uı ןןıʇs sı pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]"),
-            2 => {
-                Some("˙pǝʇɹɐʇs sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]")
-            }
-            3 => {
-                Some("˙pǝʇɹɐʇsǝɹ sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]")
-            }
-            4 => Some(
-                "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ǝsᴉʍɹǝɥʇo ؛ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ doʇs ,ƃuᴉuunɹ sᴉ ɹǝʌɹǝs ǝɥʇ ɟI ˙pǝʇǝןdɯoɔ ǝq ʇou pןnoɔ dnʇǝs ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW ɔᴉʇɐɯoʇn∀ https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ɹo ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ ʇɹɐʇS ˙ʎןןɐɔᴉʇɐɯoʇnɐ pǝʇɹɐʇs ǝq ʇou pןnoɔ ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "˙ǝʇɐpdn ǝɥʇ ǝsn oʇ ʎɐɹʇ sʇı ɯoɹɟ ʇı ʇɹɐʇsǝɹ 'ƃuıuunɹ ʎpɐǝɹןɐ sı ɹǝʌɹǝs ɐ ɟI ˙ʎpɐǝɹ sı pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW ǝɥ⊥ [sʇɥƃı˥ǝuıW]",
-            ),
-            7 => Some(
-                ":ʎllɐnuɐɯ sǝʇɐpdn ʍǝᴉʌǝᴚ ˙pǝlᴉɐɟ ʞɔǝɥɔ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW [sʇɥƃᴉ˥ǝuᴉW] https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("˙pǝʇɹɐʇs sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]"),
+            3 => Some("˙pǝʇɹɐʇsǝɹ sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]"),
+            4 => Some("[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ǝsᴉʍɹǝɥʇo ؛ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ doʇs ,ƃuᴉuunɹ sᴉ ɹǝʌɹǝs ǝɥʇ ɟI ˙pǝʇǝןdɯoɔ ǝq ʇou pןnoɔ dnʇǝs ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW ɔᴉʇɐɯoʇn∀ https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ɹo ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ ʇɹɐʇS ˙ʎןןɐɔᴉʇɐɯoʇnɐ pǝʇɹɐʇs ǝq ʇou pןnoɔ ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[sʇɥƃı˥ǝuıW] ˙ǝʇɐpdn ǝɥʇ ʇɹɐʇs puɐ ןןɐʇsuı oʇ ʇɟɐɹɔǝuıW ɥɔunɐןǝɹ uǝɥʇ ؛ʎɐɹʇ ɯǝʇsʎs sʇı ɯoɹɟ doʇs 'ƃuıuunɹ sı ɹǝʌɹǝS sʇɥƃı˥ǝuıW ɐ ɟı ˙ʎǝʇsllɐʇsuı ʇou ʇnq pǝıɟıɹǝʌ sı ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW ǝɥ┴"),
+            7 => Some(":ʎllɐnuɐɯ sǝʇɐpdn ʍǝᴉʌǝᴚ ˙pǝlᴉɐɟ ʞɔǝɥɔ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW [sʇɥƃᴉ˥ǝuᴉW] https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "en_us" => match index {
             0 => Some("[MineLights] Downloading MineLights Server…"),
             1 => Some("[MineLights] MineLights Server download is still in progress."),
-            2 => {
-                Some("[MineLights] MineLights Server download finished and the server has started.")
-            }
-            3 => {
-                Some("[MineLights] MineLights Server update finished and the server has restarted.")
-            }
-            4 => Some(
-                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server download finished and the server has started."),
+            3 => Some("[MineLights] MineLights Server update finished and the server has restarted."),
+            4 => Some("[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update is verified but not installed yet. If a MineLights Server is running, stop it from its system tray; then restart Minecraft to install and start the update."),
+            7 => Some("[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "enp" => match index {
             0 => Some("[MineLights] MineLights Server is being downloaded…"),
             1 => Some("[MineLights] The download of MineLights Server continueth yet."),
-            2 => Some(
-                "[MineLights] The download of MineLights Server is finished and the Server hath begun.",
-            ),
-            3 => Some(
-                "[MineLights] The MineLights Server update is finished and the Server hath begun anew.",
-            ),
-            4 => Some(
-                "[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a Server already runneth, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] The download of MineLights Server is finished and the Server hath begun."),
+            3 => Some("[MineLights] The MineLights Server update is finished and the Server hath begun anew."),
+            4 => Some("[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The update for MineLights Server hath been verified, yet is not installed. If MineLights Server be running, halt it by its system-tray menu; then relaunch Minecraft to install and start the update."),
+            7 => Some("[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "enws" => match index {
             0 => Some("[MineLights] MineLights Server is downloading…"),
             1 => Some("[MineLights] The MineLights Server download doth yet continue."),
-            2 => Some(
-                "[MineLights] The MineLights Server download is complete, and the Server hath begun.",
-            ),
-            3 => Some(
-                "[MineLights] The MineLights Server update is complete, and the Server hath begun anew.",
-            ),
-            4 => Some(
-                "[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] The MineLights Server download is ready. If a Server already runneth, restart it from its tray to use the update.",
-            ),
-            7 => Some(
-                "[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] The MineLights Server download is complete, and the Server hath begun."),
+            3 => Some("[MineLights] The MineLights Server update is complete, and the Server hath begun anew."),
+            4 => Some("[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] The MineLights Server update hath been verified, yet it is not installed as of now. Should MineLights Server be running, cease it from its system tray; then relaunch Minecraft to install and begin the update."),
+            7 => Some("[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "es_es" => match index {
             0 => Some("[MineLights] Descargando MineLights Server…"),
             1 => Some("[MineLights] La descarga de MineLights Server sigue en curso."),
-            2 => Some(
-                "[MineLights] La descarga de MineLights Server ha terminado y el servidor se ha iniciado.",
-            ),
-            3 => Some(
-                "[MineLights] La actualización de MineLights Server ha terminado y el servidor se ha reiniciado.",
-            ),
-            4 => Some(
-                "[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] La descarga de MineLights Server está lista. Si ya hay un servidor en ejecución, reinícialo desde su icono de la bandeja del sistema para aplicar la actualización.",
-            ),
-            7 => Some(
-                "[MineLights] Ha fallado la comprobación de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] La descarga de MineLights Server ha terminado y el servidor se ha iniciado."),
+            3 => Some("[MineLights] La actualización de MineLights Server ha terminado y el servidor se ha reiniciado."),
+            4 => Some("[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] La actualización de MineLights Server se ha verificado, pero aún no se ha instalado. Si hay un MineLights Server en ejecución, detenlo desde la bandeja del sistema; después reinicia Minecraft para instalar e iniciar la actualización."),
+            7 => Some("[MineLights] Ha fallado la comprobación de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "es_mx" => match index {
             0 => Some("[MineLights] Descargando MineLights Server…"),
             1 => Some("[MineLights] La descarga de MineLights Server sigue en curso."),
-            2 => Some(
-                "[MineLights] La descarga de MineLights Server terminó y el servidor se inició.",
-            ),
-            3 => Some(
-                "[MineLights] La actualización de MineLights Server terminó y el servidor se reinició.",
-            ),
-            4 => Some(
-                "[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] La descarga de MineLights Server está lista. Si ya hay un servidor en ejecución, reinícialo desde su icono de la bandeja del sistema para aplicar la actualización.",
-            ),
-            7 => Some(
-                "[MineLights] Falló la búsqueda de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] La descarga de MineLights Server terminó y el servidor se inició."),
+            3 => Some("[MineLights] La actualización de MineLights Server terminó y el servidor se reinició."),
+            4 => Some("[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] La actualización de MineLights Server se verificó, pero aún no se ha instalado. Si hay un MineLights Server en ejecución, detenlo desde la bandeja del sistema; después reinicia Minecraft para instalar e iniciar la actualización."),
+            7 => Some("[MineLights] Falló la búsqueda de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "eu_es" => match index {
             0 => Some("[MineLights] MineLights Server deskargatzen…"),
-            1 => {
-                Some("[MineLights] MineLights Server-en deskargak oraindik martxan jarraitzen du.")
-            }
-            2 => Some(
-                "[MineLights] MineLights Server-en deskarga amaitu da, eta zerbitzaria abiarazi da.",
-            ),
-            3 => Some(
-                "[MineLights] MineLights Server-en eguneratzea amaitu da, eta zerbitzaria berrabiarazi da.",
-            ),
-            4 => Some(
-                "[MineLights] Ezin izan da MineLights Server-en konfigurazio automatikoa osatu. Zerbitzaria martxan badago, gelditu sistemaren erretilutik; bestela, instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Ezin izan da MineLights Server automatikoki abiarazi. Abiarazi sistemaren erretilutik edo instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server-en deskarga prest dago. Zerbitzari bat dagoeneko martxan badago, berrabiarazi haren erretilu-menutik eguneraketa erabiltzeko.",
-            ),
-            7 => Some(
-                "[MineLights] Ezin izan da MineLights Server-en eguneratzerik dagoen egiaztatu. Aztertu eguneratzeak eskuz: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            1 => Some("[MineLights] MineLights Server-en deskargak oraindik martxan jarraitzen du."),
+            2 => Some("[MineLights] MineLights Server-en deskarga amaitu da, eta zerbitzaria abiarazi da."),
+            3 => Some("[MineLights] MineLights Server-en eguneratzea amaitu da, eta zerbitzaria berrabiarazi da."),
+            4 => Some("[MineLights] Ezin izan da MineLights Server-en konfigurazio automatikoa osatu. Zerbitzaria martxan badago, gelditu sistemaren erretilutik; bestela, instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Ezin izan da MineLights Server automatikoki abiarazi. Abiarazi sistemaren erretilutik edo instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server-en eguneraketa egiaztatu da, baina oraindik ez da instalatu. MineLights Server bat martxan badago, gelditu sistemaren erretilutik; ondoren berrabiarazi Minecraft eguneraketa instalatu eta abiarazteko."),
+            7 => Some("[MineLights] Ezin izan da MineLights Server-en eguneratzerik dagoen egiaztatu. Aztertu eguneratzeak eskuz: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "fr_ca" => match index {
             0 => Some("[MineLights] Téléchargement de MineLights Server…"),
             1 => Some("[MineLights] Le téléchargement de MineLights Server est toujours en cours."),
-            2 => Some(
-                "[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré.",
-            ),
-            3 => Some(
-                "[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré.",
-            ),
-            4 => Some(
-                "[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Le téléchargement de MineLights Server est prêt. Si un serveur est déjà en cours d’exécution, redémarrez-le depuis son icône dans la zone de notification pour utiliser la mise à jour.",
-            ),
-            7 => Some(
-                "[MineLights] Échec de la vérification des mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré."),
+            3 => Some("[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré."),
+            4 => Some("[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Mise à jour de MineLights Server vérifiée, mais pas encore installée. Si un MineLights Server est en cours d’exécution, arrêtez-le depuis la zone de notification; redémarrez ensuite Minecraft pour installer et démarrer la mise à jour."),
+            7 => Some("[MineLights] Échec de la vérification des mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "fr_fr" => match index {
             0 => Some("[MineLights] Téléchargement de MineLights Server…"),
             1 => Some("[MineLights] Le téléchargement de MineLights Server est toujours en cours."),
-            2 => Some(
-                "[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré.",
-            ),
-            3 => Some(
-                "[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré.",
-            ),
-            4 => Some(
-                "[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Le téléchargement de MineLights Server est prêt. Si un serveur est déjà en cours d’exécution, redémarrez-le depuis son icône dans la zone de notification pour utiliser la mise à jour.",
-            ),
-            7 => Some(
-                "[MineLights] Échec de la recherche de mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré."),
+            3 => Some("[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré."),
+            4 => Some("[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Mise à jour de MineLights Server vérifiée, mais pas encore installée. Si un MineLights Server est en cours d’exécution, arrêtez-le depuis son icône dans la zone de notification, puis redémarrez Minecraft pour installer et démarrer la mise à jour."),
+            7 => Some("[MineLights] Échec de la recherche de mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "fy_nl" => match index {
             0 => Some("[MineLights] MineLights Server wurdt ynladen…"),
             1 => Some("[MineLights] De download fan MineLights Server is noch dwaande."),
-            2 => Some(
-                "[MineLights] De download fan MineLights Server is klear en de server is start.",
-            ),
-            3 => Some(
-                "[MineLights] De update fan MineLights Server is klear en de server is opnij start.",
-            ),
-            4 => Some(
-                "[MineLights] De automatyske opset fan MineLights Server koe net foltôge wurde. As de server draait, stopje dy dan fia it systeemfak; oars ynstallearje jo it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server koe net automatysk starte wurde. Start it fia it systeemfak of ynstallearje it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] De download fan MineLights Server is klear. As der al in server draait, start dy dan opnij út it systeemfakmenu om de update te brûken.",
-            ),
-            7 => Some(
-                "[MineLights] It kontrolearjen op fernijingen foar MineLights Server is mislearre. Kontrolearje se mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] De download fan MineLights Server is klear en de server is start."),
+            3 => Some("[MineLights] De update fan MineLights Server is klear en de server is opnij start."),
+            4 => Some("[MineLights] De automatyske opset fan MineLights Server koe net foltôge wurde. As de server draait, stopje dy dan fia it systeemfak; oars ynstallearje jo it mei de hân: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server koe net automatysk starte wurde. Start it fia it systeemfak of ynstallearje it mei de hân: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] De fernijing fan MineLights Server is kontrolearre, mar noch net ynstallearre. As der in MineLights Server draait, stopje dy fia it systeemfak; start Minecraft dêrnei opnij om de fernijing te ynstallearjen en de server te starten."),
+            7 => Some("[MineLights] It kontrolearjen op fernijingen foar MineLights Server is mislearre. Kontrolearje se mei de hân: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "gd_gb" => match index {
             0 => Some("[MineLights] A’ luchdadh a-nuas MineLights Server…"),
             1 => Some("[MineLights] Tha luchdadh a-nuas MineLights Server a’ dol fhathast."),
-            2 => Some(
-                "[MineLights] Tha luchdadh a-nuas MineLights Server deiseil agus tha am frithealaiche air tòiseachadh.",
-            ),
-            3 => Some(
-                "[MineLights] Tha ùrachadh MineLights Server deiseil agus tha am frithealaiche air ath-thòiseachadh.",
-            ),
-            4 => Some(
-                "[MineLights] Cha deach stèidheachadh fèin-obrachail MineLights Server a chrìochnachadh. Ma tha am frithealaiche a’ ruith, cuir stad air bhon treidhe aige; air neo, stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Cha b’ urrainn MineLights Server tòiseachadh gu fèin-obrachail. Tòisich e bhon treidhe aige no stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Tha luchdadh a-nuas MineLights Server deiseil. Ma tha frithealaiche a’ ruith mar-thà, ath-thòisich e on chlàr-taice treidhe aige gus an t-ùrachadh a chleachdadh.",
-            ),
-            7 => Some(
-                "[MineLights] Dh’fhàillig sgrùdadh airson ùrachaidhean MineLights Server. Thoir sùil orra le làimh: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Tha luchdadh a-nuas MineLights Server deiseil agus tha am frithealaiche air tòiseachadh."),
+            3 => Some("[MineLights] Tha ùrachadh MineLights Server deiseil agus tha am frithealaiche air ath-thòiseachadh."),
+            4 => Some("[MineLights] Cha deach stèidheachadh fèin-obrachail MineLights Server a chrìochnachadh. Ma tha am frithealaiche a’ ruith, cuir stad air bhon treidhe aige; air neo, stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Cha b’ urrainn MineLights Server tòiseachadh gu fèin-obrachail. Tòisich e bhon treidhe aige no stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Chaidh ùrachadh MineLights Server a dhearbhadh, ach cha deach a stàladh fhathast. Ma tha MineLights Server a’ ruith, cuir stad air tro chlàr-taice ìomhaigheag treidhe an t-siostaim; ath-thòisich Minecraft an uair sin gus an t-ùrachadh a stàladh agus am frithealaiche a thòiseachadh."),
+            7 => Some("[MineLights] Dh’fhàillig sgrùdadh airson ùrachaidhean MineLights Server. Thoir sùil orra le làimh: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "gl_es" => match index {
             0 => Some("[MineLights] Descargando MineLights Server…"),
             1 => Some("[MineLights] A descarga de MineLights Server aínda está en curso."),
-            2 => {
-                Some("[MineLights] A descarga de MineLights Server rematou e o servidor iniciouse.")
-            }
-            3 => Some(
-                "[MineLights] A actualización de MineLights Server rematou e o servidor reiniciouse.",
-            ),
-            4 => Some(
-                "[MineLights] Non se puido completar a configuración automática de MineLights Server. Se o servidor está en execución, párao desde a bandexa; en caso contrario, instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Non se puido iniciar MineLights Server automaticamente. Iníciao desde a bandexa ou instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] A descarga de MineLights Server está lista. Se xa hai un servidor en execución, reiníciao desde o seu menú da bandexa para usar a actualización.",
-            ),
-            7 => Some(
-                "[MineLights] Fallou a comprobación de actualizacións de MineLights Server. Revísaas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] A descarga de MineLights Server rematou e o servidor iniciouse."),
+            3 => Some("[MineLights] A actualización de MineLights Server rematou e o servidor reiniciouse."),
+            4 => Some("[MineLights] Non se puido completar a configuración automática de MineLights Server. Se o servidor está en execución, párao desde a bandexa; en caso contrario, instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Non se puido iniciar MineLights Server automaticamente. Iníciao desde a bandexa ou instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] A actualización de MineLights Server verificouse, pero aínda non está instalada. Se hai un MineLights Server en execución, deteno desde a súa icona da bandexa do sistema; despois reinicia Minecraft para instalar e iniciar a actualización."),
+            7 => Some("[MineLights] Fallou a comprobación de actualizacións de MineLights Server. Revísaas manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "hi_in" => match index {
             0 => Some("[MineLights] MineLights Server डाउनलोड हो रहा है…"),
             1 => Some("[MineLights] MineLights Server का डाउनलोड अभी जारी है।"),
-            2 => {
-                Some("[MineLights] MineLights Server का डाउनलोड पूरा हो गया है और सर्वर शुरू हो गया है।")
-            }
-            3 => Some(
-                "[MineLights] MineLights Server का अपडेट पूरा हो गया है और सर्वर फिर से शुरू हो गया है।",
-            ),
-            4 => Some(
-                "[MineLights] MineLights Server का स्वचालित सेटअप पूरा नहीं हो सका। यदि सर्वर चल रहा है, तो उसे ट्रे से रोकें; अन्यथा उसे मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server अपने-आप शुरू नहीं हो सका। इसे ट्रे से शुरू करें या मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server का डाउनलोड तैयार है। यदि कोई सर्वर पहले से चल रहा है, तो अपडेट इस्तेमाल करने के लिए उसे उसके सिस्टम ट्रे मेनू से फिर से शुरू करें।",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server के अपडेट की जाँच विफल हुई। अपडेट मैन्युअल रूप से देखें: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] MineLights Server का डाउनलोड पूरा हो गया है और सर्वर शुरू हो गया है।"),
+            3 => Some("[MineLights] MineLights Server का अपडेट पूरा हो गया है और सर्वर फिर से शुरू हो गया है।"),
+            4 => Some("[MineLights] MineLights Server का स्वचालित सेटअप पूरा नहीं हो सका। यदि सर्वर चल रहा है, तो उसे ट्रे से रोकें; अन्यथा उसे मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server अपने-आप शुरू नहीं हो सका। इसे ट्रे से शुरू करें या मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server अपडेट सत्यापित किया गया है, लेकिन अभी इंस्टॉल नहीं हुआ है। यदि MineLights Server चल रहा है, तो सिस्टम ट्रे में उसके आइकन से उसे रोकें; फिर अपडेट इंस्टॉल और शुरू करने के लिए Minecraft दोबारा शुरू करें।"),
+            7 => Some("[MineLights] MineLights Server के अपडेट की जाँच विफल हुई। अपडेट मैन्युअल रूप से देखें: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "id_id" => match index {
             0 => Some("[MineLights] Mengunduh MineLights Server…"),
             1 => Some("[MineLights] Unduhan MineLights Server masih berlangsung."),
             2 => Some("[MineLights] Unduhan MineLights Server selesai dan server telah dimulai."),
-            3 => Some(
-                "[MineLights] Pembaruan MineLights Server selesai dan server telah dimulai ulang.",
-            ),
-            4 => Some(
-                "[MineLights] Penyiapan otomatis MineLights Server tidak dapat diselesaikan. Jika server sedang berjalan, hentikan dari baki sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server tidak dapat dijalankan secara otomatis. Jalankan dari baki sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Unduhan MineLights Server siap. Jika server sudah berjalan, mulai ulang server dari ikon baki sistemnya untuk menggunakan pembaruan.",
-            ),
-            7 => Some(
-                "[MineLights] Pemeriksaan pembaruan MineLights Server gagal. Periksa pembaruan secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            3 => Some("[MineLights] Pembaruan MineLights Server selesai dan server telah dimulai ulang."),
+            4 => Some("[MineLights] Penyiapan otomatis MineLights Server tidak dapat diselesaikan. Jika server sedang berjalan, hentikan dari baki sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server tidak dapat dijalankan secara otomatis. Jalankan dari baki sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Pembaruan MineLights Server telah diverifikasi, tetapi belum dipasang. Jika MineLights Server sedang berjalan, hentikan melalui ikon baki sistemnya; lalu jalankan ulang Minecraft untuk memasang dan memulai pembaruan."),
+            7 => Some("[MineLights] Pemeriksaan pembaruan MineLights Server gagal. Periksa pembaruan secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "it_it" => match index {
             0 => Some("[MineLights] Download di MineLights Server in corso…"),
             1 => Some("[MineLights] Il download di MineLights Server è ancora in corso."),
-            2 => Some(
-                "[MineLights] Il download di MineLights Server è terminato e il server è stato avviato.",
-            ),
-            3 => Some(
-                "[MineLights] L'aggiornamento di MineLights Server è terminato e il server è stato riavviato.",
-            ),
-            4 => Some(
-                "[MineLights] Non è stato possibile completare la configurazione automatica di MineLights Server. Se il server è in esecuzione, arrestalo dall’area di notifica; altrimenti installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server non è stato avviato automaticamente. Avvialo dall’area di notifica oppure installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Il download di MineLights Server è pronto. Se un server è già in esecuzione, riavvialo dalla relativa icona nell'area di notifica per usare l'aggiornamento.",
-            ),
-            7 => Some(
-                "[MineLights] Controllo degli aggiornamenti di MineLights Server non riuscito. Verifica gli aggiornamenti manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Il download di MineLights Server è terminato e il server è stato avviato."),
+            3 => Some("[MineLights] L'aggiornamento di MineLights Server è terminato e il server è stato riavviato."),
+            4 => Some("[MineLights] Non è stato possibile completare la configurazione automatica di MineLights Server. Se il server è in esecuzione, arrestalo dall’area di notifica; altrimenti installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server non è stato avviato automaticamente. Avvialo dall’area di notifica oppure installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] L'aggiornamento di MineLights Server è stato verificato ma non è ancora installato. Se un MineLights Server è in esecuzione, arrestalo dall'area di notifica; poi riavvia Minecraft per installare e avviare l'aggiornamento."),
+            7 => Some("[MineLights] Controllo degli aggiornamenti di MineLights Server non riuscito. Verifica gli aggiornamenti manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "ja_jp" => match index {
             0 => Some("[MineLights] MineLights Server をダウンロードしています…"),
             1 => Some("[MineLights] MineLights Server のダウンロードはまだ進行中です。"),
-            2 => Some(
-                "[MineLights] MineLights Server のダウンロードが完了し、サーバーが起動しました。",
-            ),
+            2 => Some("[MineLights] MineLights Server のダウンロードが完了し、サーバーが起動しました。"),
             3 => Some("[MineLights] MineLights Server の更新が完了し、サーバーが再起動しました。"),
-            4 => Some(
-                "[MineLights] MineLights Server の自動セットアップを完了できませんでした。サーバーが実行中の場合は、トレイから停止してください。実行中でない場合は、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server を自動で起動できませんでした。トレイから起動するか、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server のダウンロードが完了しました。サーバーがすでに実行中の場合は、更新を適用するため通知領域のアイコンから再起動してください。",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server の更新確認に失敗しました。更新を手動で確認してください: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            4 => Some("[MineLights] MineLights Server の自動セットアップを完了できませんでした。サーバーが実行中の場合は、トレイから停止してください。実行中でない場合は、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server を自動で起動できませんでした。トレイから起動するか、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server の更新は検証済みですが、まだインストールされていません。MineLights Server が実行中の場合は、システムトレイのアイコンから停止してください。その後、Minecraft を再起動して更新をインストールし、起動してください。"),
+            7 => Some("[MineLights] MineLights Server の更新確認に失敗しました。更新を手動で確認してください: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "kn_in" => match index {
@@ -2656,156 +2370,76 @@ pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
             1 => Some("[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಇನ್ನೂ ನಡೆಯುತ್ತಿದೆ."),
             2 => Some("[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಪ್ರಾರಂಭವಾಗಿದೆ."),
             3 => Some("[MineLights] MineLights Server ಅಪ್‌ಡೇಟ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಮರುಪ್ರಾರಂಭವಾಗಿದೆ."),
-            4 => Some(
-                "[MineLights] MineLights Server‌ನ ಸ್ವಯಂಚಾಲಿತ ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಲಾಗಲಿಲ್ಲ. ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಟ್ರೇಯಿಂದ ಅದನ್ನು ನಿಲ್ಲಿಸಿ; ಇಲ್ಲದಿದ್ದರೆ, ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾರಂಭಿಸಲಾಗಲಿಲ್ಲ. ಟ್ರೇಯಿಂದ ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ಈಗಾಗಲೇ ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಅಪ್‌ಡೇಟ್ ಬಳಸಲು ಅದರ ಟ್ರೇ ಮೆನುವಿನಿಂದ ಮರುಪ್ರಾರಂಭಿಸಿ.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server ನವೀಕರಣ ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ. ನವೀಕರಣಗಳನ್ನು ಕೈಯಾರೆ ಪರಿಶೀಲಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            4 => Some("[MineLights] MineLights Server‌ನ ಸ್ವಯಂಚಾಲಿತ ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಲಾಗಲಿಲ್ಲ. ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಟ್ರೇಯಿಂದ ಅದನ್ನು ನಿಲ್ಲಿಸಿ; ಇಲ್ಲದಿದ್ದರೆ, ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾರಂಭಿಸಲಾಗಲಿಲ್ಲ. ಟ್ರೇಯಿಂದ ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server ನವೀಕರಣವನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ, ಆದರೆ ಇನ್ನೂ ಸ್ಥಾಪಿಸಲಾಗಿಲ್ಲ. MineLights Server ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಅದರ ಸಿಸ್ಟಮ್ ಟ್ರೇ ಮೆನುವಿನಿಂದ ಅದನ್ನು ನಿಲ್ಲಿಸಿ; ನಂತರ ನವೀಕರಣವನ್ನು ಸ್ಥಾಪಿಸಿ ಪ್ರಾರಂಭಿಸಲು Minecraft ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸಿ."),
+            7 => Some("[MineLights] MineLights Server ನವೀಕರಣ ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ. ನವೀಕರಣಗಳನ್ನು ಕೈಯಾರೆ ಪರಿಶೀಲಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "lb_lu" => match index {
             0 => Some("[MineLights] MineLights Server gëtt erofgelueden…"),
             1 => Some("[MineLights] Den Download vu MineLights Server leeft nach."),
-            2 => Some(
-                "[MineLights] Den Download vu MineLights Server ass fäerdeg an de Server gouf gestart.",
-            ),
-            3 => Some(
-                "[MineLights] D’Aktualiséierung vu MineLights Server ass fäerdeg an de Server gouf nei gestart.",
-            ),
-            4 => Some(
-                "[MineLights] Déi automatesch Ariichtung vu MineLights Server konnt net ofgeschloss ginn. Wann de Server leeft, stoppt en iwwer säi Systemberäich; soss installéiert en manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server konnt net automatesch gestart ginn. Start et iwwer säi Systemberäich oder installéiert et manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Den Download vu MineLights Server ass prett. Wann e Server schonn leeft, start en aus sengem Tray-Menü nei, fir d’Aktualiséierung ze benotzen.",
-            ),
-            7 => Some(
-                "[MineLights] D’Sich no Aktualiséierunge fir MineLights Server ass feelgeschloen. Kontrolléiert se manuell: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Den Download vu MineLights Server ass fäerdeg an de Server gouf gestart."),
+            3 => Some("[MineLights] D’Aktualiséierung vu MineLights Server ass fäerdeg an de Server gouf nei gestart."),
+            4 => Some("[MineLights] Déi automatesch Ariichtung vu MineLights Server konnt net ofgeschloss ginn. Wann de Server leeft, stoppt en iwwer säi Systemberäich; soss installéiert en manuell: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server konnt net automatesch gestart ginn. Start et iwwer säi Systemberäich oder installéiert et manuell: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Den Update vu MineLights Server gouf verifizéiert, ass awer nach net installéiert. Wann e MineLights Server leeft, stoppt en iwwer säi Symbol am Systemberäich; start Minecraft duerno nei, fir den Update ze installéieren an de Server ze starten."),
+            7 => Some("[MineLights] D’Sich no Aktualiséierunge fir MineLights Server ass feelgeschloen. Kontrolléiert se manuell: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "lol_us" => match index {
             0 => Some("[MineLights] downloadin MineLights Server…"),
             1 => Some("[MineLights] teh MineLights Server download is still goin."),
-            2 => {
-                Some("[MineLights] teh MineLights Server download is done and teh server started.")
-            }
-            3 => {
-                Some("[MineLights] teh MineLights Server update is done and teh server restarted.")
-            }
-            4 => Some(
-                "[MineLights] teh auto setup 4 MineLights Server cudnt b finished. if teh server iz runnin, stop it frum teh tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] teh MineLights Server cudnt start automaticly. start it frum teh tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] teh MineLights Server download is ready. if a server is already runnin, restart it from its tray to use teh update.",
-            ),
-            7 => Some(
-                "[MineLights] teh MineLights Server update check failed. check teh updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] teh MineLights Server download is done and teh server started."),
+            3 => Some("[MineLights] teh MineLights Server update is done and teh server restarted."),
+            4 => Some("[MineLights] teh auto setup 4 MineLights Server cudnt b finished. if teh server iz runnin, stop it frum teh tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] teh MineLights Server cudnt start automaticly. start it frum teh tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] teh MineLights Server update got checked an verified, but ain't installed yet. if a MineLights Server is runnin', stop it from its system tray; then restart Minecraft ta install an start teh update."),
+            7 => Some("[MineLights] teh MineLights Server update check failed. check teh updates by hand: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "ms_my" => match index {
             0 => Some("[MineLights] Memuat turun MineLights Server…"),
             1 => Some("[MineLights] Muat turun MineLights Server masih berlangsung."),
-            2 => Some(
-                "[MineLights] Muat turun MineLights Server selesai dan pelayan telah dimulakan.",
-            ),
-            3 => Some(
-                "[MineLights] Kemas kini MineLights Server selesai dan pelayan telah dimulakan semula.",
-            ),
-            4 => Some(
-                "[MineLights] Persediaan automatik MineLights Server tidak dapat diselesaikan. Jika pelayan sedang berjalan, hentikannya daripada dulang sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server tidak dapat dimulakan secara automatik. Mulakannya daripada dulang sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Muat turun MineLights Server sedia. Jika pelayan sedang berjalan, mulakan semula pelayan melalui ikon dulangnya untuk menggunakan kemas kini.",
-            ),
-            7 => Some(
-                "[MineLights] Semakan kemas kini MineLights Server gagal. Semak kemas kini secara manual: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Muat turun MineLights Server selesai dan pelayan telah dimulakan."),
+            3 => Some("[MineLights] Kemas kini MineLights Server selesai dan pelayan telah dimulakan semula."),
+            4 => Some("[MineLights] Persediaan automatik MineLights Server tidak dapat diselesaikan. Jika pelayan sedang berjalan, hentikannya daripada dulang sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server tidak dapat dimulakan secara automatik. Mulakannya daripada dulang sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Kemas kini MineLights Server telah disahkan tetapi belum dipasang. Jika MineLights Server sedang berjalan, hentikannya melalui ikon dulang sistem; kemudian lancarkan semula Minecraft untuk memasang dan memulakan kemas kini."),
+            7 => Some("[MineLights] Semakan kemas kini MineLights Server gagal. Semak kemas kini secara manual: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "nl_nl" => match index {
             0 => Some("[MineLights] MineLights Server wordt gedownload…"),
             1 => Some("[MineLights] De download van MineLights Server is nog bezig."),
-            2 => Some(
-                "[MineLights] De download van MineLights Server is voltooid en de server is gestart.",
-            ),
-            3 => Some(
-                "[MineLights] De update van MineLights Server is voltooid en de server is opnieuw gestart.",
-            ),
-            4 => Some(
-                "[MineLights] De automatische installatie van MineLights Server kon niet worden voltooid. Als de server actief is, stop hem via het systeemvak; installeer hem anders handmatig: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server kon niet automatisch worden gestart. Start het via het systeemvak of installeer het handmatig: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] De download van MineLights Server is klaar. Als er al een server actief is, start die dan opnieuw via het systeemvakpictogram om de update te gebruiken.",
-            ),
-            7 => Some(
-                "[MineLights] Controleren op updates voor MineLights Server is mislukt. Controleer updates handmatig: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] De download van MineLights Server is voltooid en de server is gestart."),
+            3 => Some("[MineLights] De update van MineLights Server is voltooid en de server is opnieuw gestart."),
+            4 => Some("[MineLights] De automatische installatie van MineLights Server kon niet worden voltooid. Als de server actief is, stop hem via het systeemvak; installeer hem anders handmatig: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server kon niet automatisch worden gestart. Start het via het systeemvak of installeer het handmatig: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] De update van MineLights Server is geverifieerd, maar nog niet geïnstalleerd. Als er een MineLights Server draait, stop deze dan via het systeemvak; start Minecraft daarna opnieuw om de update te installeren en te starten."),
+            7 => Some("[MineLights] Controleren op updates voor MineLights Server is mislukt. Controleer updates handmatig: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "pl_pl" => match index {
             0 => Some("[MineLights] Trwa pobieranie MineLights Server…"),
             1 => Some("[MineLights] Pobieranie MineLights Server nadal trwa."),
-            2 => Some(
-                "[MineLights] Pobieranie MineLights Server dobiegło końca, a serwer został uruchomiony.",
-            ),
-            3 => Some(
-                "[MineLights] Aktualizacja MineLights Server dobiegła końca, a serwer został ponownie uruchomiony.",
-            ),
-            4 => Some(
-                "[MineLights] Nie udało się ukończyć automatycznej konfiguracji MineLights Server. Jeśli serwer działa, zatrzymaj go z zasobnika systemowego; w przeciwnym razie zainstaluj go ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Nie udało się automatycznie uruchomić MineLights Server. Uruchom go z zasobnika systemowego lub zainstaluj ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Pobieranie MineLights Server jest gotowe. Jeśli serwer już działa, uruchom go ponownie z ikony w zasobniku, aby zastosować aktualizację.",
-            ),
-            7 => Some(
-                "[MineLights] Sprawdzanie aktualizacji MineLights Server nie powiodło się. Sprawdź je ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Pobieranie MineLights Server dobiegło końca, a serwer został uruchomiony."),
+            3 => Some("[MineLights] Aktualizacja MineLights Server dobiegła końca, a serwer został ponownie uruchomiony."),
+            4 => Some("[MineLights] Nie udało się ukończyć automatycznej konfiguracji MineLights Server. Jeśli serwer działa, zatrzymaj go z zasobnika systemowego; w przeciwnym razie zainstaluj go ręcznie: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Nie udało się automatycznie uruchomić MineLights Server. Uruchom go z zasobnika systemowego lub zainstaluj ręcznie: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Aktualizacja MineLights Server została zweryfikowana, ale nie została jeszcze zainstalowana. Jeśli MineLights Server działa, zatrzymaj go z menu zasobnika systemowego, a następnie uruchom ponownie Minecrafta, aby zainstalować i uruchomić aktualizację."),
+            7 => Some("[MineLights] Sprawdzanie aktualizacji MineLights Server nie powiodło się. Sprawdź je ręcznie: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "pt_br" => match index {
             0 => Some("[MineLights] Baixando o MineLights Server…"),
             1 => Some("[MineLights] O download do MineLights Server ainda está em andamento."),
-            2 => Some(
-                "[MineLights] O download do MineLights Server terminou e o servidor foi iniciado.",
-            ),
-            3 => Some(
-                "[MineLights] A atualização do MineLights Server terminou e o servidor foi reiniciado.",
-            ),
-            4 => Some(
-                "[MineLights] Não foi possível concluir a configuração automática do MineLights Server. Se o servidor estiver em execução, pare-o pela bandeja do sistema; caso contrário, instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Não foi possível iniciar o MineLights Server automaticamente. Inicie-o pela bandeja do sistema ou instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] O download do MineLights Server está pronto. Se já houver um servidor em execução, reinicie-o pelo ícone na bandeja do sistema para usar a atualização.",
-            ),
-            7 => Some(
-                "[MineLights] Falha ao verificar atualizações do MineLights Server. Confira as atualizações manualmente: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] O download do MineLights Server terminou e o servidor foi iniciado."),
+            3 => Some("[MineLights] A atualização do MineLights Server terminou e o servidor foi reiniciado."),
+            4 => Some("[MineLights] Não foi possível concluir a configuração automática do MineLights Server. Se o servidor estiver em execução, pare-o pela bandeja do sistema; caso contrário, instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Não foi possível iniciar o MineLights Server automaticamente. Inicie-o pela bandeja do sistema ou instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] A atualização de MineLights Server foi verificada, mas ainda não foi instalada. Se um MineLights Server estiver em execução, pare-o pelo ícone da bandeja do sistema; depois reinicie o Minecraft para instalar e iniciar a atualização."),
+            7 => Some("[MineLights] Falha ao verificar atualizações do MineLights Server. Confira as atualizações manualmente: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "ru_ru" => match index {
@@ -2813,104 +2447,54 @@ pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
             1 => Some("[MineLights] Загрузка MineLights Server всё ещё выполняется."),
             2 => Some("[MineLights] Загрузка MineLights Server завершена, сервер запущен."),
             3 => Some("[MineLights] Обновление MineLights Server завершено, сервер перезапущен."),
-            4 => Some(
-                "[MineLights] Не удалось завершить автоматическую настройку MineLights Server. Если сервер запущен, остановите его через системный трей; иначе установите его вручную: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Не удалось автоматически запустить MineLights Server. Запустите его из системного трея или установите вручную: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Загрузка MineLights Server завершена. Если сервер уже запущен, перезапустите его через значок в системном трее, чтобы применить обновление.",
-            ),
-            7 => Some(
-                "[MineLights] Не удалось проверить обновления MineLights Server. Проверьте их вручную: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            4 => Some("[MineLights] Не удалось завершить автоматическую настройку MineLights Server. Если сервер запущен, остановите его через системный трей; иначе установите его вручную: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Не удалось автоматически запустить MineLights Server. Запустите его из системного трея или установите вручную: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Обновление MineLights Server проверено, но ещё не установлено. Если MineLights Server запущен, остановите его через значок в системном трее, затем перезапустите Minecraft, чтобы установить и запустить обновление."),
+            7 => Some("[MineLights] Не удалось проверить обновления MineLights Server. Проверьте их вручную: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "sv_se" => match index {
             0 => Some("[MineLights] Laddar ned MineLights Server…"),
             1 => Some("[MineLights] Nedladdningen av MineLights Server pågår fortfarande."),
-            2 => Some(
-                "[MineLights] Nedladdningen av MineLights Server är klar och servern har startats.",
-            ),
-            3 => Some(
-                "[MineLights] Uppdateringen av MineLights Server är klar och servern har startats om.",
-            ),
-            4 => Some(
-                "[MineLights] Det gick inte att slutföra den automatiska konfigurationen av MineLights Server. Om servern körs, stoppa den från systemfältet; installera den annars manuellt: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server kunde inte startas automatiskt. Starta det från systemfältet eller installera det manuellt: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Nedladdningen av MineLights Server är klar. Om en server redan körs startar du om den via dess ikon i systemfältet för att använda uppdateringen.",
-            ),
-            7 => Some(
-                "[MineLights] Det gick inte att söka efter uppdateringar för MineLights Server. Granska uppdateringar manuellt: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            2 => Some("[MineLights] Nedladdningen av MineLights Server är klar och servern har startats."),
+            3 => Some("[MineLights] Uppdateringen av MineLights Server är klar och servern har startats om."),
+            4 => Some("[MineLights] Det gick inte att slutföra den automatiska konfigurationen av MineLights Server. Om servern körs, stoppa den från systemfältet; installera den annars manuellt: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server kunde inte startas automatiskt. Starta det från systemfältet eller installera det manuellt: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Uppdateringen av MineLights Server har verifierats men har inte installerats ännu. Om en MineLights Server körs stoppar du den via ikonen i systemfältet och startar sedan om Minecraft för att installera och starta uppdateringen."),
+            7 => Some("[MineLights] Det gick inte att söka efter uppdateringar för MineLights Server. Granska uppdateringar manuellt: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "ta_in" => match index {
             0 => Some("[MineLights] MineLights Server பதிவிறக்கம் செய்யப்படுகிறது…"),
             1 => Some("[MineLights] MineLights Server பதிவிறக்கம் இன்னும் நடைபெறுகிறது."),
             2 => Some("[MineLights] MineLights Server பதிவிறக்கம் முடிந்தது; சேவையகமும் தொடங்கிவிட்டது."),
-            3 => Some(
-                "[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது.",
-            ),
-            4 => Some(
-                "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server பதிவிறக்கம் தயாராக உள்ளது. சேவையகம் ஏற்கெனவே இயங்கினால், புதுப்பிப்பைப் பயன்படுத்த அதன் தட்டு மெனுவிலிருந்து அதை மீண்டும் தொடங்கவும்.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            3 => Some("[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது."),
+            4 => Some("[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server புதுப்பிப்பு சரிபார்க்கப்பட்டது, ஆனால் இன்னும் நிறுவப்படவில்லை. MineLights Server இயங்கிக்கொண்டிருந்தால், கணினித் தட்டு மெனுவிலிருந்து அதை நிறுத்துங்கள்; பின்னர் புதுப்பிப்பை நிறுவி தொடங்க Minecraft-ஐ மறுதொடக்கம் செய்யுங்கள்."),
+            7 => Some("[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "tr_tr" => match index {
             0 => Some("[MineLights] MineLights Server indiriliyor…"),
             1 => Some("[MineLights] MineLights Server indirmesi hâlâ sürüyor."),
             2 => Some("[MineLights] MineLights Server indirmesi tamamlandı ve sunucu başlatıldı."),
-            3 => Some(
-                "[MineLights] MineLights Server güncellemesi tamamlandı ve sunucu yeniden başlatıldı.",
-            ),
-            4 => Some(
-                "[MineLights] MineLights Server otomatik kurulumu tamamlanamadı. Sunucu çalışıyorsa sistem tepsisinden durdurun; aksi takdirde elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server otomatik olarak başlatılamadı. Sistem tepsisinden başlatın veya elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server indirmesi hazır. Bir sunucu zaten çalışıyorsa güncellemeyi kullanmak için sistem tepsisindeki simgesinden yeniden başlatın.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server güncelleme denetimi başarısız oldu. Güncellemeleri elle gözden geçirin: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            3 => Some("[MineLights] MineLights Server güncellemesi tamamlandı ve sunucu yeniden başlatıldı."),
+            4 => Some("[MineLights] MineLights Server otomatik kurulumu tamamlanamadı. Sunucu çalışıyorsa sistem tepsisinden durdurun; aksi takdirde elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server otomatik olarak başlatılamadı. Sistem tepsisinden başlatın veya elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server güncellemesi doğrulandı ancak henüz yüklenmedi. Bir MineLights Server çalışıyorsa, sistem tepsisindeki simgesinden durdurun; ardından güncellemeyi yükleyip başlatmak için Minecraft'ı yeniden başlatın."),
+            7 => Some("[MineLights] MineLights Server güncelleme denetimi başarısız oldu. Güncellemeleri elle gözden geçirin: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "tt_ru" => match index {
             0 => Some("[MineLights] MineLights Server йөкләнә…"),
             1 => Some("[MineLights] MineLights Server йөкләве әле дәвам итә."),
             2 => Some("[MineLights] MineLights Server йөкләнеп бетте һәм сервер эшли башлады."),
-            3 => Some(
-                "[MineLights] MineLights Server яңартуы тәмамланды һәм сервер яңадан эшли башлады.",
-            ),
-            4 => Some(
-                "[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, система төененнән туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система төененнән эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server йөкләнеп бетте. Сервер эшләп тора икән, яңартуны куллану өчен аны трей менюсыннан яңадан эшләтеп җибәрегез.",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server яңартуларын тикшерү уңышсыз булды. Яңартуларны кулдан карагыз: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            3 => Some("[MineLights] MineLights Server яңартуы тәмамланды һәм сервер яңадан эшли башлады."),
+            4 => Some("[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, система төененнән туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система төененнән эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server яңартуы тикшерелде, ләкин әле урнаштырылмаган. MineLights Server эшли икән, аны система төенендәге менюдан туктатыгыз; аннары яңартуны урнаштыру һәм эшләтеп җибәрү өчен Minecraft-ны яңадан башлап җибәрегез."),
+            7 => Some("[MineLights] MineLights Server яңартуларын тикшерү уңышсыз булды. Яңартуларны кулдан карагыз: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "vi_vn" => match index {
@@ -2918,18 +2502,10 @@ pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
             1 => Some("[MineLights] Quá trình tải MineLights Server vẫn đang diễn ra."),
             2 => Some("[MineLights] Đã tải xong MineLights Server và máy chủ đã khởi động."),
             3 => Some("[MineLights] Đã cập nhật MineLights Server và máy chủ đã khởi động lại."),
-            4 => Some(
-                "[MineLights] Không thể hoàn tất thiết lập MineLights Server tự động. Nếu máy chủ đang chạy, hãy dừng máy chủ từ khay hệ thống; nếu không, hãy cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] Không thể khởi động MineLights Server tự động. Hãy khởi động từ khay hệ thống hoặc cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] Đã tải xong MineLights Server. Nếu máy chủ đang chạy, hãy khởi động lại từ menu khay hệ thống của máy chủ để dùng bản cập nhật.",
-            ),
-            7 => Some(
-                "[MineLights] Không thể kiểm tra bản cập nhật MineLights Server. Hãy xem các bản cập nhật thủ công: https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            4 => Some("[MineLights] Không thể hoàn tất thiết lập MineLights Server tự động. Nếu máy chủ đang chạy, hãy dừng máy chủ từ khay hệ thống; nếu không, hãy cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] Không thể khởi động MineLights Server tự động. Hãy khởi động từ khay hệ thống hoặc cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] Bản cập nhật MineLights Server đã được xác minh nhưng chưa được cài đặt. Nếu MineLights Server đang chạy, hãy dừng nó từ biểu tượng khay hệ thống; sau đó khởi động lại Minecraft để cài đặt và khởi chạy bản cập nhật."),
+            7 => Some("[MineLights] Không thể kiểm tra bản cập nhật MineLights Server. Hãy xem các bản cập nhật thủ công: https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         "zh_cn" => match index {
@@ -2937,18 +2513,10 @@ pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
             1 => Some("[MineLights] MineLights Server 下载仍在进行中。"),
             2 => Some("[MineLights] MineLights Server 下载完成，服务器已启动。"),
             3 => Some("[MineLights] MineLights Server 更新完成，服务器已重新启动。"),
-            4 => Some(
-                "[MineLights] 无法完成 MineLights Server 的自动设置。如果服务器正在运行，请从系统托盘停止它；否则请手动安装：https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            5 => Some(
-                "[MineLights] 无法自动启动 MineLights Server。请从系统托盘启动它，或手动安装：https://github.com/megabytesme/MineLights-Server/releases",
-            ),
-            6 => Some(
-                "[MineLights] MineLights Server 下载已就绪。如果服务器已经在运行，请从系统托盘图标重启服务器以使用此更新。",
-            ),
-            7 => Some(
-                "[MineLights] MineLights Server 更新检查失败。请手动查看更新：https://github.com/megabytesme/MineLights-Server/releases",
-            ),
+            4 => Some("[MineLights] 无法完成 MineLights Server 的自动设置。如果服务器正在运行，请从系统托盘停止它；否则请手动安装：https://github.com/megabytesme/MineLights-Server/releases"),
+            5 => Some("[MineLights] 无法自动启动 MineLights Server。请从系统托盘启动它，或手动安装：https://github.com/megabytesme/MineLights-Server/releases"),
+            6 => Some("[MineLights] MineLights Server 更新已验证，但尚未安装。如果 MineLights Server 正在运行，请从系统托盘菜单将其停止；然后重新启动 Minecraft 以安装并启动更新。"),
+            7 => Some("[MineLights] MineLights Server 更新检查失败。请手动查看更新：https://github.com/megabytesme/MineLights-Server/releases"),
             _ => None,
         },
         _ => None,
