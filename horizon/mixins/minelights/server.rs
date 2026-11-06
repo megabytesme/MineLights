@@ -609,8 +609,7 @@ mod server_operation_lock_tests {
             let executable = std::env::current_exe().unwrap();
             let output = Command::new(executable)
                 .args([
-                    "--exact",
-                    "minelights_server::server_operation_lock_tests::child_process_lock_probe",
+                    "child_process_lock_probe",
                     "--nocapture",
                 ])
                 .env("MINELIGHTS_TEST_LOCK_PATH", path)
