@@ -19,11 +19,11 @@ const MOD_ID: &str = "minelights";
 pub(super) use super::minelights_bridge::minelights_shutdown;
 use super::minelights_bridge::{
     ACTION_CHECK_UPDATE, ACTION_REFRESH, ACTION_RESTART, ACTION_RESTART_ADMIN, BRIDGE, Bridge,
-    Notice, bridge_for,
+    Notice, SERVER_DOWNLOAD_IN_PROGRESS, bridge_for,
 };
 use super::minelights_config::{
-    SETTINGS, STATIC_SETTING_COUNT, device_disabled, set_device_enabled, on_off, persist_settings, settings_for, settings_labels,
-    toggle_setting,
+    SETTINGS, STATIC_SETTING_COUNT, device_disabled, on_off, persist_settings, set_device_enabled,
+    settings_for, settings_labels, toggle_setting,
 };
 use super::minelights_effects::Painter;
 use super::minelights_player_data::snapshot;
@@ -135,7 +135,9 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
             if let Ok(mut notices) = bridge.notices.lock() {
                 while let Some(notice) = notices.pop_front() {
                     if let Notice::Manual(lines) = notice {
-                        for line in lines { game.native_chat(&line); }
+                        for line in lines {
+                            game.native_chat(&line);
+                        }
                     }
                 }
             }
@@ -158,6 +160,7 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
     let config = settings_for(game);
     let bridge = bridge_for(game, &config);
     let player = snapshot(game, &config);
+    let language = game.settings.language.clone();
     bridge.in_world.store(player.in_game, Ordering::Release);
     if config.server_confirmation_pending {
         if player.in_game && !PENDING_SERVER_CONFIRMATION_REMINDER_SENT.swap(true, Ordering::AcqRel)
@@ -178,6 +181,90 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
                     Notice::Update(lines) if config.check_server_updates => {
                         for line in lines {
                             game.native_chat(&line);
+                        }
+                    }
+                    Notice::UpdateCheckFailed { manual }
+                        if manual || config.check_server_updates =>
+                    {
+                        game.native_chat(&server_download_message(
+                            &language,
+                            7,
+                            "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+                        ));
+                    }
+                    Notice::ServerStartFailed if config.notify_server_download_progress => {
+                        game.native_chat(&server_download_message(
+                            &language,
+                            5,
+                            "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+                        ));
+                    }
+                    Notice::ServerDownloadStarted { began_in_world }
+                        if config.notify_server_download_progress =>
+                    {
+                        if began_in_world {
+                            game.native_chat(&server_download_message(
+                                &language,
+                                0,
+                                "[MineLights] Downloading MineLights Server…",
+                            ));
+                        } else if SERVER_DOWNLOAD_IN_PROGRESS.load(Ordering::Acquire) {
+                            game.native_chat(&server_download_message(
+                                &language,
+                                1,
+                                "[MineLights] MineLights Server download is still in progress.",
+                            ));
+                        }
+                    }
+                    Notice::ServerDownloadFinished {
+                        result,
+                        server_was_running_before,
+                        server_running_after,
+                        server_started,
+                        server_readiness_failed,
+                    } if config.notify_server_download_progress => {
+                        match classify_server_download_completion(
+                            result.is_ok(),
+                            server_was_running_before,
+                            server_running_after,
+                            server_started,
+                            server_readiness_failed,
+                        ) {
+                            ServerDownloadCompletion::Failed => {
+                                game.native_chat(&server_download_message(
+                                &language,
+                                4,
+                                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+                            ));
+                            }
+                            ServerDownloadCompletion::Restarted => {
+                                game.native_chat(&server_download_message(
+                                &language,
+                                3,
+                                "[MineLights] MineLights Server update finished and the server has restarted.",
+                            ));
+                            }
+                            ServerDownloadCompletion::RestartRequired => {
+                                game.native_chat(&server_download_message(
+                                    &language,
+                                    6,
+                                    "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+                                ));
+                            }
+                            ServerDownloadCompletion::Started => {
+                                game.native_chat(&server_download_message(
+                                    &language,
+                                    2,
+                                    "[MineLights] MineLights Server download finished and the server has started.",
+                                ));
+                            }
+                            ServerDownloadCompletion::StartFailed => {
+                                game.native_chat(&server_download_message(
+                                    &language,
+                                    5,
+                                    "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+                                ));
+                            }
                         }
                     }
                     Notice::Manual(lines) => {
@@ -202,6 +289,81 @@ pub(super) fn minelights_frame(game: &mut super::Game<'_>) {
     painter.last_paint = now;
     let frame = painter.render(player, &layouts, config.clone(), now);
     send_frame_if_needed(bridge, &mut painter, frame, now);
+}
+
+fn server_download_message(language: &str, index: usize, fallback: &str) -> String {
+    super::minelights_lang::server_message_or_english(language, index)
+        .unwrap_or(fallback)
+        .to_owned()
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ServerDownloadCompletion {
+    Failed,
+    Restarted,
+    RestartRequired,
+    Started,
+    StartFailed,
+}
+
+fn classify_server_download_completion(
+    download_succeeded: bool,
+    server_was_running_before: bool,
+    server_running_after: bool,
+    server_started: bool,
+    server_readiness_failed: bool,
+) -> ServerDownloadCompletion {
+    if !download_succeeded {
+        ServerDownloadCompletion::Failed
+    } else if server_started && server_was_running_before {
+        ServerDownloadCompletion::Restarted
+    } else if server_readiness_failed {
+        ServerDownloadCompletion::StartFailed
+    } else if server_running_after {
+        ServerDownloadCompletion::RestartRequired
+    } else if server_started {
+        ServerDownloadCompletion::Started
+    } else {
+        ServerDownloadCompletion::StartFailed
+    }
+}
+
+#[cfg(test)]
+mod server_download_completion_tests {
+    use super::{ServerDownloadCompletion as C, classify_server_download_completion as classify};
+
+    #[test]
+    fn classifies_completion_and_server_process_races() {
+        let cases = [
+            // Failed transfer/install is reported independently of process state.
+            (false, false, false, false, false, C::Failed),
+            // A managed spawn after replacing a previously running server is a restart.
+            (true, true, false, true, false, C::Restarted),
+            // A server that appeared during transfer and remains up needs a tray restart.
+            (true, false, true, false, false, C::RestartRequired),
+            (true, true, true, false, false, C::RestartRequired),
+            // A prior process that exited during transfer and could not be relaunched failed.
+            (true, true, false, false, false, C::StartFailed),
+            // Fresh installation successfully spawned the server.
+            (true, false, false, true, false, C::Started),
+            // A prior process may exit during transfer, then the managed process starts.
+            (true, true, false, true, false, C::Restarted),
+            // A server that appeared and then exited is not reported as still running.
+            (true, false, false, false, false, C::StartFailed),
+            // A spawned child that never becomes V2-ready is failure even if
+            // process enumeration still sees it during the completion notice.
+            (true, false, true, false, true, C::StartFailed),
+            (true, true, true, false, true, C::StartFailed),
+        ];
+
+        for (succeeded, before, after, started, readiness_failed, expected) in cases {
+            assert_eq!(
+                classify(succeeded, before, after, started, readiness_failed),
+                expected,
+                "succeeded={succeeded}, before={before}, after={after}, started={started}, readiness_failed={readiness_failed}"
+            );
+        }
+    }
 }
 
 fn send_frame_if_needed(bridge: &Bridge, painter: &mut Painter, frame: Frame, now: Instant) {
@@ -231,7 +393,8 @@ pub(super) fn minelights_settings(
     if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {
             buttons.extend(layouts.iter().map(|layout| {
-                let enabled = !device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
+                let enabled =
+                    !device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
                 format!(
                     "Device {} ({}): {}",
                     layout.display_name,
@@ -272,7 +435,7 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
             ][button - 33];
             bridge.actions.fetch_or(action, Ordering::Release);
         }
-    } else if button == 47 {
+    } else if button == 48 {
         game.native_chat("[MineLights] Set effect keys and colors with /minelights set <setting> <value>. Use comma-separated keys and #RRGGBB colors; /minelights list shows every setting.");
     } else if button < STATIC_SETTING_COUNT {
         toggle_setting(&mut settings, button);
@@ -288,8 +451,14 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
     } else if let Some(bridge) = BRIDGE.get() {
         if let Ok(layouts) = bridge.layouts.read() {
             if let Some(layout) = layouts.get(button - STATIC_SETTING_COUNT) {
-                let disabled = device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
-                set_device_enabled(&mut settings, &layout.unique_id, layout.legacy_id.as_deref(), disabled);
+                let disabled =
+                    device_disabled(&settings, &layout.unique_id, layout.legacy_id.as_deref());
+                set_device_enabled(
+                    &mut settings,
+                    &layout.unique_id,
+                    layout.legacy_id.as_deref(),
+                    disabled,
+                );
             }
         }
     }
@@ -298,9 +467,9 @@ pub(super) fn minelights_settings_click(game: &mut super::Game<'_>, mod_id: &str
 
 #[cfg(test)]
 mod tests {
-    use minelights_engine::standardize_key;
     use super::super::minelights_effects::biome_color;
     use super::Color;
+    use minelights_engine::standardize_key;
 
     #[test]
     fn standardizes_device_key_names_like_the_java_client() {

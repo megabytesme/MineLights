@@ -27,6 +27,15 @@ mod minelights_lang {
     pub fn setting_label(_: &str, _: usize) -> Option<&'static str> {
         None
     }
+    pub fn setting_label_or_english(_: &str, _: usize) -> Option<&'static str> {
+        None
+    }
+    pub fn server_message(_: &str, _: usize) -> Option<&'static str> {
+        None
+    }
+    pub fn server_message_or_english(_: &str, _: usize) -> Option<&'static str> {
+        None
+    }
 }
 mod minelights_player_data {
     pub fn snapshot(

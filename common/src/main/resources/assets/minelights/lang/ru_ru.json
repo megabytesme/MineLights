@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Объединить насыщение и воздух с полосой голода",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Насыщение и воздух отображаются на клавишах голода вместо отдельных клавиш. Насыщение окрашивает затронутые клавиши голода (как AppleSkin). Под водой и пока воздух не восстановится клавиши голода показывают воздух, как пузырьки над полосой голода в игре. Клавиши насыщения / воздуха остаются свободными.",
   "option.mine-lights.locatorBarColor": "Фон полосы локатора",
-  "option.mine-lights.locatorBarColor.tooltip": "Цвет клавиш локатора за точками путевых точек (темная полоса, видимая в игре)."
+  "option.mine-lights.locatorBarColor.tooltip": "Цвет клавиш локатора за точками путевых точек (темная полоса, видимая в игре).",
+  "option.mine-lights.notifyServerDownloadProgress": "Уведомлять о загрузке MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Показывать сообщения в чате, когда загрузка сервера начинается в мире, продолжается после вашего входа в мир и завершается.",
+  "message.minelights.server.download.started": "[MineLights] Загрузка MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Загрузка MineLights Server всё ещё выполняется.",
+  "message.minelights.server.download.finished_started": "[MineLights] Загрузка MineLights Server завершена, сервер запущен.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Обновление MineLights Server завершено, сервер перезапущен.",
+  "message.minelights.server.download.restart_required": "[MineLights] Загрузка MineLights Server завершена. Если сервер уже запущен, перезапустите его через значок в системном трее, чтобы применить обновление.",
+  "message.minelights.server.download.start_failed": "[MineLights] Не удалось автоматически запустить MineLights Server. Запустите его из системного трея или установите вручную: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Не удалось завершить автоматическую настройку MineLights Server. Если сервер запущен, остановите его через системный трей; иначе установите его вручную: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Не удалось проверить обновления MineLights Server. Проверьте их вручную: https://github.com/megabytesme/MineLights-Server/releases"
 }

@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "No modo de xestión manual, mostra unha mensaxe no xogo\ncon instrucións de instalación cando falte MineLights Server.",
   "option.mine-lights.checkServerUpdates": "Buscar actualizacións de MineLights Server",
   "option.mine-lights.checkServerUpdates.tooltip": "No modo de xestión manual, busca versións novas e mostra\no seu rexistro de cambios no chat. Instala as actualizacións manualmente.",
+  "option.mine-lights.notifyServerDownloadProgress": "Avisarme das descargas de MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Amosa mensaxes no chat cando unha descarga do servidor comeza nun mundo, continúa despois de que entres nun mundo e remata.",
   "option.mine-lights.refresh_devices.label": "Actualizar a lista de dispositivos",
   "option.mine-lights.refresh_devices.tooltip": "Se conectas un dispositivo novo mentres o xogo está en execución,\nmarca esta opción e garda para que apareza na lista.",
   "option.mine-lights.restart.label": "Reiniciar o servidor",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Combinar a saturación e o aire coa barra de fame",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Amosa a saturación e o aire nas teclas de fame en vez de usar teclas propias.\nA saturación tinxe as teclas de fame que cobre (coma AppleSkin).\nBaixo a auga, e ata que se recupere o aire, as teclas de fame amosan o aire,\ncoma as burbullas sobre a barra de fame.\nAs teclas de saturación / aire quedan libres.",
   "option.mine-lights.locatorBarColor": "Fondo da barra de localización",
-  "option.mine-lights.locatorBarColor.tooltip": "Cor das teclas de localización detrás dos puntos de ruta\n(a barra escura que se ve no xogo)."
+  "option.mine-lights.locatorBarColor.tooltip": "Cor das teclas de localización detrás dos puntos de ruta\n(a barra escura que se ve no xogo).",
+  "message.minelights.server.download.started": "[MineLights] Descargando MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] A descarga de MineLights Server aínda está en curso.",
+  "message.minelights.server.download.finished_started": "[MineLights] A descarga de MineLights Server rematou e o servidor iniciouse.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] A actualización de MineLights Server rematou e o servidor reiniciouse.",
+  "message.minelights.server.download.restart_required": "[MineLights] A descarga de MineLights Server está lista. Se xa hai un servidor en execución, reiníciao desde o seu menú da bandexa para usar a actualización.",
+  "message.minelights.server.download.start_failed": "[MineLights] Non se puido iniciar MineLights Server automaticamente. Iníciao desde a bandexa ou instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Non se puido completar a configuración automática de MineLights Server. Se o servidor está en execución, párao desde a bandexa; en caso contrario, instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Fallou a comprobación de actualizacións de MineLights Server. Revísaas manualmente: https://github.com/megabytesme/MineLights-Server/releases"
 }

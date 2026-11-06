@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Trong chế độ quản lý thủ công, hiển thị thông báo trong trò chơi\nhướng dẫn cài đặt khi không có MineLights Server.",
   "option.mine-lights.checkServerUpdates": "Kiểm tra bản cập nhật MineLights Server",
   "option.mine-lights.checkServerUpdates.tooltip": "Trong chế độ quản lý thủ công, kiểm tra bản phát hành mới và\nhiển thị nhật ký thay đổi trong trò chuyện. Hãy tự cài đặt bản cập nhật.",
+  "option.mine-lights.notifyServerDownloadProgress": "Thông báo cho tôi về các lượt tải MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Hiển thị tin nhắn trò chuyện khi quá trình tải máy chủ bắt đầu trong một thế giới, tiếp tục sau khi bạn vào thế giới và hoàn tất.",
   "option.mine-lights.force_update.label": "Kiểm tra bản cập nhật máy chủ",
   "option.mine-lights.force_update.tooltip": "Kiểm tra bản cập nhật MineLights Server trên GitHub. Quản lý tự động có thể tải bản cập nhật; quản lý thủ công hiển thị hướng dẫn cài đặt trong chat.",
   "option.mine-lights.refresh_devices.label": "Làm mới danh sách thiết bị",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Gộp độ no và không khí vào thanh đói",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Hiển thị độ no và không khí trên phím đói thay vì các phím riêng.\nĐộ no nhuộm màu các phím đói mà nó phủ lên (như AppleSkin).\nDưới nước và cho đến khi không khí hồi lại, phím đói hiển thị không khí,\nnhư bong bóng phía trên thanh đói.\nCác phím Độ no / Không khí được để trống.",
   "option.mine-lights.locatorBarColor": "Nền thanh định vị",
-  "option.mine-lights.locatorBarColor.tooltip": "Màu phím định vị phía sau các chấm đường đi\n(thanh tối hiển thị trong trò chơi)."
+  "option.mine-lights.locatorBarColor.tooltip": "Màu phím định vị phía sau các chấm đường đi\n(thanh tối hiển thị trong trò chơi).",
+  "message.minelights.server.download.started": "[MineLights] Đang tải MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Quá trình tải MineLights Server vẫn đang diễn ra.",
+  "message.minelights.server.download.finished_started": "[MineLights] Đã tải xong MineLights Server và máy chủ đã khởi động.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Đã cập nhật MineLights Server và máy chủ đã khởi động lại.",
+  "message.minelights.server.download.restart_required": "[MineLights] Đã tải xong MineLights Server. Nếu máy chủ đang chạy, hãy khởi động lại từ menu khay hệ thống của máy chủ để dùng bản cập nhật.",
+  "message.minelights.server.download.start_failed": "[MineLights] Không thể khởi động MineLights Server tự động. Hãy khởi động từ khay hệ thống hoặc cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Không thể hoàn tất thiết lập MineLights Server tự động. Nếu máy chủ đang chạy, hãy dừng máy chủ từ khay hệ thống; nếu không, hãy cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Không thể kiểm tra bản cập nhật MineLights Server. Hãy xem các bản cập nhật thủ công: https://github.com/megabytesme/MineLights-Server/releases"
 }

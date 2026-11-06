@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "கைமுறை நிர்வாக முறையில், MineLights Server இல்லாவிட்டால்\nஅதை நிறுவுவதற்கான விளையாட்டு செய்தியைக் காட்டும்.",
   "option.mine-lights.checkServerUpdates": "MineLights Server புதுப்பிப்புகளைச் சரிபார்க்கவும்",
   "option.mine-lights.checkServerUpdates.tooltip": "கைமுறை நிர்வாக முறையில், புதிய வெளியீடுகளைச் சரிபார்த்து\nமாற்றப் பதிவை அரட்டையில் காட்டும். புதுப்பிப்புகளை கைமுறையாக நிறுவவும்.",
+  "option.mine-lights.notifyServerDownloadProgress": "MineLights Server பதிவிறக்கங்கள் குறித்து எனக்குத் தெரிவி",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "சேவையகப் பதிவிறக்கம் உலகில் தொடங்கும்போதும், நீங்கள் உலகிற்குள் சென்ற பிறகும் தொடரும்போதும், முடிவடையும்போதும் அரட்டைச் செய்திகளைக் காட்டும்.",
   "option.mine-lights.force_update.label": "சேவையகப் புதுப்பிப்பைச் சரிபார்",
   "option.mine-lights.force_update.tooltip": "GitHub-ல் MineLights Server புதுப்பிப்புகளைச் சரிபார்க்கும். தானியங்கி மேலாண்மை புதுப்பிப்புகளைப் பதிவிறக்கலாம்; கைமுறை மேலாண்மை நிறுவல் விவரங்களை அரட்டையில் காட்டும்.",
   "option.mine-lights.refresh_devices.label": "சாதனப் பட்டியலைப் புதுப்பி",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "நிறைவு மற்றும் காற்றை பசி பட்டையில் இணை",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "தனிப்பட்ட விசைகளுக்குப் பதிலாக பசி விசைகளில் நிறைவு மற்றும் காற்றைக் காட்டும்.\nநிறைவு அது மூடும் பசி விசைகளுக்கு நிறமூட்டும் (AppleSkin போல).\nநீருக்கடியில் மற்றும் காற்று நிரம்பும் வரை பசி விசைகள் காற்றைக் காட்டும்,\nபசி பட்டைக்கு மேல் தோன்றும் குமிழ்களைப் போல.\nநிறைவு / காற்று விசைகள் பயன்படுத்தப்படாது.",
   "option.mine-lights.locatorBarColor": "இருப்பிடப் பட்டை பின்னணி",
-  "option.mine-lights.locatorBarColor.tooltip": "வழிப்புள்ளி புள்ளிகளுக்குப் பின்னால் உள்ள இருப்பிட விசைகளின் நிறம்\n(விளையாட்டில் காணும் இருண்ட பட்டை)."
+  "option.mine-lights.locatorBarColor.tooltip": "வழிப்புள்ளி புள்ளிகளுக்குப் பின்னால் உள்ள இருப்பிட விசைகளின் நிறம்\n(விளையாட்டில் காணும் இருண்ட பட்டை).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server பதிவிறக்கம் செய்யப்படுகிறது…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server பதிவிறக்கம் இன்னும் நடைபெறுகிறது.",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server பதிவிறக்கம் முடிந்தது; சேவையகமும் தொடங்கிவிட்டது.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server பதிவிறக்கம் தயாராக உள்ளது. சேவையகம் ஏற்கெனவே இயங்கினால், புதுப்பிப்பைப் பயன்படுத்த அதன் தட்டு மெனுவிலிருந்து அதை மீண்டும் தொடங்கவும்.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases"
 }

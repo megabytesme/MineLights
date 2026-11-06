@@ -5,7 +5,7 @@
 pub(super) const SERVER_VERSION: &str = "v2.4.0";
 #[cfg(windows)]
 pub(super) const SERVER_SHA256: &str =
-    "1144b9336fc42208737cbf12160d7dd65d401508e96f8087fb33a9f24ef93e2d";
+    "65679ebd02206b459e8dc6db9e5f9d934492802957757f80087cb38ace4210f7";
 #[cfg(windows)]
 const SERVER_URL: &str =
     "https://github.com/megabytesme/MineLights-Server/releases/download/v2.4.0/MineLights.exe";
@@ -33,7 +33,9 @@ fn stable_version(tag: &str) -> Option<[u64; 3]> {
     if let Some(build) = build {
         if build.split('.').any(|identifier| {
             identifier.is_empty()
-                || !identifier.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-')
+                || !identifier
+                    .bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || c == b'-')
         }) {
             return None;
         }
@@ -71,9 +73,19 @@ mod stable_version_tests {
     #[test]
     fn rejects_prereleases_and_malformed_semver() {
         for tag in [
-            "v2.4.1-rc.1", "v2.4.1-rc.1+build.2", "v2.4.0+", "v2.4.0+.a",
-            "v2.4.0+a..b", "v2.4.0+a.", "v2.4.0+a+b", "v2.4.0+a/b", "v2.04.0",
-            "v2.4", "v2.4.0.1", "2.4.0", "v18446744073709551616.0.0",
+            "v2.4.1-rc.1",
+            "v2.4.1-rc.1+build.2",
+            "v2.4.0+",
+            "v2.4.0+.a",
+            "v2.4.0+a..b",
+            "v2.4.0+a.",
+            "v2.4.0+a+b",
+            "v2.4.0+a/b",
+            "v2.04.0",
+            "v2.4",
+            "v2.4.0.1",
+            "2.4.0",
+            "v18446744073709551616.0.0",
         ] {
             assert_eq!(stable_version(tag), None, "accepted {tag}");
         }
@@ -215,18 +227,50 @@ pub(super) fn is_reviewed_binary(_path: &std::path::Path) -> bool {
 
 /// Download only the pinned binary and never overwrite a user-installed file.
 #[cfg(windows)]
-pub(super) fn download_pinned(path: &std::path::Path, allowed: bool) -> bool {
+pub(super) fn download_pinned_detailed(
+    path: &std::path::Path,
+    allowed: bool,
+) -> Result<(), String> {
+    download_pinned_detailed_with_started(path, allowed, || {})
+}
+
+/// Like `download_pinned_detailed`, but calls `on_started` only after the
+/// downloader process was successfully created, after all local preflight.
+#[cfg(windows)]
+pub(super) fn download_pinned_detailed_with_started(
+    path: &std::path::Path,
+    allowed: bool,
+    on_started: impl FnOnce(),
+) -> Result<(), String> {
     if !allowed || path.exists() {
-        return false;
+        return Err(if allowed {
+            "the destination already exists".into()
+        } else {
+            "download permission is off".into()
+        });
     }
     let Some(parent) = path.parent() else {
-        return false;
+        return Err("the destination folder is unavailable".into());
     };
-    if std::fs::create_dir_all(parent).is_err() {
-        return false;
+    std::fs::create_dir_all(parent).map_err(|error| {
+        format!(
+            "could not create the destination folder ({:?})",
+            error.kind()
+        )
+    })?;
+    let file_name = path
+        .file_name()
+        .unwrap_or_else(|| std::ffi::OsStr::new("MineLights.exe"));
+    let temporary = path.with_file_name(format!(
+        "{}.minelights-download-{}",
+        file_name.to_string_lossy(),
+        std::process::id()
+    ));
+    if temporary.exists() {
+        return Err("a previous temporary download file already exists".into());
     }
-    let temporary = path.with_file_name("MineLights.exe.minelights-download");
-    let result = hidden_command("curl.exe")
+    let mut command = hidden_command("curl.exe");
+    command
         .args([
             "--fail",
             "--silent",
@@ -246,17 +290,114 @@ pub(super) fn download_pinned(path: &std::path::Path, allowed: bool) -> bool {
         ])
         .arg(&temporary)
         .arg(SERVER_URL)
-        .output();
-    let verified =
-        result.is_ok_and(|output| output.status.success()) && is_reviewed_binary(&temporary);
-    if !verified || path.exists() || std::fs::rename(&temporary, path).is_err() {
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    let mut downloader = command
+        .spawn()
+        .map_err(|error| format!("could not start the HTTPS downloader ({:?})", error.kind()))?;
+    on_started();
+    let status = match downloader.wait() {
+        Ok(status) => status,
+        Err(error) => {
+            let _ = std::fs::remove_file(&temporary);
+            return Err(format!(
+                "could not wait for the HTTPS downloader ({:?})",
+                error.kind()
+            ));
+        }
+    };
+    if !status.success() {
+        let code = status.code();
         let _ = std::fs::remove_file(&temporary);
-        return false;
+        return Err(match code {
+            Some(6) => "HTTPS download failed: DNS lookup failed (curl 6)".into(),
+            Some(7) => "HTTPS download failed: the server could not be reached (curl 7)".into(),
+            Some(22) => "HTTPS download failed: GitHub returned an HTTP error (curl 22)".into(),
+            Some(23) => {
+                "HTTPS download failed: the temporary file could not be written (curl 23)".into()
+            }
+            Some(28) => "HTTPS download failed: the connection timed out (curl 28)".into(),
+            Some(60) => {
+                "HTTPS download failed: the server certificate could not be verified (curl 60)"
+                    .into()
+            }
+            Some(63) => {
+                "HTTPS download failed: the response exceeded the 256 MiB safety limit (curl 63)"
+                    .into()
+            }
+            Some(code) => format!("HTTPS download failed (curl exit code {code})"),
+            None => "HTTPS download failed because the downloader was terminated".into(),
+        });
     }
-    true
+    let actual = match sha256_file(&temporary) {
+        Ok(actual) => actual,
+        Err(error) => {
+            let _ = std::fs::remove_file(&temporary);
+            return Err(error);
+        }
+    };
+    if !actual.eq_ignore_ascii_case(SERVER_SHA256) {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(format!(
+            "SHA-256 did not match the reviewed binary (received {actual})"
+        ));
+    }
+    if path.exists() {
+        let _ = std::fs::remove_file(&temporary);
+        return Err("the destination appeared before installation; it was preserved".into());
+    }
+    std::fs::rename(&temporary, path).map_err(|error| {
+        let _ = std::fs::remove_file(&temporary);
+        format!(
+            "the verified download could not be installed ({:?})",
+            error.kind()
+        )
+    })?;
+    Ok(())
+}
+
+#[cfg(windows)]
+fn sha256_file(path: &std::path::Path) -> Result<String, String> {
+    let output = hidden_command("certutil.exe")
+        .arg("-hashfile")
+        .arg(path)
+        .arg("SHA256")
+        .output()
+        .map_err(|error| format!("could not start SHA-256 verification ({:?})", error.kind()))?;
+    if !output.status.success() {
+        return Err("SHA-256 verification could not read the downloaded file".into());
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    text.lines()
+        .map(str::trim)
+        .find(|line| line.len() == 64 && line.bytes().all(|byte| byte.is_ascii_hexdigit()))
+        .map(str::to_ascii_lowercase)
+        .ok_or_else(|| "SHA-256 verification returned no digest".into())
+}
+
+#[cfg(windows)]
+pub(super) fn download_pinned(path: &std::path::Path, allowed: bool) -> bool {
+    download_pinned_detailed(path, allowed).is_ok()
 }
 
 #[cfg(not(windows))]
 pub(super) fn download_pinned(_path: &std::path::Path, _allowed: bool) -> bool {
     false
+}
+
+#[cfg(not(windows))]
+pub(super) fn download_pinned_detailed(
+    _path: &std::path::Path,
+    _allowed: bool,
+) -> Result<(), String> {
+    Err("automatic server installation is available on Windows only".into())
+}
+
+#[cfg(not(windows))]
+pub(super) fn download_pinned_detailed_with_started(
+    _path: &std::path::Path,
+    _allowed: bool,
+    _on_started: impl FnOnce(),
+) -> Result<(), String> {
+    Err("automatic server installation is available on Windows only".into())
 }

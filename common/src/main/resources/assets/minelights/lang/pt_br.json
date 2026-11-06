@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Mesclar saturação e ar à barra de fome",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Mostra a saturação e o ar nas teclas de fome em vez de usar teclas próprias.\nA saturação colore as teclas de fome que cobre (como AppleSkin).\nSubmerso, e até o ar se recuperar, as teclas de fome mostram o ar,\ncomo as bolhas que aparecem acima da barra de fome.\nAs teclas de saturação / ar ficam livres.",
   "option.mine-lights.locatorBarColor": "Fundo da barra localizadora",
-  "option.mine-lights.locatorBarColor.tooltip": "Cor das teclas localizadoras atrás dos pontos de rota\n(a barra escura exibida no jogo)."
+  "option.mine-lights.locatorBarColor.tooltip": "Cor das teclas localizadoras atrás dos pontos de rota\n(a barra escura exibida no jogo).",
+  "option.mine-lights.notifyServerDownloadProgress": "Notificar sobre downloads do MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Exibe mensagens no chat quando o download do servidor começa enquanto você está em um mundo, continua depois que você entra em um mundo e termina.",
+  "message.minelights.server.download.started": "[MineLights] Baixando o MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] O download do MineLights Server ainda está em andamento.",
+  "message.minelights.server.download.finished_started": "[MineLights] O download do MineLights Server terminou e o servidor foi iniciado.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] A atualização do MineLights Server terminou e o servidor foi reiniciado.",
+  "message.minelights.server.download.restart_required": "[MineLights] O download do MineLights Server está pronto. Se já houver um servidor em execução, reinicie-o pelo ícone na bandeja do sistema para usar a atualização.",
+  "message.minelights.server.download.start_failed": "[MineLights] Não foi possível iniciar o MineLights Server automaticamente. Inicie-o pela bandeja do sistema ou instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Não foi possível concluir a configuração automática do MineLights Server. Se o servidor estiver em execução, pare-o pela bandeja do sistema; caso contrário, instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Falha ao verificar atualizações do MineLights Server. Confira as atualizações manualmente: https://github.com/megabytesme/MineLights-Server/releases"
 }

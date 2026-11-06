@@ -75,6 +75,7 @@ pub(super) struct Settings {
     pub(super) allow_reviewed_server: bool,
     pub(super) notify_missing_server: bool,
     pub(super) check_server_updates: bool,
+    pub(super) notify_server_download_progress: bool,
     #[serde(skip)]
     pub(super) server_confirmation_pending: bool,
     pub(super) compass_priority: u8,
@@ -157,6 +158,7 @@ impl Default for Settings {
             allow_reviewed_server: false,
             notify_missing_server: true,
             check_server_updates: true,
+            notify_server_download_progress: true,
             server_confirmation_pending: false,
             compass_priority: 0,
             enable_corsair: true,
@@ -185,7 +187,7 @@ fn keys(values: &[&str]) -> Vec<String> {
     values.iter().map(|value| (*value).to_owned()).collect()
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 48;
+pub(super) const STATIC_SETTING_COUNT: usize = 49;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -339,11 +341,24 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             settings.experience_locator_mode
         ),
         format!("Locator dot size: {:.1}", settings.locator_dot_size),
+        format!(
+            "Notify me about MineLights Server downloads: {}",
+            on_off(settings.notify_server_download_progress)
+        ),
         "Configure keys and colors with /minelights set".into(),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
         if (40..=46).contains(&index) {
             if let Some(translated) = super::minelights_lang::setting_label(language, index + 7) {
+                if let Some((_, value)) = label.rsplit_once(": ") {
+                    *label = format!("{translated}: {value}");
+                }
+            }
+            continue;
+        }
+        if index == 47 {
+            if let Some(translated) = super::minelights_lang::setting_label_or_english(language, 54)
+            {
                 if let Some((_, value)) = label.rsplit_once(": ") {
                     *label = format!("{translated}: {value}");
                 }
@@ -519,6 +534,7 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         40 => &mut settings.enable_absorption_overlay,
         41 => &mut settings.merge_saturation_into_hunger,
         42 => &mut settings.restore_lighting_outside_world,
+        47 => &mut settings.notify_server_download_progress,
         _ => return,
     };
     *value = !*value;

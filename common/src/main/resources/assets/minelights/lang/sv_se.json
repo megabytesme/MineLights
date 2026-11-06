@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Slå ihop mättnad och luft med hungermätaren",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Visar mättnad och luft på hungertangenterna i stället för på egna tangenter.\nMättnaden färgar hungertangenterna den täcker (som AppleSkin).\nUnder vatten, och tills luften har fyllts på, visar hungertangenterna luft,\nsom bubblorna ovanför hungermätaren.\nMättnads-/lufttangenterna lämnas fria.",
   "option.mine-lights.locatorBarColor": "Bakgrund till spårningsfältet",
-  "option.mine-lights.locatorBarColor.tooltip": "Färg på spårningstangenterna bakom vägmarkörerna\n(det mörka fältet som syns i spelet)."
+  "option.mine-lights.locatorBarColor.tooltip": "Färg på spårningstangenterna bakom vägmarkörerna\n(det mörka fältet som syns i spelet).",
+  "option.mine-lights.notifyServerDownloadProgress": "Visa meddelanden om nedladdningar av MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Visar chattmeddelanden när en servernedladdning börjar medan du är i en värld, fortsätter efter att du har gått in i en värld och slutförs.",
+  "message.minelights.server.download.started": "[MineLights] Laddar ned MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Nedladdningen av MineLights Server pågår fortfarande.",
+  "message.minelights.server.download.finished_started": "[MineLights] Nedladdningen av MineLights Server är klar och servern har startats.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Uppdateringen av MineLights Server är klar och servern har startats om.",
+  "message.minelights.server.download.restart_required": "[MineLights] Nedladdningen av MineLights Server är klar. Om en server redan körs startar du om den via dess ikon i systemfältet för att använda uppdateringen.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server kunde inte startas automatiskt. Starta det från systemfältet eller installera det manuellt: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Det gick inte att slutföra den automatiska konfigurationen av MineLights Server. Om servern körs, stoppa den från systemfältet; installera den annars manuellt: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Det gick inte att söka efter uppdateringar för MineLights Server. Granska uppdateringar manuellt: https://github.com/megabytesme/MineLights-Server/releases"
 }

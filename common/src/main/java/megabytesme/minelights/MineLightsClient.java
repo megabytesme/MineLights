@@ -7,6 +7,7 @@ import megabytesme.minelights.config.MineLightsConfig;
 import megabytesme.minelights.config.SimpleJsonConfig;
 import megabytesme.minelights.network.V2Endpoint;
 import megabytesme.minelights.network.V2ClientConnection;
+import megabytesme.minelights.network.ServerDownloadNotificationState;
 import megabytesme.minelights.runtime.LightingManager;
 //? if loader_forge && <=1.12.2 {
 //?} else if loader_forge && <1.17 {
@@ -273,8 +274,12 @@ public class MineLightsClient {
     private static final AtomicReference<String> pendingUpdateUrl = new AtomicReference<>(null);
     private static final AtomicBoolean pendingUpdateNotification = new AtomicBoolean(false);
     private static final AtomicBoolean hasCheckedForMissingServer = new AtomicBoolean(false);
-    private static final ConcurrentLinkedQueue<List<String>> pendingServerMessages = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<List<PendingServerMessage>> pendingServerMessages = new ConcurrentLinkedQueue<>();
     private static final AtomicBoolean serverDownloadInProgress = new AtomicBoolean(false);
+    private static final AtomicBoolean automaticDownloadStarted = new AtomicBoolean(false);
+    private static final ServerDownloadNotificationState serverDownloadNotificationState =
+            new ServerDownloadNotificationState();
+    private static volatile boolean clientInWorld;
     private static final Object automaticUpdateLock = new Object();
     private static final Object automaticUpdateExecution = new Object();
     private static volatile CountDownLatch automaticUpdateDecision;
@@ -300,6 +305,26 @@ public class MineLightsClient {
             this.changelog = changelog;
             this.downloadUrl = downloadUrl;
             this.expectedHash = expectedHash;
+        }
+    }
+
+    private static final class PendingServerMessage {
+        private final String text;
+        private final String translationKey;
+        private final Object[] arguments;
+
+        private PendingServerMessage(String text, String translationKey, Object[] arguments) {
+            this.text = text;
+            this.translationKey = translationKey;
+            this.arguments = arguments;
+        }
+
+        private static PendingServerMessage literal(String text) {
+            return new PendingServerMessage(text, null, new Object[0]);
+        }
+
+        private static PendingServerMessage translated(String key, Object... arguments) {
+            return new PendingServerMessage(null, key, arguments == null ? new Object[0] : arguments);
         }
     }
 
@@ -354,6 +379,17 @@ public class MineLightsClient {
     //?} else {
     /* public void onClientTick(MinecraftClient client) {
     *///?}
+        //? if loader_forge && <=1.9.4 {
+        clientInWorld = client.thePlayer != null && client.theWorld != null;
+        //?} else if loader_forge && >=1.14.4 && <1.16.1 {
+        clientInWorld = client.player != null && client.level != null;
+        //?} else if loader_forge && >=1.16.2 && <1.17 {
+        clientInWorld = client.player != null && client.level != null;
+        //?} else if loader_forge && <1.17 {
+        clientInWorld = client.player != null && client.world != null;
+        //?} else {
+        clientInWorld = client.player != null && client.level != null;
+        //?}
         reconcileLightingState();
         int checkMode = !IS_WINDOWS || !CONFIG.enableMod ? 0
                 : automaticServerInstallAllowed() ? 2 : CONFIG.checkServerUpdates ? 1 : 0;
@@ -876,6 +912,7 @@ public class MineLightsClient {
     }
 
     private static void checkForServerUpdateAutomatically() {
+        boolean downloadAttempted = false;
         try {
             if (!automaticServerInstallAllowed()) return;
             ServerRelease release = getLatestServerRelease();
@@ -901,13 +938,22 @@ public class MineLightsClient {
             try {
                 LOGGER.info("Downloading MineLights Server {}.", release.version);
                 automaticDownloadProgressNanos.set(System.nanoTime());
+                automaticDownloadStarted.set(false);
+                downloadAttempted = true;
                 downloadAndInstallServer(release, serverExePath, true);
             } finally {
                 automaticDownloadProgressNanos.set(0);
+                automaticDownloadStarted.set(false);
                 serverDownloadInProgress.set(false);
+                serverDownloadNotificationState.reset();
             }
         } catch (Exception e) {
             LOGGER.error("Failed to check for MineLights Server updates", e);
+            String failureKey = serverDownloadNotificationState.failed(
+                    CONFIG != null && CONFIG.notifyServerDownloadProgress, downloadAttempted);
+            if (failureKey != null) {
+                queueLocalizedServerNotification(failureKey);
+            }
         }
     }
 
@@ -928,7 +974,7 @@ public class MineLightsClient {
             JsonArray assets = release.getAsJsonArray("assets");
             if (assets == null || assets.size() == 0) {
                 LOGGER.warn("MineLights Server release metadata has no assets.");
-                return null;
+                throw new IOException("MineLights Server release metadata has no assets.");
             }
 
             JsonObject selectedAsset = null;
@@ -945,7 +991,7 @@ public class MineLightsClient {
             }
             if (selectedAsset == null || !selectedAsset.has("browser_download_url")) {
                 LOGGER.warn("MineLights Server release metadata has no executable asset.");
-                return null;
+                throw new IOException("MineLights Server release metadata has no executable asset.");
             }
 
             String version = release.has("tag_name") ? release.get("tag_name").getAsString() : "the latest release";
@@ -998,7 +1044,9 @@ public class MineLightsClient {
             LOGGER.info("MineLights Server {} installed successfully.", release.version);
             lightingInitialized.set(false);
             if (restartAfterInstall) {
-                startServerProcess();
+                String finishedKey = serverDownloadNotificationState.finished(
+                        CONFIG.notifyServerDownloadProgress, startServerProcessAndWaitForV2());
+                if (finishedKey != null) queueLocalizedServerNotification(finishedKey);
             }
         } finally {
             Files.deleteIfExists(temporaryPath);
@@ -1024,6 +1072,11 @@ public class MineLightsClient {
             }
             try (InputStream input = connection.getInputStream();
                     java.io.OutputStream output = Files.newOutputStream(destination)) {
+                automaticDownloadProgressNanos.set(System.nanoTime());
+                String startedKey = serverDownloadNotificationState.beginTransfer(
+                        CONFIG != null && CONFIG.notifyServerDownloadProgress, clientInWorld);
+                if (startedKey != null) queueLocalizedServerNotification(startedKey);
+                automaticDownloadStarted.set(true);
                 byte[] buffer = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = input.read(buffer)) != -1) {
@@ -1034,6 +1087,7 @@ public class MineLightsClient {
                     output.write(buffer, 0, bytesRead);
                 }
             }
+            automaticDownloadStarted.set(false);
             megabytesme.minelights.network.ServerReleaseIntegrity.verify(destination, release.expectedHash);
         } catch (Exception e) {
             Files.deleteIfExists(destination);
@@ -1075,8 +1129,56 @@ public class MineLightsClient {
     }
 
     private static void queueServerNotification(List<String> messages) {
-        pendingServerMessages.add(new ArrayList<>(messages));
+        List<PendingServerMessage> queued = new ArrayList<>(messages.size());
+        for (String message : messages) queued.add(PendingServerMessage.literal(message));
+        pendingServerMessages.add(queued);
     }
+
+    private static void queueLocalizedServerNotification(String key, Object... arguments) {
+        pendingServerMessages.add(Collections.singletonList(PendingServerMessage.translated(key, arguments)));
+    }
+
+    //? if loader_forge || loader_neoforge || >=26.1 {
+    private static void sendLocalizedServerMessage(Minecraft client, PendingServerMessage message) {
+        //? if loader_forge && <=1.8.9 {
+        client.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentTranslation(
+                message.translationKey, message.arguments));
+        //?} else if loader_forge && <=1.9.4 {
+        client.thePlayer.addChatMessage(new net.minecraft.util.text.TextComponentTranslation(
+                message.translationKey, message.arguments));
+        //?} else if loader_forge && <=1.13.2 {
+        client.player.sendMessage(new net.minecraft.util.text.TextComponentTranslation(
+                message.translationKey, message.arguments));
+        //?} else if loader_forge && <1.17 {
+        net.minecraft.util.text.TranslationTextComponent component = new net.minecraft.util.text.TranslationTextComponent(
+                message.translationKey, message.arguments);
+        //? if loader_forge && >=1.16.1 {
+        client.player.sendMessage(component, java.util.UUID.randomUUID());
+        //?} else {
+        client.player.sendMessage(component);
+        //?}
+        //?} else if loader_forge && <1.19 {
+        client.player.displayClientMessage(new net.minecraft.network.chat.TranslatableComponent(
+                message.translationKey, message.arguments), false);
+        //?} else if loader_forge || loader_neoforge || >=26.1 {
+        //? if >=26.1 {
+        client.player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                message.translationKey, message.arguments));
+        //?} else {
+        client.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                message.translationKey, message.arguments), false);
+        //?}
+        //?}
+    }
+    //?} else {
+    /* private static void sendLocalizedServerMessage(MinecraftClient client, PendingServerMessage message) {
+        //? if >=1.19 {
+        client.player.sendMessage(Text.translatable(message.translationKey, message.arguments), false);
+        //?} else {
+        client.player.sendMessage(new net.minecraft.text.TranslatableText(message.translationKey, message.arguments), false);
+        //?}
+    } */
+    //?}
 
     public static void sendChatMessage(String message) {
         if (message != null && !message.trim().isEmpty()) {
@@ -1122,9 +1224,26 @@ public class MineLightsClient {
                     "[MineLights] Put MineLights.exe at " + getServerInstallLocation() + " in your game directory."));
         }
 
-        List<String> messages;
+        if (CONFIG.notifyServerDownloadProgress && serverDownloadInProgress.get()
+                && automaticDownloadStarted.get()) {
+            String progressKey = serverDownloadNotificationState.inProgress(
+                    CONFIG.notifyServerDownloadProgress, automaticDownloadStarted.get(), clientInWorld);
+            if (progressKey != null) queueLocalizedServerNotification(progressKey);
+        }
+
+        List<PendingServerMessage> messages;
         while ((messages = pendingServerMessages.poll()) != null) {
-            for (String text : messages) {
+            for (PendingServerMessage message : messages) {
+                if (message.translationKey != null) {
+                    if (!CONFIG.notifyServerDownloadProgress
+                            && (message.translationKey.startsWith("message.minelights.server.download.")
+                            || "message.minelights.server.update_check_failed".equals(message.translationKey))) {
+                        continue;
+                    }
+                    sendLocalizedServerMessage(client, message);
+                    continue;
+                }
+                String text = message.text;
                 //? if loader_forge || loader_neoforge || >=26.1 {
                 //? if loader_forge && <=1.8.9 {
                 client.thePlayer.addChatMessage(new ChatComponentText(text));
@@ -1376,12 +1495,12 @@ public class MineLightsClient {
         }
     }
 
-    private static synchronized void startServerProcess() {
-        if (!automaticServerStartAllowed() || manualStopRequested.get()) return;
+    private static synchronized boolean startServerProcess() {
+        if (!automaticServerStartAllowed() || manualStopRequested.get()) return false;
         Path serverExePath = getServerExePath();
 
         if (!Files.exists(serverExePath)) {
-            return;
+            return false;
         }
 
         try {
@@ -1395,10 +1514,45 @@ public class MineLightsClient {
             serverProcess = process;
             serverLaunchId = launchId;
             startServerOutputDrain(process);
+            return process.isAlive();
         } catch (IOException e) {
             LOGGER.warn("Failed to start MineLights.exe process: {}", e.getMessage());
             serverProcess = null;
+            return false;
         }
+    }
+
+    /** Confirms the V2 listener is reachable before reporting a successful server start. */
+    private static boolean startServerProcessAndWaitForV2() {
+        if (Thread.currentThread().isInterrupted() || !startServerProcess()) return false;
+        final Process process;
+        synchronized (MineLightsClient.class) {
+            process = serverProcess;
+        }
+        if (process == null) return false;
+
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+        while (System.nanoTime() < deadline) {
+            if (isServerReadyForDownloadNotice(process)) return true;
+            if (!isServerStartupAllowed(process)) return false;
+            try {
+                Thread.sleep(250);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return isServerReadyForDownloadNotice(process);
+    }
+
+    private static boolean isServerReadyForDownloadNotice(Process process) {
+        if (!isServerStartupAllowed(process) || !isV2ServerRunning()) return false;
+        return isServerStartupAllowed(process);
+    }
+
+    private static boolean isServerStartupAllowed(Process process) {
+        return !Thread.currentThread().isInterrupted() && process.isAlive()
+                && automaticServerStartAllowed() && !manualStopRequested.get();
     }
 
     private static void startServerOutputDrain(Process process) {
@@ -1437,7 +1591,7 @@ public class MineLightsClient {
         LOGGER.info("Refreshing lighting manager...");
 
         if (lightingManagerThread != null && lightingManagerThread.isAlive()) {
-            if (lightingManager != null) lightingManager.requestStop();
+            if (lightingManager != null) lightingManager.requestRefreshStop();
             lightingManagerThread.interrupt();
             try {
                 lightingManagerThread.join(1000);

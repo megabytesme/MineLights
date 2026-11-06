@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Doygunluk ve Havayı Açlık Çubuğuna Ekle",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Ayrı tuşları yerine açlık tuşlarında doygunluk ve havayı gösterir.\nDoygunluk, kapladığı açlık tuşlarına ton verir (AppleSkin gibi).\nSu altında ve hava dolana kadar açlık tuşları hava seviyesini gösterir,\naçlık çubuğunun üstündeki baloncuklar gibi.\nDoygunluk / Hava tuşları boş kalır.",
   "option.mine-lights.locatorBarColor": "Konum Çubuğu Arka Planı",
-  "option.mine-lights.locatorBarColor.tooltip": "İşaretçi noktalarının arkasındaki konum tuşlarının rengi\n(oyunda gördüğünüz koyu çubuk)."
+  "option.mine-lights.locatorBarColor.tooltip": "İşaretçi noktalarının arkasındaki konum tuşlarının rengi\n(oyunda gördüğünüz koyu çubuk).",
+  "option.mine-lights.notifyServerDownloadProgress": "MineLights Server indirmeleri hakkında beni bilgilendir",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Sunucu indirmesi bir dünyadayken başladığında, bir dünyaya girdikten sonra devam ettiğinde ve tamamlandığında sohbet mesajları gösterir.",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server indiriliyor…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server indirmesi hâlâ sürüyor.",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server indirmesi tamamlandı ve sunucu başlatıldı.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server güncellemesi tamamlandı ve sunucu yeniden başlatıldı.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server indirmesi hazır. Bir sunucu zaten çalışıyorsa güncellemeyi kullanmak için sistem tepsisindeki simgesinden yeniden başlatın.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server otomatik olarak başlatılamadı. Sistem tepsisinden başlatın veya elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server otomatik kurulumu tamamlanamadı. Sunucu çalışıyorsa sistem tepsisinden durdurun; aksi takdirde elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server güncelleme denetimi başarısız oldu. Güncellemeleri elle gözden geçirin: https://github.com/megabytesme/MineLights-Server/releases"
 }

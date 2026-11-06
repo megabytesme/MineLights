@@ -28,6 +28,7 @@ public class MineLightsConfig {
     }
     public boolean notifyMissingServer = true;
     public boolean checkServerUpdates = true;
+    public volatile boolean notifyServerDownloadProgress = true;
 
     /** Credentials are stored in the protected MineLights configuration file and never logged. */
     public String v2ClientId;

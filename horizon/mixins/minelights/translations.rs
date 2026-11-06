@@ -46,6 +46,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Primer la brúixola estàndard"),
             45 => Some("Primer la brúixola de magnetita"),
             46 => Some("Primer la brúixola de recuperació"),
+            47 => Some("Cors daurats a la barra de salut"),
+            48 => Some("Combina la saturació i l'aire amb la barra de fam"),
+            49 => Some("Fes servir la il·luminació normal fora dels mons"),
+            50 => Some("Llindar de salut baixa"),
+            51 => Some("Intensitat del tint de saturació"),
+            52 => Some("Barra d'experiència / localització"),
+            53 => Some("Mida dels punts de localització"),
+            54 => Some("Notifica'm de les baixades de MineLights Server"),
             _ => None,
         },
         "cy_gb" => match index {
@@ -93,6 +101,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Safonol yn Gyntaf"),
             45 => Some("Carreg Lode yn Gyntaf"),
             46 => Some("Adfer yn Gyntaf"),
+            47 => Some("Calonnau aur ar y bar iechyd"),
+            48 => Some("Uno dirlawnder ac aer â'r bar newyn"),
+            49 => Some("Defnyddio goleuadau arferol y tu allan i fydoedd"),
+            50 => Some("Trothwy iechyd isel"),
+            51 => Some("Cryfder arlliw dirlawnder"),
+            52 => Some("Bar profiad / lleoliad"),
+            53 => Some("Maint dot lleoliad"),
+            54 => Some("Rhoi gwybod i mi am lawrlwythiadau MineLights Server"),
             _ => None,
         },
         "de_de" => match index {
@@ -140,6 +156,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard zuerst"),
             45 => Some("Magnetstein zuerst"),
             46 => Some("Bergungskompass zuerst"),
+            47 => Some("Goldene Herzen auf dem Gesundheitsbalken"),
+            48 => Some("Sättigung und Luft mit dem Hungerbalken zusammenführen"),
+            49 => Some("Normale Beleuchtung außerhalb von Welten verwenden"),
+            50 => Some("Schwellenwert für niedrige Gesundheit"),
+            51 => Some("Stärke des Sättigungsfarbtons"),
+            52 => Some("Erfahrungs-/Ortungsbalken"),
+            53 => Some("Größe der Ortungspunkte"),
+            54 => Some("Über Downloads von MineLights Server benachrichtigen"),
             _ => None,
         },
         "en_au" => match index {
@@ -187,6 +211,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard First"),
             45 => Some("Lodestone First"),
             46 => Some("Recovery First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Notify me about MineLights Server downloads"),
             _ => None,
         },
         "en_ca" => match index {
@@ -234,6 +266,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard First"),
             45 => Some("Lodestone First"),
             46 => Some("Recovery First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Notify me about MineLights Server downloads"),
             _ => None,
         },
         "en_gb" => match index {
@@ -281,6 +321,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard First"),
             45 => Some("Lodestone First"),
             46 => Some("Recovery First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Notify me about MineLights Server downloads"),
             _ => None,
         },
         "en_nz" => match index {
@@ -328,6 +376,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard First"),
             45 => Some("Lodestone First"),
             46 => Some("Recovery First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Notify me about MineLights Server downloads"),
             _ => None,
         },
         "en_pt" => match index {
@@ -375,6 +431,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Ol' Reliable First"),
             45 => Some("Lodestone Foremost"),
             46 => Some("Davy Jones' Locker Chart First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Send word of MineLights Server downloads"),
             _ => None,
         },
         "en_ud" => match index {
@@ -422,6 +486,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("ʇsɹıℲ pɹɐpuɐʇS"),
             45 => Some("ʇsɹıℲ ǝuoʇsǝpo⅂"),
             46 => Some("ʇsɹıℲ ʎɹǝʌoɔǝᴚ"),
+            47 => Some("ɹɐ𐐒 ɥʇןɐǝH uo sʇɹɐǝH uǝpןoפ"),
+            48 => Some("ɹɐ𐐒 ɹǝƃunH oʇuı ɹı∀ & uoıʇɐɹnʇɐS ǝƃɹǝW"),
+            49 => Some("spןɹoM ǝpısʇnO ƃuıʇɥƃı˥ ןɐɯɹoN ǝsՈ"),
+            50 => Some("pןoɥsǝɹɥ⊥ ɥʇןɐǝH ʍo˥"),
+            51 => Some("ɥʇƃuǝɹʇS ʇuı⊥ uoıʇɐɹnʇɐS"),
+            52 => Some("ɹɐ𐐒 ɹoʇɐɔo˥ / ǝɔuǝıɹǝdxƎ"),
+            53 => Some("ǝzıS ʇoᗡ ɹoʇɐɔo˥"),
+            54 => Some("spɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW ʇnoqɐ ǝɯ ʎɟıʇoN"),
             _ => None,
         },
         "en_us" => match index {
@@ -476,6 +548,7 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             51 => Some("Saturation Tint Strength"),
             52 => Some("Experience / Locator Bar"),
             53 => Some("Locator Dot Size"),
+            54 => Some("Notify me about MineLights Server downloads"),
             _ => None,
         },
         "enp" => match index {
@@ -523,6 +596,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard First"),
             45 => Some("Lodestone First"),
             46 => Some("Comeback First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Bid me word of MineLights Server downloads"),
             _ => None,
         },
         "enws" => match index {
@@ -570,6 +651,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard Compass First"),
             45 => Some("Lodestone Foremost"),
             46 => Some("Recovery Compass First"),
+            47 => Some("Golden Hearts on Health Bar"),
+            48 => Some("Merge Saturation & Air into Hunger Bar"),
+            49 => Some("Use Normal Lighting Outside Worlds"),
+            50 => Some("Low Health Threshold"),
+            51 => Some("Saturation Tint Strength"),
+            52 => Some("Experience / Locator Bar"),
+            53 => Some("Locator Dot Size"),
+            54 => Some("Pray, notify me of MineLights Server downloads"),
             _ => None,
         },
         "es_es" => match index {
@@ -617,6 +706,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Priorizar la brújula estándar"),
             45 => Some("Priorizar la brújula magnética"),
             46 => Some("Priorizar la brújula de recuperación"),
+            47 => Some("Corazones dorados en la barra de salud"),
+            48 => Some("Combinar saturación y aire con la barra de hambre"),
+            49 => Some("Usar iluminación normal fuera de los mundos"),
+            50 => Some("Umbral de poca salud"),
+            51 => Some("Intensidad del tinte de saturación"),
+            52 => Some("Barra de experiencia / localización"),
+            53 => Some("Tamaño del punto de localización"),
+            54 => Some("Avisarme de las descargas de MineLights Server"),
             _ => None,
         },
         "es_mx" => match index {
@@ -664,6 +761,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Priorizar la brújula estándar"),
             45 => Some("Priorizar la brújula magnética"),
             46 => Some("Priorizar la brújula de recuperación"),
+            47 => Some("Corazones dorados en la barra de salud"),
+            48 => Some("Combinar saturación y aire con la barra de hambre"),
+            49 => Some("Usar iluminación normal fuera de los mundos"),
+            50 => Some("Umbral de poca salud"),
+            51 => Some("Intensidad del tinte de saturación"),
+            52 => Some("Barra de experiencia / localización"),
+            53 => Some("Tamaño del punto de localización"),
+            54 => Some("Avisarme sobre las descargas de MineLights Server"),
             _ => None,
         },
         "eu_es" => match index {
@@ -711,6 +816,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Arrunta lehenik"),
             45 => Some("Iman-harria lehenik"),
             46 => Some("Berreskuratzea lehenik"),
+            47 => Some("Bihotz urreztatuak osasun-barran"),
+            48 => Some("Bateratu asetasuna eta airea gose-barran"),
+            49 => Some("Erabili argiztapen arrunta munduetatik kanpo"),
+            50 => Some("Osasun baxuaren atalasea"),
+            51 => Some("Asetasun-tintaren indarra"),
+            52 => Some("Esperientzia-/kokapen-barra"),
+            53 => Some("Kokapen-puntuaren tamaina"),
+            54 => Some("Jakinarazi MineLights Server deskargei buruz"),
             _ => None,
         },
         "fr_ca" => match index {
@@ -758,6 +871,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Boussole standard en premier"),
             45 => Some("Boussole magnétisée en premier"),
             46 => Some("Boussole de récupération en premier"),
+            47 => Some("Cœurs dorés sur la barre de santé"),
+            48 => Some("Fusionner la saturation et l'air dans la barre de faim"),
+            49 => Some("Utiliser l'éclairage normal hors des mondes"),
+            50 => Some("Seuil de santé basse"),
+            51 => Some("Intensité de la teinte de saturation"),
+            52 => Some("Barre d'expérience / de localisation"),
+            53 => Some("Taille des points de localisation"),
+            54 => Some("M’avertir des téléchargements de MineLights Server"),
             _ => None,
         },
         "fr_fr" => match index {
@@ -805,6 +926,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Boussole standard d’abord"),
             45 => Some("Boussole magnétisée d’abord"),
             46 => Some("Boussole de récupération d’abord"),
+            47 => Some("Cœurs dorés sur la barre de santé"),
+            48 => Some("Fusionner la saturation et l'air dans la barre de faim"),
+            49 => Some("Utiliser l'éclairage normal hors des mondes"),
+            50 => Some("Seuil de santé basse"),
+            51 => Some("Intensité de la teinte de saturation"),
+            52 => Some("Barre d'expérience / de localisation"),
+            53 => Some("Taille des points de localisation"),
+            54 => Some("M’avertir des téléchargements de MineLights Server"),
             _ => None,
         },
         "fy_nl" => match index {
@@ -852,6 +981,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standertkompas earst"),
             45 => Some("Seilstienkompas earst"),
             46 => Some("Werstelkompas earst"),
+            47 => Some("Gouden herten op de sûnensbalke"),
+            48 => Some("Sêding en loft mei de hongerebalke kombinearje"),
+            49 => Some("Normale ferljochting bûten wrâlden brûke"),
+            50 => Some("Grins foar lege sûnens"),
+            51 => Some("Sterkte fan de sêdingstint"),
+            52 => Some("Underfinings-/lokaasjebalke"),
+            53 => Some("Grutte fan lokaasjepunten"),
+            54 => Some("Meldingen oer MineLights Server-downloads"),
             _ => None,
         },
         "gd_gb" => match index {
@@ -899,6 +1036,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Combaist àbhaisteach an toiseach"),
             45 => Some("Combaist clach-lòide an toiseach"),
             46 => Some("Combaist ath-bheothachaidh an toiseach"),
+            47 => Some("Cridheachan òir air bàr na slàinte"),
+            48 => Some("Cuir sàthachadh is adhar ri bàr an acras"),
+            49 => Some("Cleachd solais àbhaisteach taobh a-muigh shaoghal"),
+            50 => Some("Crìoch slàinte ìosal"),
+            51 => Some("Neart dath an t-sàthachaidh"),
+            52 => Some("Bàr an eòlais / an lorgaire"),
+            53 => Some("Meud puing an lorgaire"),
+            54 => Some("Cuir fios thugam mu luchdadh a-nuas MineLights Server"),
             _ => None,
         },
         "gl_es" => match index {
@@ -946,6 +1091,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Compás normal en primeiro lugar"),
             45 => Some("Compás de magnetita en primeiro lugar"),
             46 => Some("Compás de recuperación en primeiro lugar"),
+            47 => Some("Cores douradas na barra de saúde"),
+            48 => Some("Combinar a saturación e o aire coa barra de fame"),
+            49 => Some("Usar a iluminación normal fóra dos mundos"),
+            50 => Some("Limiar de pouca saúde"),
+            51 => Some("Intensidade do tinte de saturación"),
+            52 => Some("Barra de experiencia / localización"),
+            53 => Some("Tamaño do punto de localización"),
+            54 => Some("Avisarme das descargas de MineLights Server"),
             _ => None,
         },
         "hi_in" => match index {
@@ -993,6 +1146,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("सामान्य पहले"),
             45 => Some("लोडस्टोन पहले"),
             46 => Some("रिकवरी पहले"),
+            47 => Some("स्वास्थ्य पट्टी पर सुनहरे दिल"),
+            48 => Some("संतृप्ति और वायु को भूख पट्टी में मिलाएँ"),
+            49 => Some("दुनिया के बाहर सामान्य रोशनी बहाल करें"),
+            50 => Some("कम स्वास्थ्य की सीमा"),
+            51 => Some("संतृप्ति रंग की तीव्रता"),
+            52 => Some("अनुभव / लोकेटर पट्टी"),
+            53 => Some("लोकेटर बिंदु का आकार"),
+            54 => Some("MineLights Server के डाउनलोड की सूचना दें"),
             _ => None,
         },
         "id_id" => match index {
@@ -1040,6 +1201,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Kompas standar lebih dahulu"),
             45 => Some("Kompas batu magnet lebih dahulu"),
             46 => Some("Kompas pemulihan lebih dahulu"),
+            47 => Some("Hati Emas pada Bar Kesehatan"),
+            48 => Some("Gabungkan Saturasi & Udara ke Bar Lapar"),
+            49 => Some("Gunakan Pencahayaan Normal di Luar Dunia"),
+            50 => Some("Ambang Kesehatan Rendah"),
+            51 => Some("Kekuatan Warna Saturasi"),
+            52 => Some("Bar Pengalaman / Pelacak"),
+            53 => Some("Ukuran Titik Pelacak"),
+            54 => Some("Beri tahu saya tentang unduhan MineLights Server"),
             _ => None,
         },
         "it_it" => match index {
@@ -1087,6 +1256,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Prima la bussola standard"),
             45 => Some("Prima la bussola magnetica"),
             46 => Some("Prima la bussola del recupero"),
+            47 => Some("Cuori dorati sulla barra della salute"),
+            48 => Some("Unifica saturazione e aria alla barra della fame"),
+            49 => Some("Usa l'illuminazione normale fuori dai mondi"),
+            50 => Some("Soglia di salute bassa"),
+            51 => Some("Intensità della tinta della saturazione"),
+            52 => Some("Barra dell'esperienza / localizzazione"),
+            53 => Some("Dimensione del punto di localizzazione"),
+            54 => Some("Avvisami dei download di MineLights Server"),
             _ => None,
         },
         "ja_jp" => match index {
@@ -1134,6 +1311,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("通常のコンパスを優先"),
             45 => Some("ロードストーンコンパスを優先"),
             46 => Some("リカバリーコンパスを優先"),
+            47 => Some("体力バーに金色のハートを表示"),
+            48 => Some("満腹度と空気を空腹バーに統合"),
+            49 => Some("ワールド外で通常の照明を使う"),
+            50 => Some("低体力しきい値"),
+            51 => Some("満腹度色の強さ"),
+            52 => Some("経験値 / ロケーターバー"),
+            53 => Some("ロケータードットの大きさ"),
+            54 => Some("MineLights Server のダウンロードを通知"),
             _ => None,
         },
         "kn_in" => match index {
@@ -1181,6 +1366,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("ಸಾಮಾನ್ಯ ಮೊದಲು"),
             45 => Some("ಲೋಡ್‌ಸ್ಟೋನ್ ಮೊದಲು"),
             46 => Some("ಮರುಪಡೆಯುವಿಕೆ ಮೊದಲು"),
+            47 => Some("ಆರೋಗ್ಯ ಬಾರ್‌ನಲ್ಲಿ ಚಿನ್ನದ ಹೃದಯಗಳು"),
+            48 => Some("ಸ್ಯಾಚುರೇಶನ್ ಮತ್ತು ಗಾಳಿಯನ್ನು ಹಸಿವು ಬಾರ್‌ಗೆ ಸೇರಿಸಿ"),
+            49 => Some("ಲೋಕದ ಹೊರಗೆ ಸಾಮಾನ್ಯ ಬೆಳಕು ಬಳಸಿ"),
+            50 => Some("ಕಡಿಮೆ ಆರೋಗ್ಯದ ಮಿತಿ"),
+            51 => Some("ಸ್ಯಾಚುರೇಶನ್ ಛಾಯೆಯ ಬಲ"),
+            52 => Some("ಅನುಭವ / ಲೊಕೇಟರ್ ಬಾರ್"),
+            53 => Some("ಲೊಕೇಟರ್ ಚುಕ್ಕಿಯ ಗಾತ್ರ"),
+            54 => Some("MineLights Server ಡೌನ್‌ಲೋಡ್‌ಗಳ ಬಗ್ಗೆ ನನಗೆ ತಿಳಿಸಿ"),
             _ => None,
         },
         "lb_lu" => match index {
@@ -1228,6 +1421,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard als éischt"),
             45 => Some("Magnéitsteen als éischt"),
             46 => Some("Rettung als éischt"),
+            47 => Some("Gëllen Häerzer op der Gesondheetsbar"),
+            48 => Some("Sättegung a Loft mat der Hongersbar zesummeleeën"),
+            49 => Some("Normal Beliichtung ausserhalb vu Welte benotzen"),
+            50 => Some("Grenzwäert fir wéineg Gesondheet"),
+            51 => Some("Stäerkt vum Sättegungsfaarftoun"),
+            52 => Some("Erfarungs-/Lokaliséierungsbar"),
+            53 => Some("Gréisst vum Lokaliséierungspunkt"),
+            54 => Some("Iwwer MineLights Server-Downloads informéieren"),
             _ => None,
         },
         "lol_us" => match index {
@@ -1275,6 +1476,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("STANDARD FURST"),
             45 => Some("LODESTONE FURST"),
             46 => Some("RECOVERY FURST"),
+            47 => Some("GOLDEN HEARTS ON HEALTH BAR"),
+            48 => Some("MERGE SATURATION & AIR INTO HUNGER BAR"),
+            49 => Some("USE NORMAL LIGHTING OUTSIDE WORLDS"),
+            50 => Some("LOW HEALTH THRESHOLD"),
+            51 => Some("SATURATION TINT STRENGTH"),
+            52 => Some("XP / LOCATOR BAR"),
+            53 => Some("LOCATOR DOT SIZE"),
+            54 => Some("tell me when teh MineLights Server is downloadin"),
             _ => None,
         },
         "ms_my" => match index {
@@ -1322,6 +1531,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standard Dahulu"),
             45 => Some("Batu Magnet Dahulu"),
             46 => Some("Pemulihan Dahulu"),
+            47 => Some("Hati Emas pada Bar Kesihatan"),
+            48 => Some("Gabungkan Ketepuan & Udara ke Bar Kelaparan"),
+            49 => Some("Gunakan Pencahayaan Biasa Di Luar Dunia"),
+            50 => Some("Ambang Kesihatan Rendah"),
+            51 => Some("Kekuatan Warna Ketepuan"),
+            52 => Some("Bar Pengalaman / Penjejak Lokasi"),
+            53 => Some("Saiz Titik Penjejak Lokasi"),
+            54 => Some("Beritahu saya tentang muat turun MineLights Server"),
             _ => None,
         },
         "nl_nl" => match index {
@@ -1369,6 +1586,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standaard eerst"),
             45 => Some("Lodestone-kompas eerst"),
             46 => Some("Herstelkompas eerst"),
+            47 => Some("Gouden harten op de gezondheidsbalk"),
+            48 => Some("Verzadiging en lucht samenvoegen met de hongerbalk"),
+            49 => Some("Normale verlichting buiten werelden gebruiken"),
+            50 => Some("Drempel voor lage gezondheid"),
+            51 => Some("Sterkte van de verzadigingstint"),
+            52 => Some("Ervarings-/locatiebalk"),
+            53 => Some("Grootte van locatiepunten"),
+            54 => Some("Waarschuw me bij downloads van MineLights Server"),
             _ => None,
         },
         "pl_pl" => match index {
@@ -1416,6 +1641,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Najpierw kompas standardowy"),
             45 => Some("Najpierw kompas magnetyczny"),
             46 => Some("Najpierw kompas odzyskiwania"),
+            47 => Some("Złote serca na pasku zdrowia"),
+            48 => Some("Połącz nasycenie i powietrze z paskiem głodu"),
+            49 => Some("Używaj zwykłego oświetlenia poza światami"),
+            50 => Some("Próg niskiego zdrowia"),
+            51 => Some("Siła odcienia nasycenia"),
+            52 => Some("Pasek doświadczenia / lokalizatora"),
+            53 => Some("Rozmiar punktu lokalizatora"),
+            54 => Some("Powiadamiaj o pobieraniu MineLights Server"),
             _ => None,
         },
         "pt_br" => match index {
@@ -1463,6 +1696,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Padrão primeiro"),
             45 => Some("Bússola magnética primeiro"),
             46 => Some("Bússola de recuperação primeiro"),
+            47 => Some("Corações dourados na barra de vida"),
+            48 => Some("Mesclar saturação e ar à barra de fome"),
+            49 => Some("Usar iluminação normal fora dos mundos"),
+            50 => Some("Limite de vida baixa"),
+            51 => Some("Intensidade da tonalidade de saturação"),
+            52 => Some("Barra de experiência / localização"),
+            53 => Some("Tamanho do ponto localizador"),
+            54 => Some("Notificar sobre downloads do MineLights Server"),
             _ => None,
         },
         "ru_ru" => match index {
@@ -1510,6 +1751,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Сначала обычный"),
             45 => Some("Сначала компас на магнетите"),
             46 => Some("Сначала компас восстановления"),
+            47 => Some("Золотые сердца на полосе здоровья"),
+            48 => Some("Объединить насыщение и воздух с полосой голода"),
+            49 => Some("Обычное освещение вне миров"),
+            50 => Some("Порог низкого здоровья"),
+            51 => Some("Сила оттенка насыщения"),
+            52 => Some("Полоса опыта / локатора"),
+            53 => Some("Размер точки локатора"),
+            54 => Some("Уведомлять о загрузке MineLights Server"),
             _ => None,
         },
         "sv_se" => match index {
@@ -1557,6 +1806,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Standardkompass först"),
             45 => Some("Magnetkompass först"),
             46 => Some("Återhämtningskompass först"),
+            47 => Some("Gyllene hjärtan på hälsomätaren"),
+            48 => Some("Slå ihop mättnad och luft med hungermätaren"),
+            49 => Some("Använd normal belysning utanför världar"),
+            50 => Some("Gräns för låg hälsa"),
+            51 => Some("Styrka på mättnadsfärgtonen"),
+            52 => Some("Erfarenhets-/spårningsfält"),
+            53 => Some("Storlek på spårningspunkter"),
+            54 => Some("Visa meddelanden om nedladdningar av MineLights Server"),
             _ => None,
         },
         "ta_in" => match index {
@@ -1604,6 +1861,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("சாதாரண திசைகாட்டி முதலில்"),
             45 => Some("காந்தக்கல் திசைகாட்டி முதலில்"),
             46 => Some("மீட்புத் திசைகாட்டி முதலில்"),
+            47 => Some("உடல்நலப் பட்டையில் தங்க இதயங்கள்"),
+            48 => Some("நிறைவு மற்றும் காற்றை பசி பட்டையில் இணை"),
+            49 => Some("உலகிற்கு வெளியே இயல்பான ஒளியைப் பயன்படுத்து"),
+            50 => Some("குறைந்த உடல்நல வரம்பு"),
+            51 => Some("நிறைவு நிறச்சாய்வு வலிமை"),
+            52 => Some("அனுபவம் / இருப்பிடப் பட்டை"),
+            53 => Some("இருப்பிடப் புள்ளி அளவு"),
+            54 => Some("MineLights Server பதிவிறக்கங்கள் குறித்து எனக்குத் தெரிவி"),
             _ => None,
         },
         "tr_tr" => match index {
@@ -1651,6 +1916,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Önce Standart Pusula"),
             45 => Some("Önce Mıknatıs Taşı Pusulası"),
             46 => Some("Önce Kurtarma Pusulası"),
+            47 => Some("Sağlık Çubuğunda Altın Kalpler"),
+            48 => Some("Doygunluk ve Havayı Açlık Çubuğuna Ekle"),
+            49 => Some("Dünyalar Dışında Normal Aydınlatmayı Kullan"),
+            50 => Some("Düşük Sağlık Eşiği"),
+            51 => Some("Doygunluk Tonu Gücü"),
+            52 => Some("Deneyim / Konum Çubuğu"),
+            53 => Some("Konum Noktası Boyutu"),
+            54 => Some("MineLights Server indirmeleri hakkında beni bilgilendir"),
             _ => None,
         },
         "tt_ru" => match index {
@@ -1698,6 +1971,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("Гадәти компас беренче"),
             45 => Some("Магнитланган компас беренче"),
             46 => Some("Кайтаручан компас беренче"),
+            47 => Some("Сәламәтлек тасмасында алтын йөрәкләр"),
+            48 => Some("Туену һәм һаваны ачлык тасмасына кушу"),
+            49 => Some("Дөньядан тышта гадәти яктылык"),
+            50 => Some("Сәламәтлек түбән чиге"),
+            51 => Some("Туену төсе көче"),
+            52 => Some("Тәҗрибә / локатор тасмасы"),
+            53 => Some("Локатор ноктасының зурлыгы"),
+            54 => Some("MineLights Server йөкләүләре турында миңа хәбәр ит"),
             _ => None,
         },
         "vi_vn" => match index {
@@ -1745,6 +2026,14 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("La bàn thường trước"),
             45 => Some("La bàn đá nam châm trước"),
             46 => Some("La bàn hồi sinh trước"),
+            47 => Some("Tim vàng trên thanh máu"),
+            48 => Some("Gộp độ no và không khí vào thanh đói"),
+            49 => Some("Dùng ánh sáng bình thường bên ngoài thế giới"),
+            50 => Some("Ngưỡng máu thấp"),
+            51 => Some("Cường độ màu độ no"),
+            52 => Some("Thanh kinh nghiệm / định vị"),
+            53 => Some("Kích thước chấm định vị"),
+            54 => Some("Thông báo cho tôi về các lượt tải MineLights Server"),
             _ => None,
         },
         "zh_cn" => match index {
@@ -1792,8 +2081,880 @@ pub fn setting_label(language: &str, index: usize) -> Option<&'static str> {
             44 => Some("标准指南针优先"),
             45 => Some("磁石优先"),
             46 => Some("追溯指针优先"),
+            47 => Some("在生命值条上显示金色爱心"),
+            48 => Some("将饱和度和氧气合并到饥饿条"),
+            49 => Some("在世界外使用正常灯光"),
+            50 => Some("低生命值阈值"),
+            51 => Some("饱和度染色强度"),
+            52 => Some("经验 / 定位条"),
+            53 => Some("定位点大小"),
+            54 => Some("通知我 MineLights Server 下载状态"),
             _ => None,
         },
         _ => None,
     }
+}
+
+pub fn setting_label_or_english(language: &str, index: usize) -> Option<&'static str> {
+    setting_label(language, index).or_else(|| setting_label("en_us", index))
+}
+
+pub fn server_message(language: &str, index: usize) -> Option<&'static str> {
+    match language {
+        "ca_es" => match index {
+            0 => Some("[MineLights] S'està baixant MineLights Server…"),
+            1 => Some("[MineLights] La baixada de MineLights Server encara està en curs."),
+            2 => Some(
+                "[MineLights] S'ha acabat de baixar MineLights Server i el servidor s'ha iniciat.",
+            ),
+            3 => Some(
+                "[MineLights] L'actualització de MineLights Server ha acabat i el servidor s'ha reiniciat.",
+            ),
+            4 => Some(
+                "[MineLights] No s’ha pogut completar la configuració automàtica de MineLights Server. Si el servidor està en funcionament, atura’l des de la safata; si no, instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] No s’ha pogut iniciar MineLights Server automàticament. Inicia’l des de la safata o instal·la’l manualment: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] La baixada de MineLights Server està a punt. Si ja hi ha un servidor en marxa, reinicia'l des de la safata del sistema per aplicar l'actualització.",
+            ),
+            7 => Some(
+                "[MineLights] Ha fallat la comprovació d’actualitzacions de MineLights Server. Revisa les actualitzacions manualment: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "cy_gb" => match index {
+            0 => Some("[MineLights] Yn lawrlwytho MineLights Server…"),
+            1 => Some("[MineLights] Mae lawrlwythiad MineLights Server yn dal i fynd rhagddo."),
+            2 => Some(
+                "[MineLights] Mae lawrlwythiad MineLights Server wedi gorffen ac mae’r gweinydd wedi cychwyn.",
+            ),
+            3 => Some(
+                "[MineLights] Mae diweddariad MineLights Server wedi gorffen ac mae’r gweinydd wedi ailgychwyn.",
+            ),
+            4 => Some(
+                "[MineLights] Nid oedd modd cwblhau gosod MineLights Server yn awtomatig. Os yw’r gweinydd yn rhedeg, stopiwch ef o’r hambwrdd; fel arall, gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Nid oedd modd cychwyn MineLights Server yn awtomatig. Cychwynnwch ef o’r hambwrdd neu gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Mae lawrlwythiad MineLights Server yn barod. Os yw gweinydd eisoes yn rhedeg, ailgychwynnwch ef o ddewislen hambwrdd y system i ddefnyddio’r diweddariad.",
+            ),
+            7 => Some(
+                "[MineLights] Methodd gwirio am ddiweddariadau MineLights Server. Adolygwch y diweddariadau â llaw: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "de_de" => match index {
+            0 => Some("[MineLights] MineLights Server wird heruntergeladen …"),
+            1 => Some("[MineLights] Der Download von MineLights Server läuft noch."),
+            2 => Some(
+                "[MineLights] Der Download von MineLights Server ist abgeschlossen und der Server wurde gestartet.",
+            ),
+            3 => Some(
+                "[MineLights] Das Update von MineLights Server ist abgeschlossen und der Server wurde neu gestartet.",
+            ),
+            4 => Some(
+                "[MineLights] Die automatische Einrichtung von MineLights Server konnte nicht abgeschlossen werden. Wenn der Server läuft, beende ihn über das Infobereichssymbol; andernfalls installiere ihn manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server konnte nicht automatisch gestartet werden. Starte es über das Infobereichssymbol oder installiere es manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Der Download von MineLights Server ist bereit. Wenn bereits ein Server läuft, starte ihn über sein Taskleistensymbol neu, um das Update zu verwenden.",
+            ),
+            7 => Some(
+                "[MineLights] Die Suche nach Updates für MineLights Server ist fehlgeschlagen. Prüfe Updates manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_au" => match index {
+            0 => Some("[MineLights] Downloading MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server download is still in progress."),
+            2 => {
+                Some("[MineLights] MineLights Server download finished and the server has started.")
+            }
+            3 => {
+                Some("[MineLights] MineLights Server update finished and the server has restarted.")
+            }
+            4 => Some(
+                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_ca" => match index {
+            0 => Some("[MineLights] Downloading MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server download is still in progress."),
+            2 => {
+                Some("[MineLights] MineLights Server download finished and the server has started.")
+            }
+            3 => {
+                Some("[MineLights] MineLights Server update finished and the server has restarted.")
+            }
+            4 => Some(
+                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_gb" => match index {
+            0 => Some("[MineLights] Downloading MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server download is still in progress."),
+            2 => {
+                Some("[MineLights] MineLights Server download finished and the server has started.")
+            }
+            3 => {
+                Some("[MineLights] MineLights Server update finished and the server has restarted.")
+            }
+            4 => Some(
+                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_nz" => match index {
+            0 => Some("[MineLights] Downloading MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server download is still in progress."),
+            2 => {
+                Some("[MineLights] MineLights Server download finished and the server has started.")
+            }
+            3 => {
+                Some("[MineLights] MineLights Server update finished and the server has restarted.")
+            }
+            4 => Some(
+                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_pt" => match index {
+            0 => Some("[MineLights] Downloadin' MineLights Server…"),
+            1 => Some("[MineLights] The MineLights Server download be still underway."),
+            2 => Some(
+                "[MineLights] The MineLights Server download be finished, and the server has set sail.",
+            ),
+            3 => Some(
+                "[MineLights] The MineLights Server update be finished and the server has restarted.",
+            ),
+            4 => Some(
+                "[MineLights] Arrr, automatic MineLights Server setup could not be completed. If it be running, stop it from its tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Arrr, MineLights Server could not be started automatically. Start it from its tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download be ready. If a server be already runnin', restart it from its tray to use the update, matey.",
+            ),
+            7 => Some(
+                "[MineLights] Arrr, the MineLights Server update check failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_ud" => match index {
+            0 => Some("…ɹǝʌɹǝS sʇɥƃı˥ǝuıW ƃuıpɐoןuʍo◖ [sʇɥƃı˥ǝuıW]"),
+            1 => Some("˙ssǝɹƃoɹd uı ןןıʇs sı pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]"),
+            2 => {
+                Some("˙pǝʇɹɐʇs sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]")
+            }
+            3 => {
+                Some("˙pǝʇɹɐʇsǝɹ sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]")
+            }
+            4 => Some(
+                "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ǝsᴉʍɹǝɥʇo ؛ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ doʇs ,ƃuᴉuunɹ sᴉ ɹǝʌɹǝs ǝɥʇ ɟI ˙pǝʇǝןdɯoɔ ǝq ʇou pןnoɔ dnʇǝs ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW ɔᴉʇɐɯoʇn∀ https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ɹo ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ ʇɹɐʇS ˙ʎןןɐɔᴉʇɐɯoʇnɐ pǝʇɹɐʇs ǝq ʇou pןnoɔ ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "˙ǝʇɐpdn ǝɥʇ ǝsn oʇ ʎɐɹʇ sʇı ɯoɹɟ ʇı ʇɹɐʇsǝɹ 'ƃuıuunɹ ʎpɐǝɹןɐ sı ɹǝʌɹǝs ɐ ɟI ˙ʎpɐǝɹ sı pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW ǝɥ⊥ [sʇɥƃı˥ǝuıW]",
+            ),
+            7 => Some(
+                ":ʎllɐnuɐɯ sǝʇɐpdn ʍǝᴉʌǝᴚ ˙pǝlᴉɐɟ ʞɔǝɥɔ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW [sʇɥƃᴉ˥ǝuᴉW] https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "en_us" => match index {
+            0 => Some("[MineLights] Downloading MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server download is still in progress."),
+            2 => {
+                Some("[MineLights] MineLights Server download finished and the server has started.")
+            }
+            3 => {
+                Some("[MineLights] MineLights Server update finished and the server has restarted.")
+            }
+            4 => Some(
+                "[MineLights] Automatic MineLights Server setup could not be completed. If the server is running, stop it from its tray; otherwise install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started automatically. Start it from its tray or install it manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a server is already running, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server update check failed. Review updates manually: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "enp" => match index {
+            0 => Some("[MineLights] MineLights Server is being downloaded…"),
+            1 => Some("[MineLights] The download of MineLights Server continueth yet."),
+            2 => Some(
+                "[MineLights] The download of MineLights Server is finished and the Server hath begun.",
+            ),
+            3 => Some(
+                "[MineLights] The MineLights Server update is finished and the Server hath begun anew.",
+            ),
+            4 => Some(
+                "[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a Server already runneth, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "enws" => match index {
+            0 => Some("[MineLights] MineLights Server is downloading…"),
+            1 => Some("[MineLights] The MineLights Server download doth yet continue."),
+            2 => Some(
+                "[MineLights] The MineLights Server download is complete, and the Server hath begun.",
+            ),
+            3 => Some(
+                "[MineLights] The MineLights Server update is complete, and the Server hath begun anew.",
+            ),
+            4 => Some(
+                "[MineLights] The automatic setting up of MineLights Server could not be brought to completion. Should the server be running, stop it from its tray; otherwise, install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server could not be started of its own accord. Start it from its tray, or else install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] The MineLights Server download is ready. If a Server already runneth, restart it from its tray to use the update.",
+            ),
+            7 => Some(
+                "[MineLights] The search for MineLights Server updates hath failed. Review updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "es_es" => match index {
+            0 => Some("[MineLights] Descargando MineLights Server…"),
+            1 => Some("[MineLights] La descarga de MineLights Server sigue en curso."),
+            2 => Some(
+                "[MineLights] La descarga de MineLights Server ha terminado y el servidor se ha iniciado.",
+            ),
+            3 => Some(
+                "[MineLights] La actualización de MineLights Server ha terminado y el servidor se ha reiniciado.",
+            ),
+            4 => Some(
+                "[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] La descarga de MineLights Server está lista. Si ya hay un servidor en ejecución, reinícialo desde su icono de la bandeja del sistema para aplicar la actualización.",
+            ),
+            7 => Some(
+                "[MineLights] Ha fallado la comprobación de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "es_mx" => match index {
+            0 => Some("[MineLights] Descargando MineLights Server…"),
+            1 => Some("[MineLights] La descarga de MineLights Server sigue en curso."),
+            2 => Some(
+                "[MineLights] La descarga de MineLights Server terminó y el servidor se inició.",
+            ),
+            3 => Some(
+                "[MineLights] La actualización de MineLights Server terminó y el servidor se reinició.",
+            ),
+            4 => Some(
+                "[MineLights] No se pudo completar la configuración automática de MineLights Server. Si el servidor está en ejecución, detenlo desde su bandeja; de lo contrario, instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] No se pudo iniciar MineLights Server automáticamente. Inícialo desde su bandeja o instálalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] La descarga de MineLights Server está lista. Si ya hay un servidor en ejecución, reinícialo desde su icono de la bandeja del sistema para aplicar la actualización.",
+            ),
+            7 => Some(
+                "[MineLights] Falló la búsqueda de actualizaciones de MineLights Server. Revísalas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "eu_es" => match index {
+            0 => Some("[MineLights] MineLights Server deskargatzen…"),
+            1 => {
+                Some("[MineLights] MineLights Server-en deskargak oraindik martxan jarraitzen du.")
+            }
+            2 => Some(
+                "[MineLights] MineLights Server-en deskarga amaitu da, eta zerbitzaria abiarazi da.",
+            ),
+            3 => Some(
+                "[MineLights] MineLights Server-en eguneratzea amaitu da, eta zerbitzaria berrabiarazi da.",
+            ),
+            4 => Some(
+                "[MineLights] Ezin izan da MineLights Server-en konfigurazio automatikoa osatu. Zerbitzaria martxan badago, gelditu sistemaren erretilutik; bestela, instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Ezin izan da MineLights Server automatikoki abiarazi. Abiarazi sistemaren erretilutik edo instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server-en deskarga prest dago. Zerbitzari bat dagoeneko martxan badago, berrabiarazi haren erretilu-menutik eguneraketa erabiltzeko.",
+            ),
+            7 => Some(
+                "[MineLights] Ezin izan da MineLights Server-en eguneratzerik dagoen egiaztatu. Aztertu eguneratzeak eskuz: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "fr_ca" => match index {
+            0 => Some("[MineLights] Téléchargement de MineLights Server…"),
+            1 => Some("[MineLights] Le téléchargement de MineLights Server est toujours en cours."),
+            2 => Some(
+                "[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré.",
+            ),
+            3 => Some(
+                "[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré.",
+            ),
+            4 => Some(
+                "[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Le téléchargement de MineLights Server est prêt. Si un serveur est déjà en cours d’exécution, redémarrez-le depuis son icône dans la zone de notification pour utiliser la mise à jour.",
+            ),
+            7 => Some(
+                "[MineLights] Échec de la vérification des mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "fr_fr" => match index {
+            0 => Some("[MineLights] Téléchargement de MineLights Server…"),
+            1 => Some("[MineLights] Le téléchargement de MineLights Server est toujours en cours."),
+            2 => Some(
+                "[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré.",
+            ),
+            3 => Some(
+                "[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré.",
+            ),
+            4 => Some(
+                "[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Le téléchargement de MineLights Server est prêt. Si un serveur est déjà en cours d’exécution, redémarrez-le depuis son icône dans la zone de notification pour utiliser la mise à jour.",
+            ),
+            7 => Some(
+                "[MineLights] Échec de la recherche de mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "fy_nl" => match index {
+            0 => Some("[MineLights] MineLights Server wurdt ynladen…"),
+            1 => Some("[MineLights] De download fan MineLights Server is noch dwaande."),
+            2 => Some(
+                "[MineLights] De download fan MineLights Server is klear en de server is start.",
+            ),
+            3 => Some(
+                "[MineLights] De update fan MineLights Server is klear en de server is opnij start.",
+            ),
+            4 => Some(
+                "[MineLights] De automatyske opset fan MineLights Server koe net foltôge wurde. As de server draait, stopje dy dan fia it systeemfak; oars ynstallearje jo it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server koe net automatysk starte wurde. Start it fia it systeemfak of ynstallearje it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] De download fan MineLights Server is klear. As der al in server draait, start dy dan opnij út it systeemfakmenu om de update te brûken.",
+            ),
+            7 => Some(
+                "[MineLights] It kontrolearjen op fernijingen foar MineLights Server is mislearre. Kontrolearje se mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "gd_gb" => match index {
+            0 => Some("[MineLights] A’ luchdadh a-nuas MineLights Server…"),
+            1 => Some("[MineLights] Tha luchdadh a-nuas MineLights Server a’ dol fhathast."),
+            2 => Some(
+                "[MineLights] Tha luchdadh a-nuas MineLights Server deiseil agus tha am frithealaiche air tòiseachadh.",
+            ),
+            3 => Some(
+                "[MineLights] Tha ùrachadh MineLights Server deiseil agus tha am frithealaiche air ath-thòiseachadh.",
+            ),
+            4 => Some(
+                "[MineLights] Cha deach stèidheachadh fèin-obrachail MineLights Server a chrìochnachadh. Ma tha am frithealaiche a’ ruith, cuir stad air bhon treidhe aige; air neo, stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Cha b’ urrainn MineLights Server tòiseachadh gu fèin-obrachail. Tòisich e bhon treidhe aige no stàlaich e le làimh: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Tha luchdadh a-nuas MineLights Server deiseil. Ma tha frithealaiche a’ ruith mar-thà, ath-thòisich e on chlàr-taice treidhe aige gus an t-ùrachadh a chleachdadh.",
+            ),
+            7 => Some(
+                "[MineLights] Dh’fhàillig sgrùdadh airson ùrachaidhean MineLights Server. Thoir sùil orra le làimh: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "gl_es" => match index {
+            0 => Some("[MineLights] Descargando MineLights Server…"),
+            1 => Some("[MineLights] A descarga de MineLights Server aínda está en curso."),
+            2 => {
+                Some("[MineLights] A descarga de MineLights Server rematou e o servidor iniciouse.")
+            }
+            3 => Some(
+                "[MineLights] A actualización de MineLights Server rematou e o servidor reiniciouse.",
+            ),
+            4 => Some(
+                "[MineLights] Non se puido completar a configuración automática de MineLights Server. Se o servidor está en execución, párao desde a bandexa; en caso contrario, instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Non se puido iniciar MineLights Server automaticamente. Iníciao desde a bandexa ou instálao manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] A descarga de MineLights Server está lista. Se xa hai un servidor en execución, reiníciao desde o seu menú da bandexa para usar a actualización.",
+            ),
+            7 => Some(
+                "[MineLights] Fallou a comprobación de actualizacións de MineLights Server. Revísaas manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "hi_in" => match index {
+            0 => Some("[MineLights] MineLights Server डाउनलोड हो रहा है…"),
+            1 => Some("[MineLights] MineLights Server का डाउनलोड अभी जारी है।"),
+            2 => {
+                Some("[MineLights] MineLights Server का डाउनलोड पूरा हो गया है और सर्वर शुरू हो गया है।")
+            }
+            3 => Some(
+                "[MineLights] MineLights Server का अपडेट पूरा हो गया है और सर्वर फिर से शुरू हो गया है।",
+            ),
+            4 => Some(
+                "[MineLights] MineLights Server का स्वचालित सेटअप पूरा नहीं हो सका। यदि सर्वर चल रहा है, तो उसे ट्रे से रोकें; अन्यथा उसे मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server अपने-आप शुरू नहीं हो सका। इसे ट्रे से शुरू करें या मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server का डाउनलोड तैयार है। यदि कोई सर्वर पहले से चल रहा है, तो अपडेट इस्तेमाल करने के लिए उसे उसके सिस्टम ट्रे मेनू से फिर से शुरू करें।",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server के अपडेट की जाँच विफल हुई। अपडेट मैन्युअल रूप से देखें: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "id_id" => match index {
+            0 => Some("[MineLights] Mengunduh MineLights Server…"),
+            1 => Some("[MineLights] Unduhan MineLights Server masih berlangsung."),
+            2 => Some("[MineLights] Unduhan MineLights Server selesai dan server telah dimulai."),
+            3 => Some(
+                "[MineLights] Pembaruan MineLights Server selesai dan server telah dimulai ulang.",
+            ),
+            4 => Some(
+                "[MineLights] Penyiapan otomatis MineLights Server tidak dapat diselesaikan. Jika server sedang berjalan, hentikan dari baki sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server tidak dapat dijalankan secara otomatis. Jalankan dari baki sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Unduhan MineLights Server siap. Jika server sudah berjalan, mulai ulang server dari ikon baki sistemnya untuk menggunakan pembaruan.",
+            ),
+            7 => Some(
+                "[MineLights] Pemeriksaan pembaruan MineLights Server gagal. Periksa pembaruan secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "it_it" => match index {
+            0 => Some("[MineLights] Download di MineLights Server in corso…"),
+            1 => Some("[MineLights] Il download di MineLights Server è ancora in corso."),
+            2 => Some(
+                "[MineLights] Il download di MineLights Server è terminato e il server è stato avviato.",
+            ),
+            3 => Some(
+                "[MineLights] L'aggiornamento di MineLights Server è terminato e il server è stato riavviato.",
+            ),
+            4 => Some(
+                "[MineLights] Non è stato possibile completare la configurazione automatica di MineLights Server. Se il server è in esecuzione, arrestalo dall’area di notifica; altrimenti installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server non è stato avviato automaticamente. Avvialo dall’area di notifica oppure installalo manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Il download di MineLights Server è pronto. Se un server è già in esecuzione, riavvialo dalla relativa icona nell'area di notifica per usare l'aggiornamento.",
+            ),
+            7 => Some(
+                "[MineLights] Controllo degli aggiornamenti di MineLights Server non riuscito. Verifica gli aggiornamenti manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "ja_jp" => match index {
+            0 => Some("[MineLights] MineLights Server をダウンロードしています…"),
+            1 => Some("[MineLights] MineLights Server のダウンロードはまだ進行中です。"),
+            2 => Some(
+                "[MineLights] MineLights Server のダウンロードが完了し、サーバーが起動しました。",
+            ),
+            3 => Some("[MineLights] MineLights Server の更新が完了し、サーバーが再起動しました。"),
+            4 => Some(
+                "[MineLights] MineLights Server の自動セットアップを完了できませんでした。サーバーが実行中の場合は、トレイから停止してください。実行中でない場合は、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server を自動で起動できませんでした。トレイから起動するか、手動でインストールしてください: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server のダウンロードが完了しました。サーバーがすでに実行中の場合は、更新を適用するため通知領域のアイコンから再起動してください。",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server の更新確認に失敗しました。更新を手動で確認してください: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "kn_in" => match index {
+            0 => Some("[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ…"),
+            1 => Some("[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಇನ್ನೂ ನಡೆಯುತ್ತಿದೆ."),
+            2 => Some("[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಪ್ರಾರಂಭವಾಗಿದೆ."),
+            3 => Some("[MineLights] MineLights Server ಅಪ್‌ಡೇಟ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಮರುಪ್ರಾರಂಭವಾಗಿದೆ."),
+            4 => Some(
+                "[MineLights] MineLights Server‌ನ ಸ್ವಯಂಚಾಲಿತ ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಲಾಗಲಿಲ್ಲ. ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಟ್ರೇಯಿಂದ ಅದನ್ನು ನಿಲ್ಲಿಸಿ; ಇಲ್ಲದಿದ್ದರೆ, ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾರಂಭಿಸಲಾಗಲಿಲ್ಲ. ಟ್ರೇಯಿಂದ ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ಈಗಾಗಲೇ ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಅಪ್‌ಡೇಟ್ ಬಳಸಲು ಅದರ ಟ್ರೇ ಮೆನುವಿನಿಂದ ಮರುಪ್ರಾರಂಭಿಸಿ.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server ನವೀಕರಣ ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ. ನವೀಕರಣಗಳನ್ನು ಕೈಯಾರೆ ಪರಿಶೀಲಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "lb_lu" => match index {
+            0 => Some("[MineLights] MineLights Server gëtt erofgelueden…"),
+            1 => Some("[MineLights] Den Download vu MineLights Server leeft nach."),
+            2 => Some(
+                "[MineLights] Den Download vu MineLights Server ass fäerdeg an de Server gouf gestart.",
+            ),
+            3 => Some(
+                "[MineLights] D’Aktualiséierung vu MineLights Server ass fäerdeg an de Server gouf nei gestart.",
+            ),
+            4 => Some(
+                "[MineLights] Déi automatesch Ariichtung vu MineLights Server konnt net ofgeschloss ginn. Wann de Server leeft, stoppt en iwwer säi Systemberäich; soss installéiert en manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server konnt net automatesch gestart ginn. Start et iwwer säi Systemberäich oder installéiert et manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Den Download vu MineLights Server ass prett. Wann e Server schonn leeft, start en aus sengem Tray-Menü nei, fir d’Aktualiséierung ze benotzen.",
+            ),
+            7 => Some(
+                "[MineLights] D’Sich no Aktualiséierunge fir MineLights Server ass feelgeschloen. Kontrolléiert se manuell: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "lol_us" => match index {
+            0 => Some("[MineLights] downloadin MineLights Server…"),
+            1 => Some("[MineLights] teh MineLights Server download is still goin."),
+            2 => {
+                Some("[MineLights] teh MineLights Server download is done and teh server started.")
+            }
+            3 => {
+                Some("[MineLights] teh MineLights Server update is done and teh server restarted.")
+            }
+            4 => Some(
+                "[MineLights] teh auto setup 4 MineLights Server cudnt b finished. if teh server iz runnin, stop it frum teh tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] teh MineLights Server cudnt start automaticly. start it frum teh tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] teh MineLights Server download is ready. if a server is already runnin, restart it from its tray to use teh update.",
+            ),
+            7 => Some(
+                "[MineLights] teh MineLights Server update check failed. check teh updates by hand: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "ms_my" => match index {
+            0 => Some("[MineLights] Memuat turun MineLights Server…"),
+            1 => Some("[MineLights] Muat turun MineLights Server masih berlangsung."),
+            2 => Some(
+                "[MineLights] Muat turun MineLights Server selesai dan pelayan telah dimulakan.",
+            ),
+            3 => Some(
+                "[MineLights] Kemas kini MineLights Server selesai dan pelayan telah dimulakan semula.",
+            ),
+            4 => Some(
+                "[MineLights] Persediaan automatik MineLights Server tidak dapat diselesaikan. Jika pelayan sedang berjalan, hentikannya daripada dulang sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server tidak dapat dimulakan secara automatik. Mulakannya daripada dulang sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Muat turun MineLights Server sedia. Jika pelayan sedang berjalan, mulakan semula pelayan melalui ikon dulangnya untuk menggunakan kemas kini.",
+            ),
+            7 => Some(
+                "[MineLights] Semakan kemas kini MineLights Server gagal. Semak kemas kini secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "nl_nl" => match index {
+            0 => Some("[MineLights] MineLights Server wordt gedownload…"),
+            1 => Some("[MineLights] De download van MineLights Server is nog bezig."),
+            2 => Some(
+                "[MineLights] De download van MineLights Server is voltooid en de server is gestart.",
+            ),
+            3 => Some(
+                "[MineLights] De update van MineLights Server is voltooid en de server is opnieuw gestart.",
+            ),
+            4 => Some(
+                "[MineLights] De automatische installatie van MineLights Server kon niet worden voltooid. Als de server actief is, stop hem via het systeemvak; installeer hem anders handmatig: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server kon niet automatisch worden gestart. Start het via het systeemvak of installeer het handmatig: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] De download van MineLights Server is klaar. Als er al een server actief is, start die dan opnieuw via het systeemvakpictogram om de update te gebruiken.",
+            ),
+            7 => Some(
+                "[MineLights] Controleren op updates voor MineLights Server is mislukt. Controleer updates handmatig: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "pl_pl" => match index {
+            0 => Some("[MineLights] Trwa pobieranie MineLights Server…"),
+            1 => Some("[MineLights] Pobieranie MineLights Server nadal trwa."),
+            2 => Some(
+                "[MineLights] Pobieranie MineLights Server dobiegło końca, a serwer został uruchomiony.",
+            ),
+            3 => Some(
+                "[MineLights] Aktualizacja MineLights Server dobiegła końca, a serwer został ponownie uruchomiony.",
+            ),
+            4 => Some(
+                "[MineLights] Nie udało się ukończyć automatycznej konfiguracji MineLights Server. Jeśli serwer działa, zatrzymaj go z zasobnika systemowego; w przeciwnym razie zainstaluj go ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Nie udało się automatycznie uruchomić MineLights Server. Uruchom go z zasobnika systemowego lub zainstaluj ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Pobieranie MineLights Server jest gotowe. Jeśli serwer już działa, uruchom go ponownie z ikony w zasobniku, aby zastosować aktualizację.",
+            ),
+            7 => Some(
+                "[MineLights] Sprawdzanie aktualizacji MineLights Server nie powiodło się. Sprawdź je ręcznie: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "pt_br" => match index {
+            0 => Some("[MineLights] Baixando o MineLights Server…"),
+            1 => Some("[MineLights] O download do MineLights Server ainda está em andamento."),
+            2 => Some(
+                "[MineLights] O download do MineLights Server terminou e o servidor foi iniciado.",
+            ),
+            3 => Some(
+                "[MineLights] A atualização do MineLights Server terminou e o servidor foi reiniciado.",
+            ),
+            4 => Some(
+                "[MineLights] Não foi possível concluir a configuração automática do MineLights Server. Se o servidor estiver em execução, pare-o pela bandeja do sistema; caso contrário, instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Não foi possível iniciar o MineLights Server automaticamente. Inicie-o pela bandeja do sistema ou instale-o manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] O download do MineLights Server está pronto. Se já houver um servidor em execução, reinicie-o pelo ícone na bandeja do sistema para usar a atualização.",
+            ),
+            7 => Some(
+                "[MineLights] Falha ao verificar atualizações do MineLights Server. Confira as atualizações manualmente: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "ru_ru" => match index {
+            0 => Some("[MineLights] Загрузка MineLights Server…"),
+            1 => Some("[MineLights] Загрузка MineLights Server всё ещё выполняется."),
+            2 => Some("[MineLights] Загрузка MineLights Server завершена, сервер запущен."),
+            3 => Some("[MineLights] Обновление MineLights Server завершено, сервер перезапущен."),
+            4 => Some(
+                "[MineLights] Не удалось завершить автоматическую настройку MineLights Server. Если сервер запущен, остановите его через системный трей; иначе установите его вручную: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Не удалось автоматически запустить MineLights Server. Запустите его из системного трея или установите вручную: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Загрузка MineLights Server завершена. Если сервер уже запущен, перезапустите его через значок в системном трее, чтобы применить обновление.",
+            ),
+            7 => Some(
+                "[MineLights] Не удалось проверить обновления MineLights Server. Проверьте их вручную: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "sv_se" => match index {
+            0 => Some("[MineLights] Laddar ned MineLights Server…"),
+            1 => Some("[MineLights] Nedladdningen av MineLights Server pågår fortfarande."),
+            2 => Some(
+                "[MineLights] Nedladdningen av MineLights Server är klar och servern har startats.",
+            ),
+            3 => Some(
+                "[MineLights] Uppdateringen av MineLights Server är klar och servern har startats om.",
+            ),
+            4 => Some(
+                "[MineLights] Det gick inte att slutföra den automatiska konfigurationen av MineLights Server. Om servern körs, stoppa den från systemfältet; installera den annars manuellt: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server kunde inte startas automatiskt. Starta det från systemfältet eller installera det manuellt: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Nedladdningen av MineLights Server är klar. Om en server redan körs startar du om den via dess ikon i systemfältet för att använda uppdateringen.",
+            ),
+            7 => Some(
+                "[MineLights] Det gick inte att söka efter uppdateringar för MineLights Server. Granska uppdateringar manuellt: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "ta_in" => match index {
+            0 => Some("[MineLights] MineLights Server பதிவிறக்கம் செய்யப்படுகிறது…"),
+            1 => Some("[MineLights] MineLights Server பதிவிறக்கம் இன்னும் நடைபெறுகிறது."),
+            2 => Some("[MineLights] MineLights Server பதிவிறக்கம் முடிந்தது; சேவையகமும் தொடங்கிவிட்டது."),
+            3 => Some(
+                "[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது.",
+            ),
+            4 => Some(
+                "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server பதிவிறக்கம் தயாராக உள்ளது. சேவையகம் ஏற்கெனவே இயங்கினால், புதுப்பிப்பைப் பயன்படுத்த அதன் தட்டு மெனுவிலிருந்து அதை மீண்டும் தொடங்கவும்.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "tr_tr" => match index {
+            0 => Some("[MineLights] MineLights Server indiriliyor…"),
+            1 => Some("[MineLights] MineLights Server indirmesi hâlâ sürüyor."),
+            2 => Some("[MineLights] MineLights Server indirmesi tamamlandı ve sunucu başlatıldı."),
+            3 => Some(
+                "[MineLights] MineLights Server güncellemesi tamamlandı ve sunucu yeniden başlatıldı.",
+            ),
+            4 => Some(
+                "[MineLights] MineLights Server otomatik kurulumu tamamlanamadı. Sunucu çalışıyorsa sistem tepsisinden durdurun; aksi takdirde elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server otomatik olarak başlatılamadı. Sistem tepsisinden başlatın veya elle yükleyin: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server indirmesi hazır. Bir sunucu zaten çalışıyorsa güncellemeyi kullanmak için sistem tepsisindeki simgesinden yeniden başlatın.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server güncelleme denetimi başarısız oldu. Güncellemeleri elle gözden geçirin: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "tt_ru" => match index {
+            0 => Some("[MineLights] MineLights Server йөкләнә…"),
+            1 => Some("[MineLights] MineLights Server йөкләве әле дәвам итә."),
+            2 => Some("[MineLights] MineLights Server йөкләнеп бетте һәм сервер эшли башлады."),
+            3 => Some(
+                "[MineLights] MineLights Server яңартуы тәмамланды һәм сервер яңадан эшли башлады.",
+            ),
+            4 => Some(
+                "[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, система төененнән туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система төененнән эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server йөкләнеп бетте. Сервер эшләп тора икән, яңартуны куллану өчен аны трей менюсыннан яңадан эшләтеп җибәрегез.",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server яңартуларын тикшерү уңышсыз булды. Яңартуларны кулдан карагыз: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "vi_vn" => match index {
+            0 => Some("[MineLights] Đang tải MineLights Server…"),
+            1 => Some("[MineLights] Quá trình tải MineLights Server vẫn đang diễn ra."),
+            2 => Some("[MineLights] Đã tải xong MineLights Server và máy chủ đã khởi động."),
+            3 => Some("[MineLights] Đã cập nhật MineLights Server và máy chủ đã khởi động lại."),
+            4 => Some(
+                "[MineLights] Không thể hoàn tất thiết lập MineLights Server tự động. Nếu máy chủ đang chạy, hãy dừng máy chủ từ khay hệ thống; nếu không, hãy cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] Không thể khởi động MineLights Server tự động. Hãy khởi động từ khay hệ thống hoặc cài đặt thủ công: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] Đã tải xong MineLights Server. Nếu máy chủ đang chạy, hãy khởi động lại từ menu khay hệ thống của máy chủ để dùng bản cập nhật.",
+            ),
+            7 => Some(
+                "[MineLights] Không thể kiểm tra bản cập nhật MineLights Server. Hãy xem các bản cập nhật thủ công: https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        "zh_cn" => match index {
+            0 => Some("[MineLights] 正在下载 MineLights Server…"),
+            1 => Some("[MineLights] MineLights Server 下载仍在进行中。"),
+            2 => Some("[MineLights] MineLights Server 下载完成，服务器已启动。"),
+            3 => Some("[MineLights] MineLights Server 更新完成，服务器已重新启动。"),
+            4 => Some(
+                "[MineLights] 无法完成 MineLights Server 的自动设置。如果服务器正在运行，请从系统托盘停止它；否则请手动安装：https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            5 => Some(
+                "[MineLights] 无法自动启动 MineLights Server。请从系统托盘启动它，或手动安装：https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            6 => Some(
+                "[MineLights] MineLights Server 下载已就绪。如果服务器已经在运行，请从系统托盘图标重启服务器以使用此更新。",
+            ),
+            7 => Some(
+                "[MineLights] MineLights Server 更新检查失败。请手动查看更新：https://github.com/megabytesme/MineLights-Server/releases",
+            ),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+pub fn server_message_or_english(language: &str, index: usize) -> Option<&'static str> {
+    server_message(language, index).or_else(|| server_message("en_us", index))
 }

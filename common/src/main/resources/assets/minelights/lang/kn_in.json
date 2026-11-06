@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "ಕೈಯಾರೆ ನಿರ್ವಹಣೆ ಮೋಡ್‌ನಲ್ಲಿ, MineLights Server ಇಲ್ಲದಿದ್ದಾಗ\nಆಟದೊಳಗೆ ಅದನ್ನು ಸ್ಥಾಪಿಸುವ ಸಂದೇಶವನ್ನು ತೋರಿಸುತ್ತದೆ.",
   "option.mine-lights.checkServerUpdates": "MineLights Server ನವೀಕರಣಗಳಿಗಾಗಿ ಪರಿಶೀಲಿಸಿ",
   "option.mine-lights.checkServerUpdates.tooltip": "ಕೈಯಾರೆ ನಿರ್ವಹಣೆ ಮೋಡ್‌ನಲ್ಲಿ, ಹೊಸ ಬಿಡುಗಡೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅವುಗಳ\nಬದಲಾವಣೆ ವಿವರಗಳನ್ನು ಚಾಟ್‌ನಲ್ಲಿ ತೋರಿಸುತ್ತದೆ. ನವೀಕರಣಗಳನ್ನು ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ.",
+  "option.mine-lights.notifyServerDownloadProgress": "MineLights Server ಡೌನ್‌ಲೋಡ್‌ಗಳ ಬಗ್ಗೆ ನನಗೆ ತಿಳಿಸಿ",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "ಸರ್ವರ್ ಡೌನ್‌ಲೋಡ್ ಜಗತ್ತಿನೊಳಗೆ ಪ್ರಾರಂಭವಾದಾಗ, ನೀವು ಜಗತ್ತಿಗೆ ಸೇರಿದ ನಂತರವೂ ಮುಂದುವರಿದಾಗ ಮತ್ತು ಪೂರ್ಣಗೊಂಡಾಗ ಚಾಟ್ ಸಂದೇಶಗಳನ್ನು ತೋರಿಸುತ್ತದೆ.",
   "option.mine-lights.force_update.label": "ಸರ್ವರ್ ನವೀಕರಣಕ್ಕಾಗಿ ಪರಿಶೀಲಿಸಿ",
   "option.mine-lights.force_update.tooltip": "GitHub ನಲ್ಲಿ MineLights Server ನವೀಕರಣವನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ. ಸ್ವಯಂಚಾಲಿತ ನಿರ್ವಹಣೆ ನವೀಕರಣಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು; ಕೈಯಾರೆ ನಿರ್ವಹಣೆ ಸ್ಥಾಪನೆಯ ವಿವರಗಳನ್ನು ಚಾಟ್‌ನಲ್ಲಿ ತೋರಿಸುತ್ತದೆ.",
   "option.mine-lights.refresh_devices.label": "ಸಾಧನಗಳ ಪಟ್ಟಿಯನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "ಸ್ಯಾಚುರೇಶನ್ ಮತ್ತು ಗಾಳಿಯನ್ನು ಹಸಿವು ಬಾರ್‌ಗೆ ಸೇರಿಸಿ",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "ತಮ್ಮದೇ ಕೀಗಳ ಬದಲು ಹಸಿವು ಕೀಗಳಲ್ಲಿ ಸ್ಯಾಚುರೇಶನ್ ಮತ್ತು ಗಾಳಿಯನ್ನು ತೋರಿಸುತ್ತದೆ.\nಸ್ಯಾಚುರೇಶನ್ ತಾನು ಆವರಿಸುವ ಹಸಿವು ಕೀಗಳಿಗೆ ಬಣ್ಣ ಹಚ್ಚುತ್ತದೆ (AppleSkin ನಂತೆ).\nನೀರಿನೊಳಗೆ ಮತ್ತು ಗಾಳಿ ಮರಳುವವರೆಗೆ ಹಸಿವು ಕೀಗಳು ಗಾಳಿಯನ್ನು ತೋರಿಸುತ್ತವೆ,\nಹಸಿವು ಬಾರ್ ಮೇಲಿನ ಗುಳ್ಳೆಗಳಂತೆ.\nಸ್ಯಾಚುರೇಶನ್ / ಗಾಳಿ ಕೀಗಳು ಖಾಲಿ ಇರುತ್ತವೆ.",
   "option.mine-lights.locatorBarColor": "ಲೊಕೇಟರ್ ಬಾರ್ ಹಿನ್ನೆಲೆ",
-  "option.mine-lights.locatorBarColor.tooltip": "ವೇಪಾಯಿಂಟ್ ಚುಕ್ಕಿಗಳ ಹಿಂದಿನ ಲೊಕೇಟರ್ ಕೀಗಳ ಬಣ್ಣ\n(ಆಟದಲ್ಲಿ ಕಾಣುವ ಗಾಢ ಬಾರ್)."
+  "option.mine-lights.locatorBarColor.tooltip": "ವೇಪಾಯಿಂಟ್ ಚುಕ್ಕಿಗಳ ಹಿಂದಿನ ಲೊಕೇಟರ್ ಕೀಗಳ ಬಣ್ಣ\n(ಆಟದಲ್ಲಿ ಕಾಣುವ ಗಾಢ ಬಾರ್).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಇನ್ನೂ ನಡೆಯುತ್ತಿದೆ.",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಪ್ರಾರಂಭವಾಗಿದೆ.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server ಅಪ್‌ಡೇಟ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಮತ್ತು ಸರ್ವರ್ ಮರುಪ್ರಾರಂಭವಾಗಿದೆ.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ಈಗಾಗಲೇ ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಅಪ್‌ಡೇಟ್ ಬಳಸಲು ಅದರ ಟ್ರೇ ಮೆನುವಿನಿಂದ ಮರುಪ್ರಾರಂಭಿಸಿ.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾರಂಭಿಸಲಾಗಲಿಲ್ಲ. ಟ್ರೇಯಿಂದ ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server‌ನ ಸ್ವಯಂಚಾಲಿತ ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಲಾಗಲಿಲ್ಲ. ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದ್ದರೆ, ಟ್ರೇಯಿಂದ ಅದನ್ನು ನಿಲ್ಲಿಸಿ; ಇಲ್ಲದಿದ್ದರೆ, ಕೈಯಾರೆ ಸ್ಥಾಪಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server ನವೀಕರಣ ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ. ನವೀಕರಣಗಳನ್ನು ಕೈಯಾರೆ ಪರಿಶೀಲಿಸಿ: https://github.com/megabytesme/MineLights-Server/releases"
 }

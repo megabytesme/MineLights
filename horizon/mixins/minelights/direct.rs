@@ -260,7 +260,12 @@ impl OpenRgbClient {
             let (display_name, led_count, key_leds, original) =
                 parse_openrgb_device(&info, protocol_version)?;
             for (index, name) in &key_leds {
-                eprintln!("[MineLights] OpenRGB {display_name} LED {index}: {name}");
+                // The Horizon CLI can close its child stderr pipe after launch.
+                // Logging a discovered LED must not panic and terminate the bridge worker.
+                let _ = writeln!(
+                    std::io::stderr().lock(),
+                    "[MineLights] OpenRGB {display_name} LED {index}: {name}"
+                );
             }
             devices.push(OpenRgbDevice {
                 controller_id,

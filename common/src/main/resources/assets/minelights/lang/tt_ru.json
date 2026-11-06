@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Кулдан идарә итү режимында MineLights Server булмаганда\nуен эчендә урнаштыру турында хәбәр күрсәтә.",
   "option.mine-lights.checkServerUpdates": "MineLights Server яңартуларын тикшерү",
   "option.mine-lights.checkServerUpdates.tooltip": "Кулдан идарә итү режимында яңа чыгарылышларны тикшерә һәм\nүзгәрешләр исемлеген чатта күрсәтә. Яңартуларны кулдан урнаштырыгыз.",
+  "option.mine-lights.notifyServerDownloadProgress": "MineLights Server йөкләүләре турында миңа хәбәр ит",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Сервер йөкләве дөньяда башланганда, дөньяга кергәннән соң дәвам иткәндә һәм тәмамланганда чат хәбәрләрен күрсәтә.",
   "option.mine-lights.force_update.label": "Сервер яңартуын тикшерү",
   "option.mine-lights.force_update.tooltip": "GitHub аша MineLights Server яңартуларын тикшерә. Автоматик идарә яңартуларны йөкли ала; кулдан идарә итү урнаштыру мәгълүматын чатта күрсәтә.",
   "option.mine-lights.refresh_devices.label": "Җайланмалар исемлеген яңарту",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Туену һәм һаваны ачлык тасмасына кушу",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Аерым клавишалар урынына ачлык клавишаларында туенуны һәм һаваны күрсәтә.\nТуену үзе каплаган ачлык клавишаларына төс бирә (AppleSkin кебек).\nСу астында һәм һава тулганчы ачлык клавишалары һаваны күрсәтә,\nачлык тасмасы өстендәге күбекләр кебек.\nТуену / һава клавишалары буш кала.",
   "option.mine-lights.locatorBarColor": "Локатор тасмасының фоны",
-  "option.mine-lights.locatorBarColor.tooltip": "Юл нокталары артындагы локатор клавишалары төсе\n(уенда күренә торган кара тасма)."
+  "option.mine-lights.locatorBarColor.tooltip": "Юл нокталары артындагы локатор клавишалары төсе\n(уенда күренә торган кара тасма).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server йөкләнә…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server йөкләве әле дәвам итә.",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server йөкләнеп бетте һәм сервер эшли башлады.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server яңартуы тәмамланды һәм сервер яңадан эшли башлады.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server йөкләнеп бетте. Сервер эшләп тора икән, яңартуны куллану өчен аны трей менюсыннан яңадан эшләтеп җибәрегез.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система төененнән эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, система төененнән туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server яңартуларын тикшерү уңышсыз булды. Яңартуларны кулдан карагыз: https://github.com/megabytesme/MineLights-Server/releases"
 }

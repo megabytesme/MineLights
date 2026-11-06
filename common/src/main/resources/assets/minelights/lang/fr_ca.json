@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Fusionner la saturation et l'air dans la barre de faim",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Affiche la saturation et l'air sur les touches de faim au lieu d'utiliser leurs propres touches.\nLa saturation teinte les touches de faim qu'elle recouvre (comme AppleSkin).\nSous l'eau, et jusqu'au remplissage de l'air, les touches de faim affichent l'air,\ncomme les bulles au-dessus de la barre de faim.\nLes touches de saturation / air restent disponibles.",
   "option.mine-lights.locatorBarColor": "Fond de la barre de localisation",
-  "option.mine-lights.locatorBarColor.tooltip": "Couleur des touches de localisation derrière les points de passage\n(la barre sombre visible dans le jeu)."
+  "option.mine-lights.locatorBarColor.tooltip": "Couleur des touches de localisation derrière les points de passage\n(la barre sombre visible dans le jeu).",
+  "option.mine-lights.notifyServerDownloadProgress": "M’avertir des téléchargements de MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Affiche des messages dans le clavardage lorsque le téléchargement du serveur commence pendant que vous êtes dans un monde, se poursuit après votre entrée dans un monde et se termine.",
+  "message.minelights.server.download.started": "[MineLights] Téléchargement de MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Le téléchargement de MineLights Server est toujours en cours.",
+  "message.minelights.server.download.finished_started": "[MineLights] Le téléchargement de MineLights Server est terminé et le serveur a démarré.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] La mise à jour de MineLights Server est terminée et le serveur a redémarré.",
+  "message.minelights.server.download.restart_required": "[MineLights] Le téléchargement de MineLights Server est prêt. Si un serveur est déjà en cours d’exécution, redémarrez-le depuis son icône dans la zone de notification pour utiliser la mise à jour.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server n’a pas pu démarrer automatiquement. Démarrez-le depuis sa zone de notification ou installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] La configuration automatique de MineLights Server n’a pas pu être terminée. Si le serveur est en cours d’exécution, arrêtez-le depuis sa zone de notification ; sinon, installez-le manuellement : https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Échec de la vérification des mises à jour de MineLights Server. Vérifiez-les manuellement : https://github.com/megabytesme/MineLights-Server/releases"
 }

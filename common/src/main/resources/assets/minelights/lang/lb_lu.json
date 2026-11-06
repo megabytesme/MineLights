@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Am manuelle Gestiounsmodus gëtt am Spill eng Installatiounsnooriicht\ngewisen, wann MineLights Server feelt.",
   "option.mine-lights.checkServerUpdates": "No MineLights Server-Updates sichen",
   "option.mine-lights.checkServerUpdates.tooltip": "Am manuelle Gestiounsmodus gëtt no neie Versioune gesicht an\nd’Ännerungslëscht am Chat gewisen. Installéiert Updates manuell.",
+  "option.mine-lights.notifyServerDownloadProgress": "Iwwer MineLights Server-Downloads informéieren",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Weist Chat-Messagen, wann e Server-Download an enger Welt ufänkt, weidergeet nodeems Dir eng Welt betrueden hutt, a fäerdeg ass.",
   "option.mine-lights.refresh_devices.label": "Apparatlëscht aktualiséieren",
   "option.mine-lights.refresh_devices.tooltip": "Wann Dir en neien Apparat uschléisst, wärend d’Spill leeft,\nmarkéiert dës Optioun a späichert, fir datt en an der Lëscht erschéngt.",
   "option.mine-lights.restart.label": "Server nei starten",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Sättegung a Loft mat der Hongersbar zesummeleeën",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Weist Sättegung a Loft op den Hongertasten amplaz op eegene Tasten.\nD'Sättegung färbt d'Hongertasten, déi se bedeckt (wéi AppleSkin).\nËnner Waasser, a bis d'Loft nees opgefëllt ass, weisen d'Hongertasten d'Loft,\nwéi d'Blosen iwwer der Hongersbar.\nD'Sättegungs-/Loft-Taste bleiwen fräi.",
   "option.mine-lights.locatorBarColor": "Hannergrond vun der Lokaliséierungsbar",
-  "option.mine-lights.locatorBarColor.tooltip": "Faarf vun de Lokaliséierungstasten hannert de Wee-Punkten\n(déi donkel Bar, déi am Spill ze gesinn ass)."
+  "option.mine-lights.locatorBarColor.tooltip": "Faarf vun de Lokaliséierungstasten hannert de Wee-Punkten\n(déi donkel Bar, déi am Spill ze gesinn ass).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server gëtt erofgelueden…",
+  "message.minelights.server.download.in_progress": "[MineLights] Den Download vu MineLights Server leeft nach.",
+  "message.minelights.server.download.finished_started": "[MineLights] Den Download vu MineLights Server ass fäerdeg an de Server gouf gestart.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] D’Aktualiséierung vu MineLights Server ass fäerdeg an de Server gouf nei gestart.",
+  "message.minelights.server.download.restart_required": "[MineLights] Den Download vu MineLights Server ass prett. Wann e Server schonn leeft, start en aus sengem Tray-Menü nei, fir d’Aktualiséierung ze benotzen.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server konnt net automatesch gestart ginn. Start et iwwer säi Systemberäich oder installéiert et manuell: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Déi automatesch Ariichtung vu MineLights Server konnt net ofgeschloss ginn. Wann de Server leeft, stoppt en iwwer säi Systemberäich; soss installéiert en manuell: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] D’Sich no Aktualiséierunge fir MineLights Server ass feelgeschloen. Kontrolléiert se manuell: https://github.com/megabytesme/MineLights-Server/releases"
 }

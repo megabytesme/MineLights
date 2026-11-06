@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Eskuzko kudeaketa moduan, joko barruko instalazio-mezu bat\nerakusten du MineLights Server falta denean.",
   "option.mine-lights.checkServerUpdates": "Egiaztatu MineLights Server-en eguneratzeak",
   "option.mine-lights.checkServerUpdates.tooltip": "Eskuzko kudeaketa moduan, bertsio berriak bilatzen ditu eta\nbere aldaketen erregistroa txatean erakusten du. Instalatu eguneratzeak eskuz.",
+  "option.mine-lights.notifyServerDownloadProgress": "Jakinarazi MineLights Server deskargei buruz",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Txat-mezuak erakusten ditu zerbitzariaren deskarga joko-mundu batean hasten denean, mundu batean sartu ondoren jarraitzen duenean eta amaitzen denean.",
   "option.mine-lights.refresh_devices.label": "Freskatu gailuen zerrenda",
   "option.mine-lights.refresh_devices.tooltip": "Jokoa martxan dagoela gailu berri bat konektatzen baduzu,\nhautatu aukera hau eta gorde, zerrendan ager dadin.",
   "option.mine-lights.restart.label": "Berrabiarazi zerbitzaria",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Bateratu asetasuna eta airea gose-barran",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Erakutsi asetasuna eta airea gose-teklatan, berezko teklak erabili beharrean.\nAsetasunak estaltzen dituen gose-teklak tindatzen ditu (AppleSkinen bezala).\nUrpean, eta airea berriro bete arte, gose-teklek airea erakusten dute,\ngose-barraren gaineko burbuilen antzera.\nAsetasun-/aire-teklak libre geratzen dira.",
   "option.mine-lights.locatorBarColor": "Kokapen-barraren atzeko planoa",
-  "option.mine-lights.locatorBarColor.tooltip": "Ibilbide-puntuen atzean dauden kokapen-teklen kolorea\n(jokoan ikusten den barra iluna)."
+  "option.mine-lights.locatorBarColor.tooltip": "Ibilbide-puntuen atzean dauden kokapen-teklen kolorea\n(jokoan ikusten den barra iluna).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server deskargatzen…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server-en deskargak oraindik martxan jarraitzen du.",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server-en deskarga amaitu da, eta zerbitzaria abiarazi da.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server-en eguneratzea amaitu da, eta zerbitzaria berrabiarazi da.",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server-en deskarga prest dago. Zerbitzari bat dagoeneko martxan badago, berrabiarazi haren erretilu-menutik eguneraketa erabiltzeko.",
+  "message.minelights.server.download.start_failed": "[MineLights] Ezin izan da MineLights Server automatikoki abiarazi. Abiarazi sistemaren erretilutik edo instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Ezin izan da MineLights Server-en konfigurazio automatikoa osatu. Zerbitzaria martxan badago, gelditu sistemaren erretilutik; bestela, instalatu eskuz: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Ezin izan da MineLights Server-en eguneratzerik dagoen egiaztatu. Aztertu eguneratzeak eskuz: https://github.com/megabytesme/MineLights-Server/releases"
 }
