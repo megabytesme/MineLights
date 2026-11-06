@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Sättigung und Luft mit dem Hungerbalken zusammenführen",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Zeigt Sättigung und Luft auf den Hungertasten statt auf eigenen Tasten an.\nDie Sättigung färbt die Hungertasten ein, die sie abdeckt (wie AppleSkin).\nUnter Wasser und bis die Luft wieder aufgefüllt ist, zeigen die Hungertasten stattdessen Luft,\nwie die Blasen über dem Hungerbalken.\nDie Sättigungs-/Lufttasten bleiben frei.",
   "option.mine-lights.locatorBarColor": "Hintergrund des Ortungsbalkens",
-  "option.mine-lights.locatorBarColor.tooltip": "Farbe der Ortungstasten hinter den Wegpunktpunkten\n(der dunkle Balken, den du im Spiel siehst)."
+  "option.mine-lights.locatorBarColor.tooltip": "Farbe der Ortungstasten hinter den Wegpunktpunkten\n(der dunkle Balken, den du im Spiel siehst).",
+  "option.mine-lights.notifyServerDownloadProgress": "Über Downloads von MineLights Server benachrichtigen",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Zeigt Chatnachrichten an, wenn ein Server-Download in einer Welt beginnt, nach deinem Beitritt zu einer Welt weiterläuft und abgeschlossen ist.",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server wird heruntergeladen …",
+  "message.minelights.server.download.in_progress": "[MineLights] Der Download von MineLights Server läuft noch.",
+  "message.minelights.server.download.finished_started": "[MineLights] Der Download von MineLights Server ist abgeschlossen und der Server wurde gestartet.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Das Update von MineLights Server ist abgeschlossen und der Server wurde neu gestartet.",
+  "message.minelights.server.download.restart_required": "[MineLights] Das Update für MineLights Server wurde überprüft, ist aber noch nicht installiert. Falls MineLights Server läuft, beende ihn über sein Symbol im Infobereich. Starte Minecraft anschließend neu, um das Update zu installieren und den Server zu starten.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server konnte nicht automatisch gestartet werden. Starte es über das Infobereichssymbol oder installiere es manuell: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Die automatische Einrichtung von MineLights Server konnte nicht abgeschlossen werden. Wenn der Server läuft, beende ihn über das Infobereichssymbol; andernfalls installiere ihn manuell: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Die Suche nach Updates für MineLights Server ist fehlgeschlagen. Prüfe Updates manuell: https://github.com/megabytesme/MineLights-Server/releases"
 }

@@ -35,6 +35,17 @@ keys = {
     49: 'option.mine-lights.restoreLightingOutsideWorld', 50: 'option.mine-lights.lowHealthThreshold',
     51: 'option.mine-lights.saturationTintStrength', 52: 'option.mine-lights.experienceLocatorMode',
     53: 'option.mine-lights.locatorDotSize',
+    54: 'option.mine-lights.notifyServerDownloadProgress',
+}
+server_messages = {
+    0: 'message.minelights.server.download.started',
+    1: 'message.minelights.server.download.in_progress',
+    2: 'message.minelights.server.download.finished_started',
+    3: 'message.minelights.server.download.finished_restarting',
+    4: 'message.minelights.server.download.failed',
+    5: 'message.minelights.server.download.start_failed',
+    6: 'message.minelights.server.download.restart_required',
+    7: 'message.minelights.server.update_check_failed',
 }
 lines = ['// Setting names copied from MineLights language resources.',
          'pub fn setting_label(language: &str, index: usize) -> Option<&\'static str> {',
@@ -50,6 +61,25 @@ for path in sorted(root / item for item in tracked):
         lines.append(f'            {index} => Some({json.dumps(value, ensure_ascii=False)}),')
     lines.extend(['            _ => None,', '        },'])
     count += 1
-lines.extend(['        _ => None,', '    }', '}', ''])
+lines.extend(['        _ => None,', '    }', '}', '',
+              'pub fn setting_label_or_english(language: &str, index: usize) -> Option<&\'static str> {',
+              '    setting_label(language, index).or_else(|| setting_label("en_us", index))',
+              '}', '',
+              'pub fn server_message(language: &str, index: usize) -> Option<&\'static str> {',
+              '    match language {'])
+for path in sorted(root / item for item in tracked):
+    data = json.loads(path.read_text(encoding='utf-8-sig'))
+    values = [(index, data[key]) for index, key in server_messages.items()
+              if isinstance(data.get(key), str)]
+    if not values:
+        continue
+    lines.append(f'        {json.dumps(path.stem)} => match index {{')
+    for index, value in values:
+        lines.append(f'            {index} => Some({json.dumps(value, ensure_ascii=False)}),')
+    lines.extend(['            _ => None,', '        },'])
+lines.extend(['        _ => None,', '    }', '}', '',
+              'pub fn server_message_or_english(language: &str, index: usize) -> Option<&\'static str> {',
+              '    server_message(language, index).or_else(|| server_message("en_us", index))',
+              '}', ''])
 (root / 'horizon/mixins/minelights/translations.rs').write_text('\n'.join(lines), encoding='utf-8', newline='\n')
 print(f'Generated settings translations for {count} languages.')

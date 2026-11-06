@@ -12,6 +12,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,7 @@ public class OpenRGBController {
     }
 
     private final List<OpenRGBDevice> devices = new ArrayList<>();
+    private final Set<Integer> managedDevices = new HashSet<>();
 
     public boolean connect() {
         return connect("127.0.0.1", 6742);
@@ -328,12 +330,11 @@ public class OpenRGBController {
         }
     }
 
-    public void restoreOriginalModes(Set<Integer> enabledDevices) {
+    public boolean restoreOriginalModes() {
         if (socket == null || socket.isClosed()) {
-            return;
+            return managedDevices.isEmpty();
         }
-        for (int index = 0; index < devices.size(); index++) {
-            if (!enabledDevices.contains(index)) continue;
+        for (int index : new HashSet<>(managedDevices)) {
             OpenRGBDevice device = devices.get(index);
             if (device.originalModeData == null) {
                 continue;
@@ -345,7 +346,8 @@ public class OpenRGBController {
                 mode.put(device.originalModeData);
                 sendPacket(1101, device.controllerId, mode.array());
 
-                if (device.originalModeUsesPerLedColors && device.originalColors.length > 0) {
+                if (device.originalModeUsesPerLedColors && device.originalColors != null
+                        && device.originalColors.length > 0) {
                     ByteBuffer colors = ByteBuffer.allocate(6 + device.originalColors.length)
                             .order(ByteOrder.LITTLE_ENDIAN);
                     colors.putInt(colors.capacity());
@@ -353,10 +355,21 @@ public class OpenRGBController {
                     colors.put(device.originalColors);
                     sendPacket(1050, device.controllerId, colors.array());
                 }
+                managedDevices.remove(index);
+                device.originalModeIndex = -1;
+                device.originalModeData = null;
+                device.originalModeUsesPerLedColors = false;
+                device.originalColors = null;
             } catch (IOException e) {
                 LOGGER.warn("Failed to restore the original mode of OpenRGB device " + device.name, e);
             }
         }
+        return managedDevices.isEmpty();
+    }
+
+    @Deprecated
+    public void restoreOriginalModes(Set<Integer> ignoredEnabledDevices) {
+        restoreOriginalModes();
     }
 
     public void loadProfile(String profileName) {
@@ -378,16 +391,23 @@ public class OpenRGBController {
         }
         for (int index = 0; index < devices.size(); index++) {
             if (!enabledDevices.contains(index)) continue;
+            if (managedDevices.contains(index)) continue;
             OpenRGBDevice device = devices.get(index);
             try {
                 byte[] request = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
                         .putInt(serverProtocolVersion).array();
                 sendPacket(1, device.controllerId, request);
                 OpenRGBDevice current = parseDeviceData(readResponse());
+                if (current.originalModeData == null) {
+                    LOGGER.warn("OpenRGB did not return the original mode for device " + device.name
+                            + "; leaving it unchanged.");
+                    continue;
+                }
                 device.originalModeIndex = current.originalModeIndex;
                 device.originalModeData = current.originalModeData;
                 device.originalModeUsesPerLedColors = current.originalModeUsesPerLedColors;
                 device.originalColors = current.originalColors;
+                managedDevices.add(index);
                 sendPacket(1100, device.controllerId, new byte[0]);
             } catch (IOException | RuntimeException e) {
                 LOGGER.warn("Failed to switch OpenRGB device " + device.name + " to direct mode", e);

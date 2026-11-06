@@ -1,4 +1,5 @@
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import net.minecraftforge.renamer.gradle.RenameJar
 import java.io.RandomAccessFile
@@ -34,6 +35,8 @@ val requiresSrgRuntimeMappings = stonecutter.eval(mcVersion, "<=1.20.4")
 val usesMixinManifest = usesMixinConfig && requiresSrgRuntimeMappings
 val needsMixinRefmap = requiresSrgRuntimeMappings && stonecutter.eval(mcVersion, ">=1.14.4")
 val needsMixinBootstrap = mcVersion in setOf("1.14.4", "1.15", "1.15.1")
+val mixinRefmapFile = layout.buildDirectory.file("tmp/compileJava/minelights.refmap.json")
+val mixinClassesDirectory = layout.buildDirectory.dir("classes/java/main")
 val mappingChannel = when (mcVersion) {
     "1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2", "1.11", "1.11.2", "1.12", "1.12.1", "1.12.2" -> "stable"
     "1.13.2", "1.14.2", "1.14.3", "1.16.1" -> "snapshot"
@@ -323,6 +326,15 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    // Keep compiler output separate from processResources, which owns build/sourceSets/main.
+    // The shared directory otherwise deletes class files when resources are recopied.
+    destinationDirectory.set(mixinClassesDirectory)
+    if (needsMixinRefmap) {
+        outputs.file(mixinRefmapFile)
+    }
+}
+
 tasks.processResources {
     val templateProperties = mapOf(
         "id" to modId,
@@ -348,9 +360,14 @@ tasks.processResources {
         filesMatching("META-INF/mods.toml") { expand(templateProperties) }
     }
     if (needsMixinRefmap) {
-        val refmap = layout.buildDirectory.file("tmp/compileJava/minelights.refmap.json")
         dependsOn(tasks.named("compileJava"))
-        from(refmap)
+        doFirst {
+            val refmap = mixinRefmapFile.get().asFile
+            check(refmap.isFile) {
+                "Cannot package Forge Mixin config for Minecraft $mcVersion: expected generated refmap at " + refmap.absolutePath + "; check Mixin annotation processing."
+            }
+        }
+        from(mixinRefmapFile)
     }
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
@@ -391,6 +408,7 @@ tasks.processResources {
 }
 
 tasks.named<Jar>("jar") {
+    from(mixinClassesDirectory)
     dependsOn(syncSharedSources)
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")

@@ -167,6 +167,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 if (MineLightsClient.IS_WINDOWS) {
                     toggle(options, "Notify when MineLights Server is missing", () -> MineLightsClient.CONFIG.notifyMissingServer, value -> MineLightsClient.CONFIG.notifyMissingServer = value);
                     toggle(options, "Check MineLights Server for updates", () -> MineLightsClient.CONFIG.checkServerUpdates, value -> MineLightsClient.CONFIG.checkServerUpdates = value);
+                    toggle(options, translated("option.mine-lights.notifyServerDownloadProgress"), () -> MineLightsClient.CONFIG.notifyServerDownloadProgress, value -> MineLightsClient.CONFIG.notifyServerDownloadProgress = value);
                 }
                 break;
             case 1:
@@ -262,6 +263,16 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
 
     private static void toggle(List<Option> options, String label, BooleanSupplier value, Consumer<Boolean> setter) {
         options.add(new Option(label, () -> value.getAsBoolean() ? "ON" : "OFF", () -> setter.accept(!value.getAsBoolean())));
+    }
+
+    private static String translated(String key) {
+        //? if loader_forge && >=1.14.4 && <1.16.1 {
+        return net.minecraft.client.resources.I18n.get(key);
+        //?} else if loader_forge && >=1.16.2 && <1.17 {
+        return net.minecraft.client.resources.I18n.get(key);
+        //?} else {
+        return net.minecraft.client.resources.I18n.format(key);
+        //?}
     }
 
     private static void cycle(List<Option> options, String label, Supplier<String> value, Runnable change) {

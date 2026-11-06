@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "मैन्युअल प्रबंधन मोड में, MineLights Server न होने पर\nगेम में इंस्टॉल करने का संदेश दिखाता है।",
   "option.mine-lights.checkServerUpdates": "MineLights Server के अपडेट जांचें",
   "option.mine-lights.checkServerUpdates.tooltip": "मैन्युअल प्रबंधन मोड में, नए रिलीज़ जांचता है और\nउनका बदलाव विवरण चैट में दिखाता है। अपडेट खुद इंस्टॉल करें।",
+  "option.mine-lights.notifyServerDownloadProgress": "MineLights Server के डाउनलोड की सूचना दें",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "जब सर्वर का डाउनलोड किसी दुनिया में शुरू हो, आपके दुनिया में प्रवेश करने के बाद भी जारी रहे, और पूरा हो, तब चैट संदेश दिखाएं।",
   "option.mine-lights.force_update.label": "सर्वर अपडेट जाँचें",
   "option.mine-lights.force_update.tooltip": "GitHub पर MineLights Server के अपडेट जाँचें।\nस्वचालित प्रबंधन अपडेट डाउनलोड कर सकता है; मैन्युअल प्रबंधन में इंस्टॉलेशन की जानकारी चैट में दिखाई जाती है।",
   "option.mine-lights.refresh_devices.label": "डिवाइस सूची रीफ़्रेश करें",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "संतृप्ति और वायु को भूख पट्टी में मिलाएँ",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "संतृप्ति और वायु उनकी अलग कुंजियों के बजाय भूख की कुंजियों पर दिखाता है।\nसंतृप्ति जिन भूख कुंजियों को ढकती है, उन्हें उसका रंग देती है (AppleSkin की तरह)।\nपानी में रहने पर और वायु फिर भरने तक भूख की कुंजियाँ वायु दिखाती हैं,\nठीक वैसे ही जैसे खेल में भूख पट्टी के ऊपर बुलबुले दिखते हैं।\nसंतृप्ति / वायु की कुंजियाँ खाली रहती हैं।",
   "option.mine-lights.locatorBarColor": "लोकेटर पट्टी की पृष्ठभूमि",
-  "option.mine-lights.locatorBarColor.tooltip": "वेपॉइंट बिंदुओं के पीछे की लोकेटर कुंजियों का रंग।\n(गेम में दिखाई देने वाली गहरी पट्टी)।"
+  "option.mine-lights.locatorBarColor.tooltip": "वेपॉइंट बिंदुओं के पीछे की लोकेटर कुंजियों का रंग।\n(गेम में दिखाई देने वाली गहरी पट्टी)।",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server डाउनलोड हो रहा है…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server का डाउनलोड अभी जारी है।",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server का डाउनलोड पूरा हो गया है और सर्वर शुरू हो गया है।",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server का अपडेट पूरा हो गया है और सर्वर फिर से शुरू हो गया है।",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server अपडेट सत्यापित किया गया है, लेकिन अभी इंस्टॉल नहीं हुआ है। यदि MineLights Server चल रहा है, तो सिस्टम ट्रे में उसके आइकन से उसे रोकें; फिर अपडेट इंस्टॉल और शुरू करने के लिए Minecraft दोबारा शुरू करें।",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server अपने-आप शुरू नहीं हो सका। इसे ट्रे से शुरू करें या मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server का स्वचालित सेटअप पूरा नहीं हो सका। यदि सर्वर चल रहा है, तो उसे ट्रे से रोकें; अन्यथा उसे मैन्युअल रूप से इंस्टॉल करें: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server के अपडेट की जाँच विफल हुई। अपडेट मैन्युअल रूप से देखें: https://github.com/megabytesme/MineLights-Server/releases"
 }

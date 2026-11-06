@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Verzadiging en lucht samenvoegen met de hongerbalk",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Toont verzadiging en lucht op de hongertoetsen in plaats van op eigen toetsen.\nVerzadiging kleurt de hongertoetsen die ermee worden bedekt (zoals AppleSkin).\nOnder water, en totdat je lucht is aangevuld, tonen de hongertoetsen de lucht,\nzoals de bubbels boven de hongerbalk.\nDe verzadigings-/luchttoetsen blijven vrij.",
   "option.mine-lights.locatorBarColor": "Achtergrond van de locatiebalk",
-  "option.mine-lights.locatorBarColor.tooltip": "Kleur van locatietoetsen achter de waypointpunten\n(de donkere balk die je in het spel ziet)."
+  "option.mine-lights.locatorBarColor.tooltip": "Kleur van locatietoetsen achter de waypointpunten\n(de donkere balk die je in het spel ziet).",
+  "option.mine-lights.notifyServerDownloadProgress": "Waarschuw me bij downloads van MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Toont chatberichten wanneer een serverdownload begint terwijl je in een wereld bent, doorgaat nadat je een wereld bent binnengegaan en wordt voltooid.",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server wordt gedownload…",
+  "message.minelights.server.download.in_progress": "[MineLights] De download van MineLights Server is nog bezig.",
+  "message.minelights.server.download.finished_started": "[MineLights] De download van MineLights Server is voltooid en de server is gestart.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] De update van MineLights Server is voltooid en de server is opnieuw gestart.",
+  "message.minelights.server.download.restart_required": "[MineLights] De update van MineLights Server is geverifieerd, maar nog niet geïnstalleerd. Als er een MineLights Server draait, stop deze dan via het systeemvak; start Minecraft daarna opnieuw om de update te installeren en te starten.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server kon niet automatisch worden gestart. Start het via het systeemvak of installeer het handmatig: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] De automatische installatie van MineLights Server kon niet worden voltooid. Als de server actief is, stop hem via het systeemvak; installeer hem anders handmatig: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Controleren op updates voor MineLights Server is mislukt. Controleer updates handmatig: https://github.com/megabytesme/MineLights-Server/releases"
 }

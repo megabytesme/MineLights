@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "MERGE SATURATION & AIR INTO HUNGER BAR",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "shows saturation n air on teh hunger keyz instead of their own keyz.\nsaturation tints teh hunger keyz it covers (like appleskin).\nunderwater, n until ur air refills, teh hunger keyz show air instead,\nlike teh bubbles that appear above teh hunger bar.\nteh saturation / air keyz are left free.",
   "option.mine-lights.locatorBarColor": "LOCATOR BAR BACKGROUND",
-  "option.mine-lights.locatorBarColor.tooltip": "kolor of teh locator keyz behind teh waypoint dots\n(teh dark bar u see in game)."
+  "option.mine-lights.locatorBarColor.tooltip": "kolor of teh locator keyz behind teh waypoint dots\n(teh dark bar u see in game).",
+  "option.mine-lights.notifyServerDownloadProgress": "tell me when teh MineLights Server is downloadin",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "shows chat msgz when a server download starts while ur in a world, keeps goin after u join a world, and finishes.",
+  "message.minelights.server.download.started": "[MineLights] downloadin MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] teh MineLights Server download is still goin.",
+  "message.minelights.server.download.finished_started": "[MineLights] teh MineLights Server download is done and teh server started.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] teh MineLights Server update is done and teh server restarted.",
+  "message.minelights.server.download.restart_required": "[MineLights] teh MineLights Server update got checked an verified, but ain't installed yet. if a MineLights Server is runnin', stop it from its system tray; then restart Minecraft ta install an start teh update.",
+  "message.minelights.server.download.start_failed": "[MineLights] teh MineLights Server cudnt start automaticly. start it frum teh tray or install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] teh auto setup 4 MineLights Server cudnt b finished. if teh server iz runnin, stop it frum teh tray; otherwise install it by hand: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] teh MineLights Server update check failed. check teh updates by hand: https://github.com/megabytesme/MineLights-Server/releases"
 }

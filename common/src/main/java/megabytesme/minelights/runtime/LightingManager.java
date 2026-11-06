@@ -40,6 +40,7 @@ public class LightingManager implements Runnable {
     private static final int FRAME_DURATION_MS = 33;
     private volatile boolean isInitialized = false;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
+    private final AtomicBoolean refreshStopRequested = new AtomicBoolean(false);
     private final AtomicBoolean openRgbDataChanged = new AtomicBoolean(false);
     private FrameStateDto lastSentFrame = null;
     private int initializedOpenRgbControllerCount;
@@ -65,6 +66,11 @@ public class LightingManager implements Runnable {
     }
 
     public void requestStop() {
+        stopping.set(true);
+    }
+
+    public void requestRefreshStop() {
+        refreshStopRequested.set(true);
         stopping.set(true);
     }
 
@@ -357,18 +363,32 @@ public class LightingManager implements Runnable {
     }
 
     private void releaseOpenRgbDevices() {
+        releaseOpenRgbDevices(true);
+    }
+
+    private void releaseOpenRgbDevices(boolean applyOutsideWorldProfile) {
         synchronized (openRgbControllers) {
             for (OpenRGBController controller : openRgbControllers) {
-                releaseOpenRgbController(controller);
+                releaseOpenRgbController(controller, applyOutsideWorldProfile);
             }
         }
     }
 
     private void releaseOpenRgbController(OpenRGBController controller) {
-        Set<Integer> enabled = enabledOpenRgbDevices(controller);
-        controller.restoreOriginalModes(enabled);
+        releaseOpenRgbController(controller, true);
+    }
+
+    private void releaseOpenRgbController(OpenRGBController controller, boolean applyOutsideWorldProfile) {
+        boolean restored = false;
+        for (int attempt = 0; attempt < 3 && !restored; attempt++) {
+            restored = controller.restoreOriginalModes();
+        }
+        if (!restored) {
+            LOGGER.warn("Some MineLights-managed OpenRGB devices could not be restored before disconnect.");
+        }
         String profile = MineLightsClient.CONFIG.outsideWorldProfile;
-        if (profile != null && !profile.trim().isEmpty()
+        Set<Integer> enabled = enabledOpenRgbDevices(controller);
+        if (restored && applyOutsideWorldProfile && profile != null && !profile.trim().isEmpty()
                 && enabled.size() == controller.getDevices().size()) {
             controller.loadProfile(profile.trim());
         }
@@ -377,9 +397,13 @@ public class LightingManager implements Runnable {
     private void takeOverOpenRgbDevices() {
         synchronized (openRgbControllers) {
             for (OpenRGBController controller : openRgbControllers) {
-                controller.enterCustomMode(enabledOpenRgbDevices(controller));
+                takeOverOpenRgbController(controller);
             }
         }
+    }
+
+    private void takeOverOpenRgbController(OpenRGBController controller) {
+        controller.enterCustomMode(enabledOpenRgbDevices(controller));
     }
 
     private Set<Integer> enabledOpenRgbDevices(OpenRGBController controller) {
@@ -422,7 +446,7 @@ public class LightingManager implements Runnable {
                     if (devicesReleased != null) {
                         for (OpenRGBController controller : addedControllers) {
                             if (devicesReleased.booleanValue()) releaseOpenRgbController(controller);
-                            else controller.enterCustomMode(enabledOpenRgbDevices(controller));
+                            else takeOverOpenRgbController(controller);
                         }
                     }
                 }
@@ -513,8 +537,11 @@ public class LightingManager implements Runnable {
             LOGGER.error("Error in lighting loop", e);
         } finally {
             stopping.set(true);
-            if (MineLightsClient.CONFIG.restoreLightingOutsideWorld) {
-                releaseOpenRgbDevices();
+            boolean refreshing = refreshStopRequested.get();
+            boolean restoreOutsideWorld = MineLightsClient.CONFIG != null
+                    && MineLightsClient.CONFIG.restoreLightingOutsideWorld;
+            if (refreshing || restoreOutsideWorld) {
+                releaseOpenRgbDevices(!refreshing && restoreOutsideWorld);
             }
             synchronized (openRgbControllers) {
                 for (OpenRGBController controller : openRgbControllers) controller.disconnect();

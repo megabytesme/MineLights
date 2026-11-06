@@ -41,6 +41,7 @@ const SETTING_NAMES: &[&str] = &[
     "yeelight",
     "notify-missing-server",
     "check-server-updates",
+    "notify-server-download-progress",
     "health-bar-keys",
     "hunger-bar-keys",
     "saturation-bar-keys",
@@ -790,6 +791,26 @@ mod effect_setting_tests {
         assert!(set_setting(&mut settings, "health-color", "not-a-color").is_err());
         assert!(set_setting(&mut settings, "saturation-tint-strength", "NaN").is_err());
     }
+
+    #[test]
+    fn server_download_notifications_can_be_read_written_and_toggled() {
+        let mut settings = Settings::default();
+        assert!(settings.notify_server_download_progress);
+        assert_eq!(
+            setting_value(&settings, "notify-server-download-progress").as_deref(),
+            Some("On")
+        );
+        set_setting(&mut settings, "notify-server-download-progress", "off").unwrap();
+        assert!(!settings.notify_server_download_progress);
+        assert_eq!(
+            setting_value(&settings, "notify-server-download-progress").as_deref(),
+            Some("Off")
+        );
+        assert_eq!(
+            normalize_name("server-download-notifications"),
+            "notify-server-download-progress"
+        );
+    }
 }
 
 fn effect_value(settings: &Settings, name: &str) -> Option<String> {
@@ -1001,6 +1022,7 @@ fn set_setting(
         "yeelight" => &mut settings.enable_yeelight,
         "notify-missing-server" => &mut settings.notify_missing_server,
         "check-server-updates" => &mut settings.check_server_updates,
+        "notify-server-download-progress" => &mut settings.notify_server_download_progress,
         _ => return Err("Unknown setting. Use /minelights list."),
     };
     *field = enabled;
@@ -1051,6 +1073,9 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "yeelight" => on_off(settings.enable_yeelight).into(),
         "notify-missing-server" => on_off(settings.notify_missing_server).into(),
         "check-server-updates" => on_off(settings.check_server_updates).into(),
+        "notify-server-download-progress" => {
+            on_off(settings.notify_server_download_progress).into()
+        }
         _ => return None,
     };
     Some(value)
@@ -1092,6 +1117,7 @@ fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
         "yeelight" => settings.enable_yeelight,
         "notify-missing-server" => settings.notify_missing_server,
         "check-server-updates" => settings.check_server_updates,
+        "notify-server-download-progress" => settings.notify_server_download_progress,
         _ => return None,
     })
 }
@@ -1122,6 +1148,9 @@ fn normalize_name(name: &str) -> String {
         | "server-autostart-confirmation" => "server-autostart".into(),
         "check-updates" => "check-server-updates".into(),
         "missing-server-notice" => "notify-missing-server".into(),
+        "server-download-notifications" | "notify-server-downloads" => {
+            "notify-server-download-progress".into()
+        }
         _ => normalized,
     }
 }

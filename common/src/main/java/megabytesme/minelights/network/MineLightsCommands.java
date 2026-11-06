@@ -27,7 +27,8 @@ public final class MineLightsCommands {
     private static String[] settingsNames() {
         String[] base = {
             "enabled", "auto-start-server", "manual-server-management", "notify-missing-server",
-            "check-server-updates", "corsair", "asus", "logitech", "razer", "wooting", "steelseries",
+            "notify-server-download-progress", "check-server-updates", "corsair", "asus", "logitech",
+            "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
             "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
             "compass-priority", "low-health-warning", "biome-effects", "dimming-mode", "min-brightness",
@@ -407,6 +408,7 @@ public final class MineLightsCommands {
             case "auto-start-server": return Boolean.valueOf(config.autoStartServer);
             case "manual-server-management": return Boolean.valueOf(config.manualServerManagement);
             case "notify-missing-server": return Boolean.valueOf(config.notifyMissingServer);
+            case "notify-server-download-progress": return Boolean.valueOf(config.notifyServerDownloadProgress);
             case "check-server-updates": return Boolean.valueOf(config.checkServerUpdates);
             case "corsair": return Boolean.valueOf(config.enableCorsair);
             case "asus": return Boolean.valueOf(config.enableAsus);
@@ -450,6 +452,7 @@ public final class MineLightsCommands {
             case "auto-start-server": config.autoStartServer = value; break;
             case "manual-server-management": config.manualServerManagement = value; break;
             case "notify-missing-server": config.notifyMissingServer = value; break;
+            case "notify-server-download-progress": config.notifyServerDownloadProgress = value; break;
             case "check-server-updates": config.checkServerUpdates = value; break;
             case "corsair": config.enableCorsair = value; break;
             case "asus": config.enableAsus = value; break;
@@ -515,6 +518,9 @@ public final class MineLightsCommands {
         if ("manual-server".equals(name) || "manual-management".equals(name)) return "manual-server-management";
         if ("missing-server".equals(name) || "missing-server-notice".equals(name)
                 || "notify-when-server-missing".equals(name)) return "notify-missing-server";
+        if ("server-download-notifications".equals(name) || "notify-server-downloads".equals(name)) {
+            return "notify-server-download-progress";
+        }
         if ("server-update-notices".equals(name) || "update-notices".equals(name)
                 || "check-for-server-updates".equals(name)) return "check-server-updates";
         if ("open-rgb".equals(name)) return "openrgb";

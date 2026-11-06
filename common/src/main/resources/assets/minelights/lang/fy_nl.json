@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Yn de hânmjittige behearmodus toant dit in berjocht yn it spul\nmei ynstallaasje-ynformaasje as MineLights Server ûntbrekt.",
   "option.mine-lights.checkServerUpdates": "Kontrolearje op updates foar MineLights Server",
   "option.mine-lights.checkServerUpdates.tooltip": "Yn de hânmjittige behearmodus siket dit nei nije ferzjes en toant\nit wizigingslogboek yn it petear. Ynstallearje updates mei de hân.",
+  "option.mine-lights.notifyServerDownloadProgress": "Meldingen oer MineLights Server-downloads",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Lit petearberjochten sjen as in serverdownload yn in wrâld begjint, trochgiet nei’tsto in wrâld yngien bist en klear is.",
   "option.mine-lights.refresh_devices.label": "Apparatelist ferfarskje",
   "option.mine-lights.refresh_devices.tooltip": "As’t in nij apparaat oanslút wylst it spul draait,\nfinkje dit oan en bewarje om it yn de list sjen te litten.",
   "option.mine-lights.restart.label": "Tsjinner opnij starte",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Sêding en loft mei de hongerebalke kombinearje",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Lit sêding en loft op de hongertoetsen sjen ynstee fan op eigen toetsen.\nSêding kleurt de hongertoetsen dy't it bedekt (lykas AppleSkin).\nUnder wetter en oant de loft wer oanfolle is, litte de hongertoetsen loft sjen,\nlykas de bubbels boppe de hongerebalke.\nDe sêding-/lofttoetsen bliuwe frij.",
   "option.mine-lights.locatorBarColor": "Eftergrûn fan de lokaasjebalke",
-  "option.mine-lights.locatorBarColor.tooltip": "Kleur fan lokaasjetoetsen efter de rûtepunten\n(de donkere balke dy'tst yn it spul sjochst)."
+  "option.mine-lights.locatorBarColor.tooltip": "Kleur fan lokaasjetoetsen efter de rûtepunten\n(de donkere balke dy'tst yn it spul sjochst).",
+  "message.minelights.server.download.started": "[MineLights] MineLights Server wurdt ynladen…",
+  "message.minelights.server.download.in_progress": "[MineLights] De download fan MineLights Server is noch dwaande.",
+  "message.minelights.server.download.finished_started": "[MineLights] De download fan MineLights Server is klear en de server is start.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] De update fan MineLights Server is klear en de server is opnij start.",
+  "message.minelights.server.download.restart_required": "[MineLights] De fernijing fan MineLights Server is kontrolearre, mar noch net ynstallearre. As der in MineLights Server draait, stopje dy fia it systeemfak; start Minecraft dêrnei opnij om de fernijing te ynstallearjen en de server te starten.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server koe net automatysk starte wurde. Start it fia it systeemfak of ynstallearje it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] De automatyske opset fan MineLights Server koe net foltôge wurde. As de server draait, stopje dy dan fia it systeemfak; oars ynstallearje jo it mei de hân: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] It kontrolearjen op fernijingen foar MineLights Server is mislearre. Kontrolearje se mei de hân: https://github.com/megabytesme/MineLights-Server/releases"
 }

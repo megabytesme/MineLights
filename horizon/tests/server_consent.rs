@@ -12,6 +12,9 @@ mod minelights_lang {
     pub fn setting_label(_: &str, _: usize) -> Option<&'static str> {
         None
     }
+    pub fn setting_label_or_english(_: &str, _: usize) -> Option<&'static str> {
+        None
+    }
 }
 mod minelights_server {
     pub const SERVER_VERSION: &str = "v2.4.0";
@@ -51,4 +54,14 @@ fn confirmation_is_not_persisted_and_can_be_cancelled() {
     config::toggle_setting(&mut settings, 39);
     assert!(!settings.server_confirmation_pending);
     assert!(!settings.check_server_updates);
+}
+
+#[test]
+fn server_download_notifications_are_enabled_by_default_and_can_be_toggled() {
+    let mut settings = config::Settings::default();
+    assert!(settings.notify_server_download_progress);
+    config::toggle_setting(&mut settings, 47);
+    assert!(!settings.notify_server_download_progress);
+    config::toggle_setting(&mut settings, 47);
+    assert!(settings.notify_server_download_progress);
 }

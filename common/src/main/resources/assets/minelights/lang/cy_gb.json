@@ -24,6 +24,8 @@
   "option.mine-lights.notifyMissingServer.tooltip": "Yn y modd rheoli â llaw, mae’n dangos neges yn y gêm\nsy’n esbonio sut i osod Gweinydd MineLights pan nad yw ar gael.",
   "option.mine-lights.checkServerUpdates": "Gwirio am ddiweddariadau Gweinydd MineLights",
   "option.mine-lights.checkServerUpdates.tooltip": "Yn y modd rheoli â llaw, mae’n gwirio am fersiynau newydd ac\nyn dangos eu cofnod newid yn y sgwrs. Gosodwch ddiweddariadau â llaw.",
+  "option.mine-lights.notifyServerDownloadProgress": "Rhoi gwybod i mi am lawrlwythiadau MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Yn dangos negeseuon sgwrsio pan fydd lawrlwythiad gweinydd yn dechrau mewn byd, yn parhau ar ôl i chi ymuno â byd, ac yn gorffen.",
   "option.mine-lights.refresh_devices.label": "Adnewyddu’r Rhestr Dyfeisiau",
   "option.mine-lights.refresh_devices.tooltip": "Os ydych yn plygio dyfais newydd i mewn tra bo’r gêm yn rhedeg,\ndewiswch hwn a chadwch er mwyn iddi ymddangos yn y rhestr.",
   "option.mine-lights.restart.label": "Ailgychwyn y Gweinydd",
@@ -179,5 +181,13 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Uno dirlawnder ac aer â'r bar newyn",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Yn dangos dirlawnder ac aer ar allweddi newyn yn lle allweddi ar wahân.\nMae dirlawnder yn arlliwio allweddi newyn y mae'n eu gorchuddio (fel AppleSkin).\nO dan y dŵr, a nes bod yr aer wedi'i ail-lenwi, mae allweddi newyn yn dangos aer,\nfel y swigod uwchben y bar newyn.\nMae allweddi dirlawnder / aer yn aros yn rhydd.",
   "option.mine-lights.locatorBarColor": "Cefndir y bar lleoliad",
-  "option.mine-lights.locatorBarColor.tooltip": "Lliw allweddi lleoliad y tu ôl i'r dotiau pwynt ffordd\n(y bar tywyll a welwch yn y gêm)."
+  "option.mine-lights.locatorBarColor.tooltip": "Lliw allweddi lleoliad y tu ôl i'r dotiau pwynt ffordd\n(y bar tywyll a welwch yn y gêm).",
+  "message.minelights.server.download.started": "[MineLights] Yn lawrlwytho MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Mae lawrlwythiad MineLights Server yn dal i fynd rhagddo.",
+  "message.minelights.server.download.finished_started": "[MineLights] Mae lawrlwythiad MineLights Server wedi gorffen ac mae’r gweinydd wedi cychwyn.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Mae diweddariad MineLights Server wedi gorffen ac mae’r gweinydd wedi ailgychwyn.",
+  "message.minelights.server.download.restart_required": "[MineLights] Mae diweddariad MineLights Server wedi’i ddilysu, ond nid yw wedi’i osod eto. Os yw MineLights Server yn rhedeg, stopiwch ef o ddewislen hambwrdd y system; yna ailgychwynnwch Minecraft i osod a chychwyn y diweddariad.",
+  "message.minelights.server.download.start_failed": "[MineLights] Nid oedd modd cychwyn MineLights Server yn awtomatig. Cychwynnwch ef o’r hambwrdd neu gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Nid oedd modd cwblhau gosod MineLights Server yn awtomatig. Os yw’r gweinydd yn rhedeg, stopiwch ef o’r hambwrdd; fel arall, gosodwch ef â llaw: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Methodd gwirio am ddiweddariadau MineLights Server. Adolygwch y diweddariadau â llaw: https://github.com/megabytesme/MineLights-Server/releases"
 }
