@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "ɹɐ𐐒 ɹǝƃunH oʇuı ɹı∀ & uoıʇɐɹnʇɐS ǝƃɹǝW",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": ".ǝǝɹɟ ʇɟǝן ǝɹɐ sʎǝʞ ɹı∀ / uoıʇɐɹnʇɐS ǝɥ⊥\n.ɹɐq ɹǝƃunɥ ǝɥʇ ǝʌoqɐ ɹɐǝddɐ ʇɐɥʇ sǝןqqnq ǝɥʇ ǝʞıן\n,pɐǝʇsuı ɹıɐ ʍoɥs sʎǝʞ ɹǝƃunɥ ǝɥʇ ,sןןıɟǝɹ ɹıɐ ɹnoʎ ןıʇun puɐ ,ɹǝʇɐʍɹǝpuՈ\n.)uıʞSǝןdd∀ ǝʞıן( sɹǝʌoɔ ʇı sʎǝʞ ɹǝƃunɥ ǝɥʇ sʇuıʇ uoıʇɐɹnʇɐS\n.sʎǝʞ uʍo ɹıǝɥʇ ɟo pɐǝʇsuı sʎǝʞ ɹǝƃunɥ ǝɥʇ uo ɹıɐ puɐ uoıʇɐɹnʇɐs sʍoɥS",
   "option.mine-lights.locatorBarColor": "punoɹƃʞɔɐ𐐒 ɹɐ𐐒 ɹoʇɐɔo˥",
-  "option.mine-lights.locatorBarColor.tooltip": ".)ǝɯɐƃ uı ǝǝs noʎ ɹɐq ʞɹɐp ǝɥʇ(\nsʇop ʇuıodʎɐʍ ǝɥʇ puıɥǝq sʎǝʞ ɹoʇɐɔoן ǝɥʇ ɟo ɹoןoƆ"
+  "option.mine-lights.locatorBarColor.tooltip": ".)ǝɯɐƃ uı ǝǝs noʎ ɹɐq ʞɹɐp ǝɥʇ(\nsʇop ʇuıodʎɐʍ ǝɥʇ puıɥǝq sʎǝʞ ɹoʇɐɔoן ǝɥʇ ɟo ɹoןoƆ",
+  "option.mine-lights.notifyServerDownloadProgress": "spɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW ʇnoqɐ ǝɯ ʎɟıʇoN",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "˙sǝɥsıuıɟ puɐ 'pןɹoʍ ɐ uıoɾ noʎ ɹǝʇɟɐ sǝnuıʇuoɔ 'pןɹoʍ ɐ uı sʇɹɐʇs pɐoןuʍop ɹǝʌɹǝs ɐ uǝɥʍ sǝƃɐssǝɯ ʇɐɥɔ sʍoɥS",
+  "message.minelights.server.download.started": "…ɹǝʌɹǝS sʇɥƃı˥ǝuıW ƃuıpɐoןuʍo◖ [sʇɥƃı˥ǝuıW]",
+  "message.minelights.server.download.in_progress": "˙ssǝɹƃoɹd uı ןןıʇs sı pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]",
+  "message.minelights.server.download.finished_started": "˙pǝʇɹɐʇs sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ pɐoןuʍop ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]",
+  "message.minelights.server.download.finished_restarting": "˙pǝʇɹɐʇsǝɹ sɐɥ ɹǝʌɹǝs ǝɥʇ puɐ pǝɥsıuıɟ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW [sʇɥƃı˥ǝuıW]",
+  "message.minelights.server.download.restart_required": "[sʇɥƃı˥ǝuıW] ˙ǝʇɐpdn ǝɥʇ ʇɹɐʇs puɐ ןןɐʇsuı oʇ ʇɟɐɹɔǝuıW ɥɔunɐןǝɹ uǝɥʇ ؛ʎɐɹʇ ɯǝʇsʎs sʇı ɯoɹɟ doʇs 'ƃuıuunɹ sı ɹǝʌɹǝS sʇɥƃı˥ǝuıW ɐ ɟı ˙ʎǝʇsllɐʇsuı ʇou ʇnq pǝıɟıɹǝʌ sı ǝʇɐpdn ɹǝʌɹǝS sʇɥƃı˥ǝuıW ǝɥ┴",
+  "message.minelights.server.download.start_failed": "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ɹo ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ ʇɹɐʇS ˙ʎןןɐɔᴉʇɐɯoʇnɐ pǝʇɹɐʇs ǝq ʇou pןnoɔ ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] ːʎןןɐnuɐɯ ʇᴉ ןןɐʇsuᴉ ǝsᴉʍɹǝɥʇo ؛ʎɐɹʇ sʇᴉ ɯoɹɟ ʇᴉ doʇs ,ƃuᴉuunɹ sᴉ ɹǝʌɹǝs ǝɥʇ ɟI ˙pǝʇǝןdɯoɔ ǝq ʇou pןnoɔ dnʇǝs ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW ɔᴉʇɐɯoʇn∀ https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": ":ʎllɐnuɐɯ sǝʇɐpdn ʍǝᴉʌǝᴚ ˙pǝlᴉɐɟ ʞɔǝɥɔ ǝʇɐpdn ɹǝʌɹǝS sʇɥƃᴉ˥ǝuᴉW [sʇɥƃᴉ˥ǝuᴉW] https://github.com/megabytesme/MineLights-Server/releases"
 }

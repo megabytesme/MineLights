@@ -134,6 +134,8 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                             value -> MineLightsClient.CONFIG.notifyMissingServer = value);
                     toggle(options, "Check MineLights Server for updates", () -> MineLightsClient.CONFIG.checkServerUpdates,
                             value -> MineLightsClient.CONFIG.checkServerUpdates = value);
+                    toggle(options, translated("option.mine-lights.notifyServerDownloadProgress"), () -> MineLightsClient.CONFIG.notifyServerDownloadProgress,
+                            value -> MineLightsClient.CONFIG.notifyServerDownloadProgress = value);
                 }
                 break;
             case 1:
@@ -266,6 +268,10 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
     private static void toggle(List<Option> options, String label, BooleanSupplier value, Consumer<Boolean> setter) {
         options.add(new Option(label, () -> value.getAsBoolean() ? "Enabled" : "Disabled",
                 () -> setter.accept(!value.getAsBoolean())));
+    }
+
+    private static String translated(String key) {
+        return net.minecraft.client.resources.I18n.format(key);
     }
 
     private static void cycle(List<Option> options, String label, Supplier<String> value, Runnable change) {

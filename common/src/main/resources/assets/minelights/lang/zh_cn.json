@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "将饱和度和氧气合并到饥饿条",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "在饥饿按键上显示饱和度和氧气，而非使用独立按键。饱和度会为它覆盖的饥饿按键着色（类似 AppleSkin）。水下以及氧气恢复前，饥饿按键会显示氧气，就像原版饥饿条上方出现的气泡。饱和度 / 氧气按键将不再占用。",
   "option.mine-lights.locatorBarColor": "定位条背景",
-  "option.mine-lights.locatorBarColor.tooltip": "路标点背后的定位按键颜色（游戏内可见的深色条）。"
+  "option.mine-lights.locatorBarColor.tooltip": "路标点背后的定位按键颜色（游戏内可见的深色条）。",
+  "option.mine-lights.notifyServerDownloadProgress": "通知我 MineLights Server 下载状态",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "当服务器下载在你进入世界时开始、在你进入世界后仍在继续，或下载完成时，在聊天栏显示消息。",
+  "message.minelights.server.download.started": "[MineLights] 正在下载 MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] MineLights Server 下载仍在进行中。",
+  "message.minelights.server.download.finished_started": "[MineLights] MineLights Server 下载完成，服务器已启动。",
+  "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server 更新完成，服务器已重新启动。",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server 更新已验证，但尚未安装。如果 MineLights Server 正在运行，请从系统托盘菜单将其停止；然后重新启动 Minecraft 以安装并启动更新。",
+  "message.minelights.server.download.start_failed": "[MineLights] 无法自动启动 MineLights Server。请从系统托盘启动它，或手动安装：https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] 无法完成 MineLights Server 的自动设置。如果服务器正在运行，请从系统托盘停止它；否则请手动安装：https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] MineLights Server 更新检查失败。请手动查看更新：https://github.com/megabytesme/MineLights-Server/releases"
 }

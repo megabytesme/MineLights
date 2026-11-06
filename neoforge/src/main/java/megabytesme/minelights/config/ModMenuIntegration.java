@@ -188,6 +188,12 @@ public final class ModMenuIntegration {
                     .setTooltip(translatable("option.mine-lights.checkServerUpdates.tooltip"))
                     .setSaveConsumer(newValue -> MineLightsClient.CONFIG.checkServerUpdates = newValue)
                     .build());
+            serverManagement.addEntry(entryBuilder
+                    .startBooleanToggle(translatable("option.mine-lights.notifyServerDownloadProgress"), MineLightsClient.CONFIG.notifyServerDownloadProgress)
+                    .setDefaultValue(true)
+                    .setTooltip(translatable("option.mine-lights.notifyServerDownloadProgress.tooltip"))
+                    .setSaveConsumer(newValue -> MineLightsClient.CONFIG.notifyServerDownloadProgress = newValue)
+                    .build());
             serverManagement.addEntry(entryBuilder.startTextDescription(literal("")).build());
             serverManagement.addEntry(entryBuilder.startTextDescription(
                     translatable("text.mine-lights.server.restart_from_tray")).build());

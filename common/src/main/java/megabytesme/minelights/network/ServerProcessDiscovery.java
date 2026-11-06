@@ -16,8 +16,17 @@ public final class ServerProcessDiscovery {
     private ServerProcessDiscovery() {}
 
     public static synchronized boolean isRunning() {
+        return checkRunning(false);
+    }
+
+    /** Bypasses the short UI polling cache at update and server-start boundaries. */
+    public static synchronized boolean isRunningFresh() {
+        return checkRunning(true);
+    }
+
+    private static boolean checkRunning(boolean force) {
         long now = System.nanoTime();
-        if (now < nextCheck) return cached;
+        if (!force && now < nextCheck) return cached;
         nextCheck = now + TimeUnit.SECONDS.toNanos(3);
         Process process = null;
         try {

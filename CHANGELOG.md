@@ -41,6 +41,10 @@ This release brings the authenticated MineLights Server V2 protocol to Java and 
 - Added Horizon OpenRGB key-name logging and documentation for configurable lighting. Translation cleanup and completion followed the original contribution.
 - The authenticated server protocol, pairing, multi-client lifecycle, Java installation controls, and Horizon server-download safeguards are separate 2.4.0 release work.
 
+### Later 2.4.0 update
+
+- Added an option to enable or disable MineLights Server download chat notices across Java and Horizon clients. Notices report a transfer that starts while the player is in a world, an active earlier transfer after they join one, and whether the server started or needs a restart.
+
 ## New Contributors ⭐
 
 - [obaba-samich](https://github.com/obaba-samich): [PR #32](https://github.com/megabytesme/MineLights/pull/32)

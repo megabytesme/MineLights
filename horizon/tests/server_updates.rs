@@ -77,9 +77,24 @@ fn download_never_runs_without_permission_or_overwrites_an_existing_file() {
     let path = dir.join("MineLights.exe");
     assert!(!server::download_pinned(&path, false));
     assert!(!path.exists());
+    let started = std::sync::atomic::AtomicBool::new(false);
+    assert!(
+        server::download_pinned_detailed_with_started(&path, false, || {
+            started.store(true, std::sync::atomic::Ordering::Release);
+        })
+        .is_err()
+    );
+    assert!(!started.load(std::sync::atomic::Ordering::Acquire));
     std::fs::write(&path, b"user-installed server").unwrap();
     assert!(!server::is_reviewed_binary(&path));
     assert!(!server::download_pinned(&path, true));
+    assert!(
+        server::download_pinned_detailed_with_started(&path, true, || {
+            started.store(true, std::sync::atomic::Ordering::Release);
+        })
+        .is_err()
+    );
+    assert!(!started.load(std::sync::atomic::Ordering::Acquire));
     assert_eq!(std::fs::read(&path).unwrap(), b"user-installed server");
     std::fs::remove_file(&path).unwrap();
     std::fs::remove_dir(&dir).unwrap();

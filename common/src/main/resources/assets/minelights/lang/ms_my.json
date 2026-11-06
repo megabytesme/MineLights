@@ -179,5 +179,15 @@
   "option.mine-lights.mergeSaturationIntoHunger": "Gabungkan Ketepuan & Udara ke Bar Kelaparan",
   "option.mine-lights.mergeSaturationIntoHunger.tooltip": "Menunjukkan ketepuan dan udara pada kekunci kelaparan dan bukannya kekunci berasingan. Ketepuan mewarnakan kekunci kelaparan yang diliputinya (seperti AppleSkin). Di bawah air dan sehingga udara anda pulih, kekunci kelaparan menunjukkan udara seperti gelembung di atas bar kelaparan. Kekunci Ketepuan / Udara dibiarkan kosong.",
   "option.mine-lights.locatorBarColor": "Latar Belakang Bar Penjejak Lokasi",
-  "option.mine-lights.locatorBarColor.tooltip": "Warna kekunci penjejak lokasi di belakang titik laluan (bar gelap yang anda lihat dalam permainan)."
+  "option.mine-lights.locatorBarColor.tooltip": "Warna kekunci penjejak lokasi di belakang titik laluan (bar gelap yang anda lihat dalam permainan).",
+  "option.mine-lights.notifyServerDownloadProgress": "Beritahu saya tentang muat turun MineLights Server",
+  "option.mine-lights.notifyServerDownloadProgress.tooltip": "Memaparkan mesej sembang apabila muat turun pelayan bermula semasa anda berada dalam dunia, berterusan selepas anda memasuki dunia, dan selesai.",
+  "message.minelights.server.download.started": "[MineLights] Memuat turun MineLights Server…",
+  "message.minelights.server.download.in_progress": "[MineLights] Muat turun MineLights Server masih berlangsung.",
+  "message.minelights.server.download.finished_started": "[MineLights] Muat turun MineLights Server selesai dan pelayan telah dimulakan.",
+  "message.minelights.server.download.finished_restarting": "[MineLights] Kemas kini MineLights Server selesai dan pelayan telah dimulakan semula.",
+  "message.minelights.server.download.restart_required": "[MineLights] Kemas kini MineLights Server telah disahkan tetapi belum dipasang. Jika MineLights Server sedang berjalan, hentikannya melalui ikon dulang sistem; kemudian lancarkan semula Minecraft untuk memasang dan memulakan kemas kini.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server tidak dapat dimulakan secara automatik. Mulakannya daripada dulang sistem atau pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] Persediaan automatik MineLights Server tidak dapat diselesaikan. Jika pelayan sedang berjalan, hentikannya daripada dulang sistem; jika tidak, pasang secara manual: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.update_check_failed": "[MineLights] Semakan kemas kini MineLights Server gagal. Semak kemas kini secara manual: https://github.com/megabytesme/MineLights-Server/releases"
 }

@@ -363,6 +363,31 @@ public class ModMenuIntegration implements ModMenuApi {
                         )
                         .setSaveConsumer(newValue -> MineLightsClient.CONFIG.checkServerUpdates = newValue)
                         .build());
+                serverManagement.addEntry(entryBuilder
+                        .startBooleanToggle(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.notifyServerDownloadProgress")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.notifyServerDownloadProgress")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                                ,
+                                MineLightsClient.CONFIG.notifyServerDownloadProgress)
+                        .setDefaultValue(true)
+                        .setTooltip(
+                                //? if >=1.19 {
+                                translatable("option.mine-lights.notifyServerDownloadProgress.tooltip")
+                                //?} else if <1.19 {
+                                /*new TranslatableText("option.mine-lights.notifyServerDownloadProgress.tooltip")
+                                *///?}
+                                //? if <1.16 {
+                                /* .getString()
+                                *///? }
+                        )
+                        .setSaveConsumer(newValue -> MineLightsClient.CONFIG.notifyServerDownloadProgress = newValue)
+                        .build());
             }
 
             serverManagement.addEntry(entryBuilder.startTextDescription(
