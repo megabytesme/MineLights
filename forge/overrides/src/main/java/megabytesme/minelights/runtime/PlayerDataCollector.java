@@ -644,13 +644,13 @@ public class PlayerDataCollector {
     //?} else {
     private static void updateCompassData(PlayerDto dto, LocalPlayer player, ClientLevel world) {
     //?}
-        CompassFindResult result = findCompass(player);
+        CompassFindResult result = MineLightsClient.CONFIG.ignoreInventoryCompass ? null : findCompass(player);
 
         if (result == null) {
             CompassFallbackTarget fallbackTarget = MineLightsClient.CONFIG.compassFallbackTarget == null
                     ? CompassFallbackTarget.WORLD_SPAWN
                     : MineLightsClient.CONFIG.compassFallbackTarget;
-            if (MineLightsClient.CONFIG.alwaysShowCompass && fallbackTarget == CompassFallbackTarget.ORIGIN) {
+            if (showsFallbackCompass() && fallbackTarget == CompassFallbackTarget.ORIGIN) {
                 dto.setCompassType(CompassType.STANDARD);
                 //? if loader_forge && <=1.7.10 {
                 setCompassTarget(dto, player, new ChunkCoordinates(0, 0, 0));
@@ -660,7 +660,7 @@ public class PlayerDataCollector {
                 return;
             }
             //? if loader_forge && >=1.17 {
-            BlockPos playerSpawn = MineLightsClient.CONFIG.alwaysShowCompass && fallbackTarget == CompassFallbackTarget.PLAYER_SPAWN
+            BlockPos playerSpawn = showsFallbackCompass() && fallbackTarget == CompassFallbackTarget.PLAYER_SPAWN
                     ? getPlayerSpawnPos(player, world)
                     : null;
             if (playerSpawn != null) {
@@ -670,7 +670,7 @@ public class PlayerDataCollector {
             }
             //?}
             //? if >=1.21.9 {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && isOverworld(world)) {
+            if (showsFallbackCompass() && isOverworld(world)) {
                 dto.setCompassType(CompassType.STANDARD);
                 net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
                 if (respawnData != null && respawnData.dimension().equals(world.dimension())) {
@@ -684,7 +684,7 @@ public class PlayerDataCollector {
                 dto.setCompassType(CompassType.NONE);
             }
             //?} else {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && isOverworld(world)) {
+            if (showsFallbackCompass() && isOverworld(world)) {
                 dto.setCompassType(CompassType.STANDARD);
                 //? if loader_forge && <=1.14.3 {
                 //? if loader_forge && <=1.12.2 {
@@ -759,6 +759,10 @@ public class PlayerDataCollector {
         }
     }
     //?}
+
+    private static boolean showsFallbackCompass() {
+        return MineLightsClient.CONFIG.alwaysShowCompass || MineLightsClient.CONFIG.ignoreInventoryCompass;
+    }
 
     private static class CompassFindResult {
         final ItemStack stack;

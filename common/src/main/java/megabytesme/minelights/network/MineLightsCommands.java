@@ -31,7 +31,7 @@ public final class MineLightsCommands {
             "notify-server-download-progress", "check-server-updates", "corsair", "asus", "logitech",
             "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
-            "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass", "compass-fallback-target",
+            "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass", "ignore-inventory-compass", "compass-fallback-target",
             "compass-priority", "low-health-warning", "biome-effects", "dimming-mode", "min-brightness",
             "weather-effects", "mirror-ram-rain-direction", "end-flash-effect", "fire-effect", "water-effect",
             "portal-effects", "movement-keys", "chat-key-pulse", "absorption-overlay",
@@ -438,6 +438,7 @@ public final class MineLightsCommands {
             case "locator-bar": return Boolean.valueOf(config.enableLocatorBar);
             case "compass-effect": return Boolean.valueOf(config.enableCompassEffect);
             case "always-show-compass": return Boolean.valueOf(config.alwaysShowCompass);
+            case "ignore-inventory-compass": return Boolean.valueOf(config.ignoreInventoryCompass);
             case "low-health-warning": return Boolean.valueOf(config.enableLowHealthWarning);
             case "absorption-overlay": return Boolean.valueOf(config.enableAbsorptionOverlay);
             case "merge-saturation-into-hunger": return Boolean.valueOf(config.mergeSaturationIntoHunger);
@@ -482,6 +483,7 @@ public final class MineLightsCommands {
             case "locator-bar": config.enableLocatorBar = value; break;
             case "compass-effect": config.enableCompassEffect = value; break;
             case "always-show-compass": config.alwaysShowCompass = value; break;
+            case "ignore-inventory-compass": config.ignoreInventoryCompass = value; break;
             case "low-health-warning": config.enableLowHealthWarning = value; break;
             case "absorption-overlay": config.enableAbsorptionOverlay = value; break;
             case "merge-saturation-into-hunger": config.mergeSaturationIntoHunger = value; break;
