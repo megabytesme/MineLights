@@ -179,7 +179,10 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
     let (compass_type, target) = selected_compass
         .map(|(kind, target)| (*kind, *target))
         .unwrap_or_else(|| {
-            if settings.always_show_compass && dimension == "minecraft:overworld" {
+            // Horizon has no singleplayer server access, so player spawn uses world spawn.
+            if settings.always_show_compass && settings.compass_fallback_target == 1 {
+                (1, Some([0.0, 0.0, 0.0]))
+            } else if settings.always_show_compass && dimension == "minecraft:overworld" {
                 (1, game.spawn.map(|spawn| [spawn.x, spawn.y, spawn.z]))
             } else {
                 (0, None)

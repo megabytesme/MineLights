@@ -918,6 +918,38 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
                 .build());
+        //? if >=1.19 {
+        CompassFallbackTarget fallbackInitial = MineLightsClient.CONFIG.compassFallbackTarget != null
+                ? MineLightsClient.CONFIG.compassFallbackTarget
+                : CompassFallbackTarget.WORLD_SPAWN;
+        playerStatus.addEntry(entryBuilder
+                .startEnumSelector(translatable("option.mine-lights.compassFallbackTarget"),
+                                CompassFallbackTarget.class,
+                                fallbackInitial)
+                .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
+                .setEnumNameProvider((value) -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                .setTooltip(translatable("option.mine-lights.compassFallbackTarget.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
+                .build());
+        //?} else if >=1.16 {
+        /*
+        CompassFallbackTarget fallbackInitial = MineLightsClient.CONFIG.compassFallbackTarget != null
+                ? MineLightsClient.CONFIG.compassFallbackTarget
+                : CompassFallbackTarget.WORLD_SPAWN;
+        playerStatus.addEntry(entryBuilder
+                .startEnumSelector(
+                        new TranslatableText("option.mine-lights.compassFallbackTarget"),
+                        CompassFallbackTarget.class,
+                        fallbackInitial)
+                .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
+                .setEnumNameProvider((value) -> new TranslatableText(
+                        "enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                .setTooltip(new TranslatableText("option.mine-lights.compassFallbackTarget.tooltip"))
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
+                .build());
+         */
+        //?}
 
         //? if >=1.19 {
         CompassPriority initial = MineLightsClient.CONFIG.compassPriority != null

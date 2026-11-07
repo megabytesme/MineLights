@@ -1,3 +1,7 @@
+# Unreleased
+
+- Added a compass fallback target. With Always Show Compass on and no compass in your inventory, the compass effect can point to world spawn (default), 0, 0, or your player spawn. Player spawn uses your bed or respawn anchor in singleplayer, and world spawn on servers, because servers don't send it to the client. A compass in your inventory always takes priority. Available in the settings screens, through `/minelights set compass-fallback-target`, and in Horizon through the command.
+
 # MineLights 2.4.0
 
 This release brings the authenticated MineLights Server V2 protocol to Java and Horizon clients, adds Horizon support for Minecraft 26.3, and introduces configurable lighting controls.

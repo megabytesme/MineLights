@@ -20,7 +20,7 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
   - **Status Effects**: Your lighting will react when you are on fire, poisoned, or withering.
   - **Block Effects**: Standing in lava, fire, or portals will trigger unique lighting themes.
 - **In-Game Status Bars**: Show health, absorption, hunger, saturation, air, and experience on your chosen keyboard keys. On Minecraft 1.21.6 and later, a locator bar can also track players and waypoints.
-- **Compass**: A compass on your numpad (Extended keyboards only) will appear, if you have either a compass or recovery compass in your inventory! Alternatively it can always be displayed via a toggle in settings.
+- **Compass**: A compass on your numpad (Extended keyboards only) will appear, if you have a compass, lodestone compass or recovery compass in your inventory! Alternatively it can always be displayed via a toggle in settings, pointing to world spawn, 0, 0, or your player spawn.
 - **Highly Configurable**: Change effect keys and colors, integrations, and individual devices through the settings screen and `/minelights` commands.
 - **Multiple Languages**: Support for English, Anglish, German and Chinese (Simplified) has been added (Along with some joke languages)
 

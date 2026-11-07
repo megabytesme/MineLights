@@ -1,6 +1,7 @@
 package megabytesme.minelights.runtime;
 
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.CompassFallbackTarget;
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
 import megabytesme.minelights.accessor.PlayerVisualBrightnessAccessor;
 import megabytesme.minelights.mixin.LightningAccessor;
@@ -252,29 +253,14 @@ public class PlayerDataCollector {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
-            //? if >=1.21.9 {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension().equals(Level.OVERWORLD)) {
+            BlockPos fallbackPos = MineLightsClient.CONFIG.alwaysShowCompass ? getFallbackCompassTarget(player, world) : null;
+            if (fallbackPos != null) {
                 dto.setCompassType(CompassType.STANDARD);
-                net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
-                if (respawnData != null && respawnData.dimension().equals(world.dimension())) {
-                    setCompassTarget(dto, player, respawnData.pos());
-                } else {
-                    dto.setCompassState(CompassState.NONE);
-                    dto.setCompassType(CompassType.NONE);
-                }
+                setCompassTarget(dto, player, fallbackPos);
             } else {
                 dto.setCompassState(CompassState.NONE);
                 dto.setCompassType(CompassType.NONE);
             }
-            //?} else {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension().equals(Level.OVERWORLD)) {
-                dto.setCompassType(CompassType.STANDARD);
-                setCompassTarget(dto, player, world.getSharedSpawnPos());
-            } else {
-                dto.setCompassState(CompassState.NONE);
-                dto.setCompassType(CompassType.NONE);
-            }
-            //?}
             return;
         }
 
@@ -285,6 +271,57 @@ public class PlayerDataCollector {
             setCompassTarget(dto, player, targetPos);
         } else {
             dto.setCompassState(CompassState.SPINNING);
+        }
+    }
+
+    private static BlockPos getFallbackCompassTarget(LocalPlayer player, ClientLevel world) {
+        CompassFallbackTarget target = MineLightsClient.CONFIG.compassFallbackTarget == null
+                ? CompassFallbackTarget.WORLD_SPAWN
+                : MineLightsClient.CONFIG.compassFallbackTarget;
+        if (target == CompassFallbackTarget.ORIGIN) {
+            return new BlockPos(0, 0, 0);
+        }
+        if (target == CompassFallbackTarget.PLAYER_SPAWN) {
+            BlockPos playerSpawn = getPlayerSpawnPos(player, world);
+            if (playerSpawn != null) {
+                return playerSpawn;
+            }
+        }
+        return getWorldSpawnPos(world);
+    }
+
+    private static BlockPos getWorldSpawnPos(ClientLevel world) {
+        if (!world.dimension().equals(Level.OVERWORLD)) {
+            return null;
+        }
+        //? if >=1.21.9 {
+        net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
+        return respawnData != null && respawnData.dimension().equals(world.dimension()) ? respawnData.pos() : null;
+        //?} else {
+        /*return world.getSharedSpawnPos();
+        *///?}
+    }
+
+    /** The server only shares the player's bed or anchor with the client in singleplayer. */
+    private static BlockPos getPlayerSpawnPos(LocalPlayer player, ClientLevel world) {
+        try {
+            net.minecraft.client.server.IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+            if (server == null) return null;
+            net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
+            if (serverPlayer == null) return null;
+            //? if >=1.21.9 {
+            if (serverPlayer.getRespawnConfig() == null) return null;
+            net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
+            return respawnData.dimension().equals(world.dimension()) ? respawnData.pos() : null;
+            //?} else if >=1.21.5 {
+            /*if (serverPlayer.getRespawnConfig() == null) return null;
+            return serverPlayer.getRespawnConfig().dimension().equals(world.dimension()) ? serverPlayer.getRespawnConfig().pos() : null;
+            *///?} else {
+            /*if (serverPlayer.getRespawnPosition() == null) return null;
+            return serverPlayer.getRespawnDimension().equals(world.dimension()) ? serverPlayer.getRespawnPosition() : null;
+            *///?}
+        } catch (RuntimeException e) {
+            return null;
         }
     }
 
