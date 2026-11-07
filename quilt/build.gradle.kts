@@ -29,6 +29,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/rgb",
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
+            "src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
             "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
@@ -52,7 +53,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             }
         }
 
-        listOf("CompassPriority.java", "DimmingMode.java", "ExperienceLocatorMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
+        listOf("CompassFallbackTarget.java", "CompassPriority.java", "DimmingMode.java", "ExperienceLocatorMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
             copy {
                 from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/$fileName"))
                 into(rootProject.file("src/main/java/megabytesme/minelights/config"))
