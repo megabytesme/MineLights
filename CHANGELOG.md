@@ -1,6 +1,9 @@
 # Unreleased
 
 - Added a compass fallback target. With Always Show Compass on and no compass in your inventory, the compass effect can point to world spawn (default), 0, 0, or your player spawn. Player spawn uses your bed or respawn anchor in singleplayer, and world spawn on servers, because servers don't send it to the client. A compass in your inventory always takes priority. Available in the settings screens, through `/minelights set compass-fallback-target`, and in Horizon through the command.
+- Added Ignore Carried Compasses, which always uses the fallback target even when you carry a compass, lodestone compass or recovery compass (`/minelights set ignore-inventory-compass on`).
+- Grouped the Player Status, Key Layout and Colors settings under section titles (Health, Hunger & Saturation, Experience & Locator Bar, Compass, Other Keys, Devices, Outside Worlds) on Fabric and Quilt 1.16+.
+- The Key Layout page now says when the Saturation / Air keys aren't used because saturation and air are merged into the hunger bar.
 
 # MineLights 2.4.0
 
