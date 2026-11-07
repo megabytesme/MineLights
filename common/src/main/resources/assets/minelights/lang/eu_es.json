@@ -19,7 +19,7 @@
   "option.mine-lights.autoStartServer": "Abiarazi zerbitzaria automatikoki",
   "option.mine-lights.autoStartServer.tooltip": "Gaituta badago, mod-ak zerbitzaria automatikoki abiaraziko du\nmartxan ez badago.\nEskuzko zerbitzari-kudeaketa gaituta badago, MineLights Server instalatu behar duzu lehenik.",
   "option.mine-lights.manualServerManagement": "Kudeatu MineLights Server eskuz",
-  "option.mine-lights.manualServerManagement.tooltip": "Gaituta dagoenean, modak ez du MineLights Server deskargatuko edo ordezkatuko.\nZuk instalatutako zerbitzari bat abiaraz dezake Auto-start zerbitzaria aukera gaituta badago.",
+  "option.mine-lights.manualServerManagement.tooltip": "Gaituta dagoenean, modak ez du MineLights Server deskargatuko edo ordezkatuko.\nZuk instalatutako zerbitzari bat abiaraz dezake, “Abiarazi zerbitzaria automatikoki” aukera gaituta badago.",
   "option.mine-lights.notifyMissingServer": "Abisatu MineLights Server falta denean",
   "option.mine-lights.notifyMissingServer.tooltip": "Eskuzko kudeaketa moduan, joko barruko instalazio-mezu bat\nerakusten du MineLights Server falta denean.",
   "option.mine-lights.checkServerUpdates": "Egiaztatu MineLights Server-en eguneratzeak",
