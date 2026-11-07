@@ -32,7 +32,7 @@
   "option.mine-lights.refresh_devices.tooltip": "Уен эшләгәндә яңа җайланма тоташтырсагыз,\nул исемлектә күренсен өчен моны сайлап, саклагыз.",
   "option.mine-lights.restart.label": "Серверны яңадан эшләтеп җибәрү",
   "option.mine-lights.restart_admin.label": "Серверны администратор буларак яңадан эшләтеп җибәрү",
-  "text.mine-lights.server.restart_from_tray": "V2 серверы башка клиентлар һәм программалар белән уртак кулланыла. Аны система трей менюсыннан яңадан кабызыгыз яки туктатыгыз.",
+  "text.mine-lights.server.restart_from_tray": "V2 серверы башка клиентлар һәм программалар белән уртак кулланыла. Аны система трей менюсыннан яңадан эшләтегез яки туктатыгыз.",
   "option.mine-lights.device.header": "Түбәндәге аерым яктырту җайланмаларын кабызыгыз яки сүндерегез:",
   "option.mine-lights.clear_disabled.label": "Барлык җайланмаларны яңадан кабызу",
   "option.mine-lights.clear_disabled.tooltip": "Сүндерелгән барлык җайланмалар исемлеген чистарту өчен бу шакмакны сайлагыз.",
@@ -186,8 +186,8 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server йөкләве әле дәвам итә.",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server йөкләнеп бетте һәм сервер эшли башлады.",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server яңартуы тәмамланды һәм сервер яңадан эшли башлады.",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server яңартуы тикшерелде, ләкин әле урнаштырылмаган. MineLights Server эшли икән, аны система төенендәге менюдан туктатыгыз; аннары яңартуны урнаштыру һәм эшләтеп җибәрү өчен Minecraft-ны яңадан башлап җибәрегез.",
-  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система төененнән эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
-  "message.minelights.server.download.failed": "[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, система төененнән туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server яңартуы тикшерелде, ләкин әле урнаштырылмаган. MineLights Server эшли икән, аны система трей менюсыннан туктатыгыз; аннары яңартуны урнаштыру һәм эшләтеп җибәрү өчен Minecraft-ны яңадан башлап җибәрегез.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ны автоматик башлап булмады. Аны система трей менюсыннан эшләтеп җибәрегез яки кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server-ның автоматик көйләүләрен тәмамлап булмады. Сервер эшли икән, аны система трей менюсыннан туктатыгыз; югыйсә, кулдан урнаштырыгыз: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server яңартуларын тикшерү уңышсыз булды. Яңартуларны кулдан карагыз: https://github.com/megabytesme/MineLights-Server/releases"
 }

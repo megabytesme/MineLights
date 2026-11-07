@@ -32,7 +32,7 @@
   "option.mine-lights.refresh_devices.tooltip": "விளையாட்டு இயங்கும்போது புதிய சாதனத்தை இணைத்தால்,\nஅது பட்டியலில் தோன்ற இந்த விருப்பத்தைத் தேர்ந்தெடுத்து சேமிக்கவும்.",
   "option.mine-lights.restart.label": "சேவையகத்தை மறுதொடங்கு",
   "option.mine-lights.restart_admin.label": "நிர்வாகியாக சேவையகத்தை மறுதொடங்கு",
-  "text.mine-lights.server.restart_from_tray": "V2 சேவையகம் மற்ற கிளையன்ட்களுடனும் மென்பொருளுடனும் பகிரப்படுகிறது. கணினித் தட்டு மெனுவில் இருந்து மறுதொடக்கம் செய்யவும் அல்லது நிறுத்தவும்.",
+  "text.mine-lights.server.restart_from_tray": "V2 சேவையகம் மற்ற கிளையன்ட்களுடனும் மென்பொருளுடனும் பகிரப்படுகிறது. அறிவிப்பு பகுதியிலிருந்து மறுதொடக்கம் செய்யவும் அல்லது நிறுத்தவும்.",
   "option.mine-lights.device.header": "கீழே குறிப்பிட்ட விளக்கு சாதனங்களை இயக்கவும் அல்லது முடக்கவும்:",
   "option.mine-lights.clear_disabled.label": "அனைத்து சாதனங்களையும் மீண்டும் இயக்கு",
   "option.mine-lights.clear_disabled.tooltip": "முடக்கப்பட்ட சாதனங்களின் பட்டியலை அழிக்க இந்தப் பெட்டியைத் தேர்ந்தெடுக்கவும்.",
@@ -186,8 +186,8 @@
   "message.minelights.server.download.in_progress": "[MineLights] MineLights Server பதிவிறக்கம் இன்னும் நடைபெறுகிறது.",
   "message.minelights.server.download.finished_started": "[MineLights] MineLights Server பதிவிறக்கம் முடிந்தது; சேவையகமும் தொடங்கிவிட்டது.",
   "message.minelights.server.download.finished_restarting": "[MineLights] MineLights Server புதுப்பிப்பு முடிந்தது; சேவையகம் மீண்டும் தொடங்கிவிட்டது.",
-  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server புதுப்பிப்பு சரிபார்க்கப்பட்டது, ஆனால் இன்னும் நிறுவப்படவில்லை. MineLights Server இயங்கிக்கொண்டிருந்தால், கணினித் தட்டு மெனுவிலிருந்து அதை நிறுத்துங்கள்; பின்னர் புதுப்பிப்பை நிறுவி தொடங்க Minecraft-ஐ மறுதொடக்கம் செய்யுங்கள்.",
-  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. தட்டு மெனுவிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
-  "message.minelights.server.download.failed": "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், தட்டு மெனுவிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.restart_required": "[MineLights] MineLights Server புதுப்பிப்பு சரிபார்க்கப்பட்டது, ஆனால் இன்னும் நிறுவப்படவில்லை. MineLights Server இயங்கிக்கொண்டிருந்தால், அறிவிப்பு பகுதியிலிருந்து அதை நிறுத்துங்கள்; பின்னர் புதுப்பிப்பை நிறுவி தொடங்க Minecraft-ஐ மறுதொடக்கம் செய்யுங்கள்.",
+  "message.minelights.server.download.start_failed": "[MineLights] MineLights Server-ஐ தானாகத் தொடங்க முடியவில்லை. அறிவிப்பு பகுதியிலிருந்து தொடங்கவும் அல்லது கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
+  "message.minelights.server.download.failed": "[MineLights] MineLights Server-இன் தானியங்கி அமைப்பை முடிக்க முடியவில்லை. சேவையகம் இயங்கிக்கொண்டிருந்தால், அறிவிப்பு பகுதியிலிருந்து அதை நிறுத்தவும்; இல்லையெனில், கைமுறையாக நிறுவவும்: https://github.com/megabytesme/MineLights-Server/releases",
   "message.minelights.server.update_check_failed": "[MineLights] MineLights Server புதுப்பிப்புகளைச் சரிபார்க்க முடியவில்லை. அவற்றை கைமுறையாகப் பார்க்கவும்: https://github.com/megabytesme/MineLights-Server/releases"
 }
