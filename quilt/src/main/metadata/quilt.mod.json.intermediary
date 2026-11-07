@@ -38,7 +38,7 @@
         "optional": true
       },
       {
-        "id": "cloth-config",
+        "id": "${cloth_config_mod_id}",
         "optional": true
       }
     ]
