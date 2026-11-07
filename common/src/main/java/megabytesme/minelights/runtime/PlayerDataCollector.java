@@ -555,7 +555,7 @@ public class PlayerDataCollector {
     //?} else if >=1.21.9 {
     /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
         try {
-            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
             if (server == null) return null;
             net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
             if (serverPlayer == null) return null;
@@ -569,7 +569,7 @@ public class PlayerDataCollector {
     *///?} else if >=1.21.5 {
     /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
         try {
-            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
             if (server == null) return null;
             net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
             if (serverPlayer == null) return null;
@@ -582,7 +582,7 @@ public class PlayerDataCollector {
     *///?} else if >=1.16 {
     /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
         try {
-            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
             if (server == null) return null;
             net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
             if (serverPlayer == null) return null;
