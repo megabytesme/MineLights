@@ -111,6 +111,10 @@ public final class ServerExecutableUpdateFilesTest {
         if (!serverRunning.get()) throw new AssertionError("test did not simulate a process race");
         bytesEqual(old, Files.readAllBytes(executable));
         bytesEqual(release, Files.readAllBytes(staged));
+        if (!ServerDownloadNotificationState.RESTART_REQUIRED.equals(
+                new ServerDownloadNotificationState().restartRequired(true))) {
+            throw new AssertionError("running shared server did not produce the restart-required notice");
+        }
     }
 
     private static void settingsDisabledMidDownloadRemovesPartial(Path directory) throws Exception {
