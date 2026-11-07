@@ -22,3 +22,6 @@ minelights-engine = { path = "mixins/minelights/engine" }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_IO"] }
+
+[dev-dependencies]
+fs4 = { version = "1.1.0", default-features = false, features = ["sync"] }
