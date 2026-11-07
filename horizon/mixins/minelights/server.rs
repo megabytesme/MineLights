@@ -14,7 +14,6 @@ const RELEASES_URL: &str = "https://github.com/megabytesme/MineLights-Server/rel
 #[cfg(windows)]
 pub(super) struct ServerOperationLock {
     file: std::fs::File,
-    overlapped: windows_sys::Win32::System::IO::OVERLAPPED,
 }
 
 #[cfg(windows)]
@@ -26,13 +25,6 @@ impl ServerOperationLock {
     }
 
     fn try_acquire_at(path: &std::path::Path) -> std::io::Result<Option<Self>> {
-        use std::os::windows::io::AsRawHandle;
-        use windows_sys::Win32::{
-            Foundation::{ERROR_LOCK_VIOLATION, HANDLE},
-            Storage::FileSystem::{LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY, LockFileEx},
-            System::IO::OVERLAPPED,
-        };
-
         let parent = path.parent().ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -45,43 +37,18 @@ impl ServerOperationLock {
             .write(true)
             .create(true)
             .open(path)?;
-        let handle = file.as_raw_handle() as HANDLE;
-        let mut overlapped = OVERLAPPED::default();
-        let locked = unsafe {
-            LockFileEx(
-                handle,
-                LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
-                0,
-                u32::MAX,
-                0x7fff_ffff,
-                &mut overlapped,
-            )
-        };
-        if locked == 0 {
-            let error = std::io::Error::last_os_error();
-            if error.raw_os_error() == Some(ERROR_LOCK_VIOLATION as i32) {
-                return Ok(None);
-            }
-            return Err(error);
+        match fs4::FileExt::try_lock(&file) {
+            Ok(()) => Ok(Some(Self { file })),
+            Err(fs4::TryLockError::WouldBlock) => Ok(None),
+            Err(fs4::TryLockError::Error(error)) => Err(error),
         }
-
-        Ok(Some(Self { file, overlapped }))
     }
 }
 
 #[cfg(windows)]
 impl Drop for ServerOperationLock {
     fn drop(&mut self) {
-        use std::os::windows::io::AsRawHandle;
-        use windows_sys::Win32::{Storage::FileSystem::UnlockFileEx, System::IO::OVERLAPPED};
-
-        let handle = self.file.as_raw_handle() as windows_sys::Win32::Foundation::HANDLE;
-        // Rebuild the start offsets; LockFileEx uses the same byte range as Java's whole-file FileLock.
-        let mut overlapped = OVERLAPPED::default();
-        unsafe {
-            UnlockFileEx(handle, 0, u32::MAX, 0x7fff_ffff, &mut overlapped);
-        }
-        let _ = &self.overlapped;
+        let _ = fs4::FileExt::unlock(&self.file);
     }
 }
 
