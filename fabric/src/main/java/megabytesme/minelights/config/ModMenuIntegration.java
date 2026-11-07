@@ -184,7 +184,9 @@ public class ModMenuIntegration implements ModMenuApi {
                             /* MinecraftClient.getInstance().setScreen(buildConfigScreen(parent)); */
                             //?}
                             //?}
-                            //? if <1.19 {
+                            //? if >=1.17.1 && <1.19 {
+                            /* MinecraftClient.getInstance().setScreen(buildConfigScreen(parent)); */
+                            //?} else if <1.17.1 {
                             /*
                             MinecraftClient.getInstance().openScreen(buildConfigScreen(parent));
                             */
