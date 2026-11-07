@@ -171,7 +171,11 @@ public final class MineLightsForge {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         MineLightsClient.LOGGER.info("Constructing Forge entrypoint for MineLights.");
+        //? if loader_forge && >=1.12 && <=1.12.1 {
+        client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge", true);
+        //?} else {
         client.init(event.getModConfigurationDirectory().toPath(), MineLightsClient.MOD_VERSION, "forge");
+        //?}
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
         //? if <=1.12.2 {
