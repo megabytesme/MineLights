@@ -37,6 +37,9 @@ import net.minecraft.entity.LightningEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+//? if >=1.18 && <1.19 {
+import net.minecraft.util.registry.Registry;
+//?}
 //? if >=1.20.5 {
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
@@ -142,8 +145,11 @@ public class PlayerDataCollector {
         BlockPos headPos = player.getBlockPos().up();
         //?}
         playerDto.setBlockAtHead(world.getBlockState(headPos).getBlock().getTranslationKey());
-        //? if >=1.18 {
+        //? if >=1.19 {
         world.getBiome(player.getBlockPos()).getKey().ifPresent(key -> playerDto.setCurrentBiome(key.getValue().toString()));
+        //?} else if >=1.18 {
+        world.getRegistryManager().get(Registry.BIOME_KEY).getKey(world.getBiome(player.getBlockPos()))
+                .ifPresent(key -> playerDto.setCurrentBiome(key.getValue().toString()));
         //?} else {
         playerDto.setCurrentBiome(world.getBiome(player.getBlockPos()).getCategory().toString());
         //?}
@@ -592,7 +598,7 @@ public class PlayerDataCollector {
                 if (lodestoneData != null && lodestoneData.target().isPresent()) {
                     isLodestone = true;
                 }
-                //?} else if >= 1.18 {
+                //?} else if >= 1.17.1 {
                 /* if (stack.hasNbt()) {
                     NbtCompound tag = stack.getNbt();
                     if (tag != null && tag.contains("LodestonePos")) isLodestone = true;
@@ -731,7 +737,7 @@ public class PlayerDataCollector {
             return world.getSpawnPos();
         }
         *///?}
-        //?} else if >= 1.18 {
+        //?} else if >= 1.17.1 {
         /* if (stack.hasNbt()) {
             NbtCompound tag = stack.getNbt();
             if (tag != null && tag.contains("LodestonePos") && tag.contains("LodestoneDimension")) {
