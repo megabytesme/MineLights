@@ -146,6 +146,7 @@ public final class MineLightsModernConfigScreen extends Screen {
                 //?}
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass, value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
+                toggle(options, "Ignore carried compasses", () -> MineLightsClient.CONFIG.ignoreInventoryCompass, value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value);
                 cycle(options, "Compass target without one", () -> String.valueOf(MineLightsClient.CONFIG.compassFallbackTarget), () -> {
                     CompassFallbackTarget[] values = CompassFallbackTarget.values();
                     int current = MineLightsClient.CONFIG.compassFallbackTarget == null ? -1 : MineLightsClient.CONFIG.compassFallbackTarget.ordinal();

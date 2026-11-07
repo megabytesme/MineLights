@@ -176,13 +176,15 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
     let selected_compass = preferred_kind
         .and_then(|kind| compass_candidates.iter().find(|(found, _)| *found == kind))
         .or_else(|| compass_candidates.first());
+    let selected_compass = selected_compass.filter(|_| !settings.ignore_inventory_compass);
+    let show_fallback = settings.always_show_compass || settings.ignore_inventory_compass;
     let (compass_type, target) = selected_compass
         .map(|(kind, target)| (*kind, *target))
         .unwrap_or_else(|| {
             // Horizon has no singleplayer server access, so player spawn uses world spawn.
-            if settings.always_show_compass && settings.compass_fallback_target == 1 {
+            if show_fallback && settings.compass_fallback_target == 1 {
                 (1, Some([0.0, 0.0, 0.0]))
-            } else if settings.always_show_compass && dimension == "minecraft:overworld" {
+            } else if show_fallback && dimension == "minecraft:overworld" {
                 (1, game.spawn.map(|spawn| [spawn.x, spawn.y, spawn.z]))
             } else {
                 (0, None)

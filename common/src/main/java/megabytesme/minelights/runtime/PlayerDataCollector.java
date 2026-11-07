@@ -466,10 +466,10 @@ public class PlayerDataCollector {
     //?} else {
     /* private static void updateCompassData(PlayerDto dto, ClientPlayerEntity player, ClientWorld world) {
     *///?}
-        CompassFindResult result = findCompass(player);
+        CompassFindResult result = MineLightsClient.CONFIG.ignoreInventoryCompass ? null : findCompass(player);
 
         if (result == null) {
-            BlockPos fallbackPos = MineLightsClient.CONFIG.alwaysShowCompass ? getFallbackCompassTarget(player, world) : null;
+            BlockPos fallbackPos = showsFallbackCompass() ? getFallbackCompassTarget(player, world) : null;
             if (fallbackPos != null) {
                 dto.setCompassType(CompassType.STANDARD);
                 setCompassTarget(dto, player, fallbackPos);
@@ -597,6 +597,10 @@ public class PlayerDataCollector {
         return null;
     }
     *///?}
+
+    private static boolean showsFallbackCompass() {
+        return MineLightsClient.CONFIG.alwaysShowCompass || MineLightsClient.CONFIG.ignoreInventoryCompass;
+    }
 
     private static class CompassFindResult {
         final ItemStack stack;
