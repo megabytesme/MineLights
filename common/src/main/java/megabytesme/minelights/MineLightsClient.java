@@ -269,6 +269,7 @@ public class MineLightsClient {
     private static final AtomicBoolean shutdownStarted = new AtomicBoolean(false);
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
+    private static volatile boolean waitForInitialClientTickBeforeLighting;
 
     private static final String MODRINTH_PROJECT_ID = "minelights"; 
     private static final AtomicBoolean hasCheckedForUpdate = new AtomicBoolean(false);
@@ -331,10 +332,16 @@ public class MineLightsClient {
     }
 
     public void init(Path configDir, String modVersion, String modLoader) {
+        init(configDir, modVersion, modLoader, false);
+    }
+
+    public void init(Path configDir, String modVersion, String modLoader,
+            boolean deferLightingInitializationUntilClientTick) {
         if (!initialized.compareAndSet(false, true)) {
             return;
         }
 
+        waitForInitialClientTickBeforeLighting = deferLightingInitializationUntilClientTick;
         MineLightsClient.configDir = configDir;
         MineLightsClient.resolvedModVersion = modVersion;
         MineLightsClient.resolvedModLoader = modLoader;
@@ -353,14 +360,16 @@ public class MineLightsClient {
             initializeServerConnection();
         }
 
-        new Thread(() -> {
-            try {
-                Thread.sleep(3000);
-                triggerLightingInitialization();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }, "MineLights-Initializer-Waiter").start();
+        if (!deferLightingInitializationUntilClientTick) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(3000);
+                    triggerLightingInitialization();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }, "MineLights-Initializer-Waiter").start();
+        }
     }
 
     private static void preloadShutdownClasses() {
@@ -393,6 +402,7 @@ public class MineLightsClient {
         //?} else {
         clientInWorld = client.player != null && client.level != null;
         //?}
+        waitForInitialClientTickBeforeLighting = false;
         reconcileLightingState();
         int checkMode = !IS_WINDOWS || !CONFIG.enableMod ? 0
                 : automaticServerInstallAllowed() ? 2 : CONFIG.checkServerUpdates ? 1 : 0;
@@ -1706,7 +1716,8 @@ public class MineLightsClient {
     }
 
     public static synchronized void triggerLightingInitialization() {
-        if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()) return;
+        if (CONFIG == null || !CONFIG.enableMod || shutdownStarted.get()
+                || waitForInitialClientTickBeforeLighting) return;
         if (lightingInitialized.compareAndSet(false, true)) {
             LOGGER.info("Primary initialization trigger. Starting lighting systems...");
             refreshLightingManager();
