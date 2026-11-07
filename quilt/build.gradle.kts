@@ -201,6 +201,12 @@ tasks {
             }
         }
         val minecraftTargets = prop("mod.mc_targets").split(Regex("\\s+"))
+        // Cloth Config renamed its Fabric/Quilt mod ID at Minecraft 1.19.
+        val clothConfigModId = if (stonecutter.eval(stonecutter.current.version, ">=1.19")) {
+            "cloth-config"
+        } else {
+            "cloth-config2"
+        }
         val props = mapOf(
             "id" to prop("mod.id"),
             "name" to prop("mod.name"),
@@ -212,6 +218,7 @@ tasks {
             "sources" to prop("mod.sources"),
             "issues" to prop("mod.issues"),
             "icon" to prop("mod.icon"),
+            "cloth_config_mod_id" to clothConfigModId,
             "minecraft_versions_json" to minecraftTargets.joinToString(", ") { "\"=$it\"" },
             "quilt_loader_version_range" to if (isUnobfuscatedVersion) ">=0.31.0-beta.4" else ">=0.16.0"
         )
