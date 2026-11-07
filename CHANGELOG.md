@@ -43,7 +43,7 @@ This release brings the authenticated MineLights Server V2 protocol to Java and 
 
 ### Later 2.4.0 update
 
-- Added an option to enable or disable MineLights Server download chat notices across Java and Horizon clients. Notices report a transfer that starts while the player is in a world, an active earlier transfer after they join one, and whether the server started or needs a restart.
+- Added an option to enable or disable MineLights Server download chat notices across Java and Horizon clients. Notices report a transfer that starts while the player is in a world, an active earlier transfer after they join one, and whether the server started or needs a restart. If a shared server starts during an update, Fabric and Quilt now retain the verified update for the next restart and report that restart is required.
 
 ## New Contributors ⭐
 
