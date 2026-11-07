@@ -1,6 +1,7 @@
 package megabytesme.minelights.runtime;
 
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.CompassFallbackTarget;
 //? if loader_forge && <=1.14.3 {
 import megabytesme.minelights.MineLightsForge;
 //?}
@@ -646,6 +647,28 @@ public class PlayerDataCollector {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
+            CompassFallbackTarget fallbackTarget = MineLightsClient.CONFIG.compassFallbackTarget == null
+                    ? CompassFallbackTarget.WORLD_SPAWN
+                    : MineLightsClient.CONFIG.compassFallbackTarget;
+            if (MineLightsClient.CONFIG.alwaysShowCompass && fallbackTarget == CompassFallbackTarget.ORIGIN) {
+                dto.setCompassType(CompassType.STANDARD);
+                //? if loader_forge && <=1.7.10 {
+                setCompassTarget(dto, player, new ChunkCoordinates(0, 0, 0));
+                //?} else {
+                setCompassTarget(dto, player, new BlockPos(0, 0, 0));
+                //?}
+                return;
+            }
+            //? if loader_forge && >=1.17 {
+            BlockPos playerSpawn = MineLightsClient.CONFIG.alwaysShowCompass && fallbackTarget == CompassFallbackTarget.PLAYER_SPAWN
+                    ? getPlayerSpawnPos(player, world)
+                    : null;
+            if (playerSpawn != null) {
+                dto.setCompassType(CompassType.STANDARD);
+                setCompassTarget(dto, player, playerSpawn);
+                return;
+            }
+            //?}
             //? if >=1.21.9 {
             if (MineLightsClient.CONFIG.alwaysShowCompass && isOverworld(world)) {
                 dto.setCompassType(CompassType.STANDARD);
@@ -711,6 +734,31 @@ public class PlayerDataCollector {
             dto.setCompassState(CompassState.SPINNING);
         }
     }
+
+    //? if loader_forge && >=1.17 {
+    /** The server only shares the player's bed or anchor with the client in singleplayer. */
+    private static BlockPos getPlayerSpawnPos(LocalPlayer player, ClientLevel world) {
+        try {
+            net.minecraft.client.server.IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+            if (server == null) return null;
+            net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
+            if (serverPlayer == null) return null;
+            //? if >=1.21.9 {
+            if (serverPlayer.getRespawnConfig() == null) return null;
+            net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
+            return respawnData.dimension().equals(world.dimension()) ? respawnData.pos() : null;
+            //?} else if >=1.21.5 {
+            if (serverPlayer.getRespawnConfig() == null) return null;
+            return serverPlayer.getRespawnConfig().dimension().equals(world.dimension()) ? serverPlayer.getRespawnConfig().pos() : null;
+            //?} else {
+            if (serverPlayer.getRespawnPosition() == null) return null;
+            return serverPlayer.getRespawnDimension().equals(world.dimension()) ? serverPlayer.getRespawnPosition() : null;
+            //?}
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    //?}
 
     private static class CompassFindResult {
         final ItemStack stack;

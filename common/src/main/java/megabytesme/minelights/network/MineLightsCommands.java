@@ -1,6 +1,7 @@
 package megabytesme.minelights.network;
 
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.CompassFallbackTarget;
 import megabytesme.minelights.config.CompassPriority;
 import megabytesme.minelights.config.DimmingMode;
 import megabytesme.minelights.config.MineLightsConfig;
@@ -30,7 +31,7 @@ public final class MineLightsCommands {
             "notify-server-download-progress", "check-server-updates", "corsair", "asus", "logitech",
             "razer", "wooting", "steelseries",
             "msi", "novation", "picopi", "openrgb", "yeelight", "health-bar", "hunger-bar",
-            "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
+            "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass", "compass-fallback-target",
             "compass-priority", "low-health-warning", "biome-effects", "dimming-mode", "min-brightness",
             "weather-effects", "mirror-ram-rain-direction", "end-flash-effect", "fire-effect", "water-effect",
             "portal-effects", "movement-keys", "chat-key-pulse", "absorption-overlay",
@@ -182,6 +183,10 @@ public final class MineLightsCommands {
             builder.suggest("standard-first");
             builder.suggest("lodestone-first");
             builder.suggest("recovery-first");
+        } else if ("compass-fallback-target".equals(normalizeName(setting))) {
+            builder.suggest("world-spawn");
+            builder.suggest("origin");
+            builder.suggest("player-spawn");
         } else if ("experience-locator-mode".equals(normalizeName(setting))) {
             builder.suggest("auto");
             builder.suggest("experience");
@@ -330,7 +335,7 @@ public final class MineLightsCommands {
         lines.add("[MineLights] Restart the shared MineLights Server from its system tray menu.");
         lines.add("[MineLights] /minelights openrgb <list|add <host> [port]|remove <host> [port]>");
         lines.add("[MineLights] OpenRGB uses its own native protocol without MineLights V2 TLS or authentication; add only trusted endpoints.");
-        lines.add("[MineLights] Dimming: local, sky, off. Brightness accepts 0–100 percent. Compass priority accepts priority, standard-first, lodestone-first, recovery-first.");
+        lines.add("[MineLights] Dimming: local, sky, off. Brightness accepts 0–100 percent. Compass priority accepts priority, standard-first, lodestone-first, recovery-first. Compass fallback target accepts world-spawn, origin, player-spawn.");
         lines.add("[MineLights] Effect keys use comma-separated names; colors use #RRGGBB. Use none to clear a list or profile.");
         MineLightsClient.sendChatMessages(lines);
     }
@@ -369,6 +374,9 @@ public final class MineLightsCommands {
         if ("compass-priority".equals(name)) {
             return config.compassPriority == null ? "priority" : config.compassPriority.name().toLowerCase(Locale.ROOT).replace('_', '-');
         }
+        if ("compass-fallback-target".equals(name)) {
+            return config.compassFallbackTarget == null ? "world-spawn" : config.compassFallbackTarget.name().toLowerCase(Locale.ROOT).replace('_', '-');
+        }
         throw new IllegalArgumentException("Unknown setting '" + name + "'. Use /minelights list to see settings.");
     }
 
@@ -383,6 +391,8 @@ public final class MineLightsCommands {
             MineLightsClient.CONFIG.dimmingMode = parseDimmingMode(rawValue);
         } else if ("compass-priority".equals(name)) {
             MineLightsClient.CONFIG.compassPriority = parseCompassPriority(rawValue);
+        } else if ("compass-fallback-target".equals(name)) {
+            MineLightsClient.CONFIG.compassFallbackTarget = parseCompassFallbackTarget(rawValue);
         } else if ("min-brightness".equals(name)) {
             MineLightsClient.CONFIG.minBrightness = parseBrightness(rawValue);
         } else if (EffectSettings.contains(name)) {
@@ -535,6 +545,7 @@ public final class MineLightsCommands {
         if ("locator".equals(name)) return "locator-bar";
         if ("compass".equals(name)) return "compass-effect";
         if ("compass-priority-mode".equals(name) || "priority".equals(name)) return "compass-priority";
+        if ("compass-fallback".equals(name) || "compass-target".equals(name)) return "compass-fallback-target";
         if ("biome-lighting".equals(name) || "biome".equals(name)) return "biome-effects";
         if ("dimming".equals(name)) return "dimming-mode";
         if ("brightness".equals(name) || "minimum-brightness".equals(name)) return "min-brightness";
@@ -586,6 +597,19 @@ public final class MineLightsCommands {
             }
         }
         throw new IllegalArgumentException("Unknown compass priority. Available: " + enumValues(CompassPriority.values()) + ".");
+    }
+
+    private static CompassFallbackTarget parseCompassFallbackTarget(String value) {
+        String normalized = normalizeEnum(value);
+        if ("spawn".equals(normalized)) normalized = "world-spawn";
+        if ("0,0".equals(normalized) || "zero".equals(normalized)) normalized = "origin";
+        if ("bed".equals(normalized) || "respawn".equals(normalized)) normalized = "player-spawn";
+        for (CompassFallbackTarget target : CompassFallbackTarget.values()) {
+            if (target.name().toLowerCase(Locale.ROOT).replace('_', '-').equals(normalized)) {
+                return target;
+            }
+        }
+        throw new IllegalArgumentException("Unknown compass fallback target. Available: " + enumValues(CompassFallbackTarget.values()) + ".");
     }
 
     private static String normalizeEnum(String value) {

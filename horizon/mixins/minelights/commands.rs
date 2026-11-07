@@ -28,6 +28,7 @@ const SETTING_NAMES: &[&str] = &[
     "locator-bar",
     "server-autostart",
     "compass-priority",
+    "compass-fallback-target",
     "corsair",
     "asus",
     "logitech",
@@ -242,7 +243,7 @@ fn show_help(game: &mut super::Game<'_>) {
     );
     chat(
         game,
-        "Boolean values: on/off. Dimming: local/sky/off. Brightness: 0-100. Compass priority: inventory/standard/lodestone/recovery.",
+        "Boolean values: on/off. Dimming: local/sky/off. Brightness: 0-100. Compass priority: inventory/standard/lodestone/recovery. Compass fallback target: world-spawn/origin/player-spawn.",
     );
     chat(
         game,
@@ -975,6 +976,18 @@ fn set_setting(
         settings.server_confirmation_pending = false;
         return Ok("Compass priority updated.");
     }
+    if name == "compass-fallback-target" {
+        settings.compass_fallback_target = match value.to_ascii_lowercase().as_str() {
+            "world-spawn" | "world_spawn" | "spawn" => 0,
+            "origin" | "0,0" | "zero" => 1,
+            "player-spawn" | "player_spawn" | "bed" | "respawn" => 2,
+            _ => {
+                return Err("Compass fallback target must be world-spawn, origin, or player-spawn.");
+            }
+        };
+        settings.server_confirmation_pending = false;
+        return Ok("Compass fallback target updated.");
+    }
     if name == "min-brightness" {
         let Ok(percent) = value.parse::<u8>() else {
             return Err("Minimum brightness must be a number from 0 to 100.");
@@ -1059,6 +1072,9 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "server-autostart" => on_off(settings.allow_reviewed_server).into(),
         "compass-priority" => ["inventory", "standard", "lodestone", "recovery"]
             [usize::from(settings.compass_priority.min(3))]
+        .into(),
+        "compass-fallback-target" => ["world-spawn", "origin", "player-spawn"]
+            [usize::from(settings.compass_fallback_target.min(2))]
         .into(),
         "corsair" => on_off(settings.enable_corsair).into(),
         "asus" => on_off(settings.enable_asus).into(),

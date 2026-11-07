@@ -79,6 +79,7 @@ pub(super) struct Settings {
     #[serde(skip)]
     pub(super) server_confirmation_pending: bool,
     pub(super) compass_priority: u8,
+    pub(super) compass_fallback_target: u8,
     pub(super) enable_corsair: bool,
     pub(super) enable_asus: bool,
     pub(super) enable_logitech: bool,
@@ -161,6 +162,7 @@ impl Default for Settings {
             notify_server_download_progress: true,
             server_confirmation_pending: false,
             compass_priority: 0,
+            compass_fallback_target: 0,
             enable_corsair: true,
             enable_asus: true,
             enable_logitech: true,

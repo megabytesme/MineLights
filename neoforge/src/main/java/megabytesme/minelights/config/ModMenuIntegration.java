@@ -330,6 +330,14 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.alwaysShowCompass.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
                 .build());
+        playerStatus.addEntry(entryBuilder.startEnumSelector(translatable("option.mine-lights.compassFallbackTarget"),
+                        CompassFallbackTarget.class,
+                        MineLightsClient.CONFIG.compassFallbackTarget != null ? MineLightsClient.CONFIG.compassFallbackTarget : CompassFallbackTarget.WORLD_SPAWN)
+                .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
+                .setEnumNameProvider(value -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                .setTooltip(translatable("option.mine-lights.compassFallbackTarget.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
+                .build());
         playerStatus.addEntry(entryBuilder.startEnumSelector(translatable("option.mine-lights.compassPriority"),
                         CompassPriority.class,
                         MineLightsClient.CONFIG.compassPriority != null ? MineLightsClient.CONFIG.compassPriority : CompassPriority.PRIORITY)

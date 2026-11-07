@@ -63,6 +63,7 @@ import org.apache.logging.log4j.Logger;
 import megabytesme.minelights.accessor.ChatReceivedAccessor;
 import megabytesme.minelights.accessor.PlayerVisualBrightnessAccessor;
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.CompassFallbackTarget;
 import megabytesme.minelights.mixin.LightningAccessor;
 import megabytesme.minelights.model.CompassState;
 import megabytesme.minelights.model.CompassType;
@@ -468,60 +469,14 @@ public class PlayerDataCollector {
         CompassFindResult result = findCompass(player);
 
         if (result == null) {
-            //? if >=1.16 && <1.20.5 {
-            /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
-            world.getRegistryKey().equals(World.OVERWORLD)) {
-            dto.setCompassType(CompassType.STANDARD);
-            setCompassTarget(dto, player, world.getSpawnPos());
-            } else {
-            dto.setCompassState(CompassState.NONE);
-            dto.setCompassType(CompassType.NONE);
-            }
-            *///?} else if >=1.20.5 && <1.21.9 {
-            /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
-                world.getRegistryKey().equals(World.OVERWORLD)) {
+            BlockPos fallbackPos = MineLightsClient.CONFIG.alwaysShowCompass ? getFallbackCompassTarget(player, world) : null;
+            if (fallbackPos != null) {
                 dto.setCompassType(CompassType.STANDARD);
-                setCompassTarget(dto, player, world.getSpawnPos());
+                setCompassTarget(dto, player, fallbackPos);
             } else {
                 dto.setCompassState(CompassState.NONE);
                 dto.setCompassType(CompassType.NONE);
             }
-            *///?} else if >=1.21.9 {
-            //? if >=26.1 {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension().equals(Level.OVERWORLD)) {
-                dto.setCompassType(CompassType.STANDARD);
-                net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
-                if (respawnData != null && respawnData.dimension().equals(world.dimension())) {
-                    setCompassTarget(dto, player, respawnData.pos());
-                } else {
-                    dto.setCompassState(CompassState.NONE);
-                    dto.setCompassType(CompassType.NONE);
-                }
-            } else {
-                dto.setCompassState(CompassState.NONE);
-                dto.setCompassType(CompassType.NONE);
-            }
-            //?} else {
-            /* if (MineLightsClient.CONFIG.alwaysShowCompass &&
-                world.getRegistryKey().equals(World.OVERWORLD)) {
-                dto.setCompassType(CompassType.STANDARD);
-                GlobalPos spawnPos = GlobalPos.create(world.getRegistryKey(), world.getSpawnPoint().getPos());
-                setCompassTarget(dto, player, spawnPos.pos());
-            } else {
-                dto.setCompassState(CompassState.NONE);
-                dto.setCompassType(CompassType.NONE);
-            } */
-            //?}
-            //?} else {
-            /* if (MineLightsClient.CONFIG.alwaysShowCompass && world.dimension.getType() ==
-            DimensionType.OVERWORLD) {
-            dto.setCompassType(CompassType.STANDARD);
-            setCompassTarget(dto, player, world.getSpawnPos());
-            } else {
-            dto.setCompassState(CompassState.NONE);
-            dto.setCompassType(CompassType.NONE);
-            }
-            *///?}
             return;
         }
 
@@ -539,6 +494,109 @@ public class PlayerDataCollector {
             dto.setCompassState(CompassState.SPINNING);
         }
     }
+
+    //? if >=26.1 {
+    private static BlockPos getFallbackCompassTarget(LocalPlayer player, ClientLevel world) {
+    //?} else {
+    /* private static BlockPos getFallbackCompassTarget(ClientPlayerEntity player, ClientWorld world) {
+    *///?}
+        CompassFallbackTarget target = MineLightsClient.CONFIG.compassFallbackTarget == null
+                ? CompassFallbackTarget.WORLD_SPAWN
+                : MineLightsClient.CONFIG.compassFallbackTarget;
+        if (target == CompassFallbackTarget.ORIGIN) {
+            return new BlockPos(0, 0, 0);
+        }
+        if (target == CompassFallbackTarget.PLAYER_SPAWN) {
+            BlockPos playerSpawn = getPlayerSpawnPos(player, world);
+            if (playerSpawn != null) {
+                return playerSpawn;
+            }
+        }
+        return getWorldSpawnPos(world);
+    }
+
+    //? if >=26.1 {
+    private static BlockPos getWorldSpawnPos(ClientLevel world) {
+        net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
+        if (world.dimension().equals(Level.OVERWORLD) && respawnData != null
+                && respawnData.dimension().equals(world.dimension())) {
+            return respawnData.pos();
+        }
+        return null;
+    }
+    //?} else if >=1.21.9 {
+    /* private static BlockPos getWorldSpawnPos(ClientWorld world) {
+        return world.getRegistryKey().equals(World.OVERWORLD) ? world.getSpawnPoint().getPos() : null;
+    }
+    *///?} else if >=1.16 {
+    /* private static BlockPos getWorldSpawnPos(ClientWorld world) {
+        return world.getRegistryKey().equals(World.OVERWORLD) ? world.getSpawnPos() : null;
+    }
+    *///?} else {
+    /* private static BlockPos getWorldSpawnPos(ClientWorld world) {
+        return world.dimension.getType() == DimensionType.OVERWORLD ? world.getSpawnPos() : null;
+    }
+    *///?}
+
+    /** The server only shares the player's bed or anchor with the client in singleplayer. */
+    //? if >=26.1 {
+    private static BlockPos getPlayerSpawnPos(LocalPlayer player, ClientLevel world) {
+        try {
+            net.minecraft.client.server.IntegratedServer server = MineLightsClient.getMinecraft().getSingleplayerServer();
+            if (server == null) return null;
+            net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
+            if (serverPlayer == null || serverPlayer.getRespawnConfig() == null) return null;
+            net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
+            return respawnData.dimension().equals(world.dimension()) ? respawnData.pos() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    //?} else if >=1.21.9 {
+    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+        try {
+            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            if (server == null) return null;
+            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
+            if (serverPlayer == null) return null;
+            if (serverPlayer.getRespawn() == null) return null;
+            net.minecraft.world.WorldProperties.SpawnPoint spawnPoint = serverPlayer.getRespawn().respawnData();
+            return spawnPoint.getDimension().equals(world.getRegistryKey()) ? spawnPoint.getPos() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    *///?} else if >=1.21.5 {
+    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+        try {
+            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            if (server == null) return null;
+            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
+            if (serverPlayer == null) return null;
+            if (serverPlayer.getRespawn() == null) return null;
+            return serverPlayer.getRespawn().dimension().equals(world.getRegistryKey()) ? serverPlayer.getRespawn().pos() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    *///?} else if >=1.16 {
+    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+        try {
+            net.minecraft.server.integrated.IntegratedServer server = MineLightsClient.getMinecraft().getServer();
+            if (server == null) return null;
+            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
+            if (serverPlayer == null) return null;
+            if (serverPlayer.getSpawnPointPosition() == null) return null;
+            return serverPlayer.getSpawnPointDimension().equals(world.getRegistryKey()) ? serverPlayer.getSpawnPointPosition() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    *///?} else {
+    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+        return null;
+    }
+    *///?}
 
     private static class CompassFindResult {
         final ItemStack stack;
