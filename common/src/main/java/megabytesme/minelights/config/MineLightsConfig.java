@@ -71,6 +71,9 @@ public class MineLightsConfig {
     public boolean enableLocatorBar = true;
     public boolean enableCompassEffect = true;
     public boolean alwaysShowCompass = false;
+    public boolean ignoreInventoryCompass = false;
+    public boolean spinCompassWithoutTarget = true;
+    public CompassFallbackTarget compassFallbackTarget = CompassFallbackTarget.WORLD_SPAWN;
     public CompassPriority compassPriority = CompassPriority.PRIORITY;
     public boolean enableLowHealthWarning = true;
     public float lowHealthThreshold = 10.0F;
