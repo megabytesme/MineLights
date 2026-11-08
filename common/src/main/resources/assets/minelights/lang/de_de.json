@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Spieler-Spawn",
   "option.mine-lights.ignoreInventoryCompass": "Getragene Kompasse ignorieren",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Zeigt immer zum Ziel unten, auch wenn du einen Kompass,\nLeitstein-Kompass oder Bergungskompass trägst.",
+  "option.mine-lights.spinCompassWithoutTarget": "Kompass ohne Ziel drehen",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Wenn der Kompass kein Ziel hat, z. B. im Nether oder im End,\ndreht er sich genau wie die Nadel im Spiel. Aus: Dort werden stattdessen Biomfarben angezeigt.",
   "text.mine-lights.saturationBarKeys.merged": "Derzeit nicht verwendet: Sättigung und Luft werden auf den Hungertasten angezeigt.",
   "section.mine-lights.health": "Gesundheit",
   "section.mine-lights.hunger": "Hunger & Sättigung",

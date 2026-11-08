@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "UR SPAWN",
   "option.mine-lights.ignoreInventoryCompass": "IGNOR COMPASSEZ U HAS",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "ALWAYZ POINT 2 DA TARGIT BELOW, EVEN IF U HAS COMPASS,\nLODESTONE COMPASS OR RECUVRY COMPASS.",
+  "option.mine-lights.spinCompassWithoutTarget": "SPIN COMPASS WIF NO TARGIT",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "WEN COMPASS HAS NO TARGIT, LIEK IN DA NETHR OR DA END,\nSPIN IT JUS LIEK DA REAL NEEDL. WEN OFF, SHOW BIOME COLORZ INSTEDD.",
   "text.mine-lights.saturationBarKeys.merged": "NOT USED NAO: SATURASHUN AN AIR IZ MERGD IN2 DA HUNGR KEYZ.",
   "section.mine-lights.health": "HELTH",
   "section.mine-lights.hunger": "HUNGR & SATURASHUN",

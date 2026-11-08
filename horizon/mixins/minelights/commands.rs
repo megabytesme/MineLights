@@ -26,6 +26,7 @@ const SETTING_NAMES: &[&str] = &[
     "chat-pulse",
     "always-show-compass",
     "ignore-inventory-compass",
+    "spin-compass-without-target",
     "locator-bar",
     "server-autostart",
     "compass-priority",
@@ -1023,6 +1024,7 @@ fn set_setting(
         "chat-pulse" => &mut settings.chat_pulse,
         "always-show-compass" => &mut settings.always_show_compass,
         "ignore-inventory-compass" => &mut settings.ignore_inventory_compass,
+        "spin-compass-without-target" => &mut settings.spin_compass_without_target,
         "locator-bar" => &mut settings.locator_bar,
         "corsair" => &mut settings.enable_corsair,
         "asus" => &mut settings.enable_asus,
@@ -1070,6 +1072,7 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "chat-pulse" => on_off(settings.chat_pulse).into(),
         "always-show-compass" => on_off(settings.always_show_compass).into(),
         "ignore-inventory-compass" => on_off(settings.ignore_inventory_compass).into(),
+        "spin-compass-without-target" => on_off(settings.spin_compass_without_target).into(),
         "locator-bar" => on_off(settings.locator_bar).into(),
         "server-autostart" if settings.server_confirmation_pending => "pending confirmation".into(),
         "server-autostart" => on_off(settings.allow_reviewed_server).into(),
@@ -1123,6 +1126,7 @@ fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
         "chat-pulse" => settings.chat_pulse,
         "always-show-compass" => settings.always_show_compass,
         "ignore-inventory-compass" => settings.ignore_inventory_compass,
+        "spin-compass-without-target" => settings.spin_compass_without_target,
         "locator-bar" => settings.locator_bar,
         "corsair" => settings.enable_corsair,
         "asus" => settings.enable_asus,
@@ -1161,6 +1165,7 @@ fn normalize_name(name: &str) -> String {
         "movement-keys" => "movement-highlight".into(),
         "chat-key-pulse" => "chat-pulse".into(),
         "always-compass" => "always-show-compass".into(),
+        "compass-spin" | "spin-compass" => "spin-compass-without-target".into(),
         "auto-start"
         | "auto-start-server"
         | "autostart"

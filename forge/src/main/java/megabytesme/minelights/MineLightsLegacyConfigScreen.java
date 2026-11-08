@@ -177,6 +177,7 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass,
                         value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
                 toggle(options, "Ignore carried compasses", () -> MineLightsClient.CONFIG.ignoreInventoryCompass, value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value);
+                toggle(options, "Spin compass without target", () -> MineLightsClient.CONFIG.spinCompassWithoutTarget, value -> MineLightsClient.CONFIG.spinCompassWithoutTarget = value);
                 cycle(options, "Compass target without one", () -> String.valueOf(MineLightsClient.CONFIG.compassFallbackTarget), () -> {
                     CompassFallbackTarget[] values = CompassFallbackTarget.values();
                     int current = MineLightsClient.CONFIG.compassFallbackTarget == null ? -1 : MineLightsClient.CONFIG.compassFallbackTarget.ordinal();

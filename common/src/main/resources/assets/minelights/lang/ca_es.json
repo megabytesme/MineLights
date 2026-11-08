@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Punt d’aparició del jugador",
   "option.mine-lights.ignoreInventoryCompass": "Ignora les brúixoles que portes",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Apunta sempre a l’objectiu de sota, fins i tot si portes una brúixola,\nuna brúixola d’imant o una brúixola de recuperació.",
+  "option.mine-lights.spinCompassWithoutTarget": "Fes girar la brúixola sense objectiu",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Quan la brúixola no té objectiu, com al Nether o a l’End,\ngira igual que l’agulla del joc. Desactivat: mostra els colors del bioma.",
   "text.mine-lights.saturationBarKeys.merged": "Ara no s’utilitza: la saturació i l’aire es mostren a les tecles de la gana perquè estan combinades.",
   "section.mine-lights.health": "Salut",
   "section.mine-lights.hunger": "Gana i saturació",

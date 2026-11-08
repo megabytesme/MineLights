@@ -56,6 +56,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Ionad-sìolachaidh a’ chluicheadair",
   "option.mine-lights.ignoreInventoryCompass": "Leig seachad combaistean a ghiùlaineas tu",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Comharraich an targaid gu h-ìosal an-còmhnaidh, fiù ’s ma bhios combaist,\ncombaist clach-iùil no combaist faighinn air ais agad.",
+  "option.mine-lights.spinCompassWithoutTarget": "Cuairtich a’ chombaist gun targaid",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Nuair nach eil targaid aig a’ chombaist, mar san Nether no san End,\ncuairtichidh i dìreach mar an t-snàthad sa gheama. Dheth: seall dathan a’ bhiom na àite.",
   "text.mine-lights.saturationBarKeys.merged": "Gun chleachdadh an-dràsta: thèid sàthachd is èadhar a shealltainn air iuchraichean an acrais.",
   "section.mine-lights.health": "Slàinte",
   "section.mine-lights.hunger": "Acras is sàthachd",

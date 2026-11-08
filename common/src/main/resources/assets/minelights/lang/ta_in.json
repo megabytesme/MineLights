@@ -59,6 +59,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "வீரர் தோன்றும் இடம்",
   "option.mine-lights.ignoreInventoryCompass": "கையிலுள்ள திசைகாட்டிகளைப் புறக்கணி",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "உங்களிடம் திசைகாட்டி, காந்தக்கல் திசைகாட்டி அல்லது மீட்பு திசைகாட்டி இருந்தாலும்\nஎப்போதும் கீழே உள்ள இலக்கைச் சுட்டு.",
+  "option.mine-lights.spinCompassWithoutTarget": "இலக்கு இல்லாதபோது திசைகாட்டியைச் சுழற்று",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "நெதர் அல்லது எண்ட் போல திசைகாட்டிக்கு இலக்கு இல்லாதபோது,\nவிளையாட்டு ஊசியைப் போலவே சுழலும். அணைத்தால் பயோம் நிறங்களைக் காட்டும்.",
   "text.mine-lights.saturationBarKeys.merged": "இப்போது பயன்படுத்தப்படவில்லை: செறிவும் காற்றும் பசி விசைகளில் காட்டப்படுகின்றன.",
   "section.mine-lights.health": "ஆரோக்கியம்",
   "section.mine-lights.hunger": "பசி & செறிவு",

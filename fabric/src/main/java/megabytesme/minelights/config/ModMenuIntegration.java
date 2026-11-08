@@ -1486,6 +1486,8 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setDefaultValue(defaults.mergeSaturationIntoHunger).setSaveConsumer(value -> MineLightsClient.CONFIG.mergeSaturationIntoHunger = value).build());
         effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.ignoreInventoryCompass").getString(), MineLightsClient.CONFIG.ignoreInventoryCompass)
                 .setDefaultValue(defaults.ignoreInventoryCompass).setSaveConsumer(value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value).build());
+        effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.spinCompassWithoutTarget").getString(), MineLightsClient.CONFIG.spinCompassWithoutTarget)
+                .setDefaultValue(defaults.spinCompassWithoutTarget).setSaveConsumer(value -> MineLightsClient.CONFIG.spinCompassWithoutTarget = value).build());
         effects.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("option.mine-lights.restoreLightingOutsideWorld").getString(), MineLightsClient.CONFIG.restoreLightingOutsideWorld)
                 .setDefaultValue(defaults.restoreLightingOutsideWorld).setSaveConsumer(value -> MineLightsClient.CONFIG.restoreLightingOutsideWorld = value).build());
     }
@@ -1676,6 +1678,12 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setDefaultValue(defaults.ignoreInventoryCompass)
                 .setTooltip(translatable("option.mine-lights.ignoreInventoryCompass.tooltip"))
                 .setSaveConsumer(v -> MineLightsClient.CONFIG.ignoreInventoryCompass = v)
+                .build());
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.spinCompassWithoutTarget"),
+                        MineLightsClient.CONFIG.spinCompassWithoutTarget)
+                .setDefaultValue(defaults.spinCompassWithoutTarget)
+                .setTooltip(translatable("option.mine-lights.spinCompassWithoutTarget.tooltip"))
+                .setSaveConsumer(v -> MineLightsClient.CONFIG.spinCompassWithoutTarget = v)
                 .build());
     }
 

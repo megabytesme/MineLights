@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Player Spawn",
   "option.mine-lights.ignoreInventoryCompass": "Overlook Borne Wayfinders",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Always point to the goal below, even when you bear a wayfinder,\nlodestone wayfinder or finding wayfinder.",
+  "option.mine-lights.spinCompassWithoutTarget": "Spin Wayfinder Without a Goal",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "When the wayfinder has no goal, like a wayfinder in the Nether or the End,\nspin it the same way the in-game needle spins. When off, show land-kind hues there instead.",
   "text.mine-lights.saturationBarKeys.merged": "Not brooked now: fullness and breath are merged into the hunger keys.",
   "section.mine-lights.health": "Health",
   "section.mine-lights.hunger": "Hunger & Fullness",

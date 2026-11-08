@@ -56,6 +56,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Man Silio’r Chwaraewr",
   "option.mine-lights.ignoreInventoryCompass": "Anwybyddu Cwmpawdau a Gariwch",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Pwyntio bob amser at y targed isod, hyd yn oed pan fyddwch yn cario cwmpawd,\ncwmpawd magnetfaen neu gwmpawd adfer.",
+  "option.mine-lights.spinCompassWithoutTarget": "Troi’r Cwmpawd Heb Darged",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Pan nad oes gan y cwmpawd darged, fel yn y Nether neu’r End,\nmae’n troi yn union fel y nodwydd yn y gêm. I ffwrdd: dangos lliwiau’r biom yn lle hynny.",
   "text.mine-lights.saturationBarKeys.merged": "Heb ei ddefnyddio nawr: mae dirlawnder ac aer yn cael eu dangos ar y bysellau newyn.",
   "section.mine-lights.health": "Iechyd",
   "section.mine-lights.hunger": "Newyn a Dirlawnder",

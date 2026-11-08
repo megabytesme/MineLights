@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Captain's Bunk",
   "option.mine-lights.ignoreInventoryCompass": "Ignore Carried Star Charts",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Always point to the heading below, even when ye carry a compass,\nlodestone compass or recovery compass.",
+  "option.mine-lights.spinCompassWithoutTarget": "Spin Star Chart Without a Heading",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "When yer compass has no heading, like a compass in the Nether or the End,\nspin it the same way the needle spins in game. When off, show the biome colours there instead.",
   "text.mine-lights.saturationBarKeys.merged": "Not used now, matey: saturation an' air be merged into the hunger keys.",
   "section.mine-lights.health": "Health",
   "section.mine-lights.hunger": "Grub & Saturation",

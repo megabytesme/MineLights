@@ -4,6 +4,7 @@
 - Added Ignore Carried Compasses, which always uses the fallback target even when you carry a compass, lodestone compass or recovery compass (`/minelights set ignore-inventory-compass on`).
 - Grouped the Player Status, Key Layout and Colors settings under section titles (Health, Hunger & Saturation, Experience & Locator Bar, Compass, Other Keys, Devices, Outside Worlds) on Fabric and Quilt 1.16+.
 - The Key Layout page now says when the Saturation / Air keys aren't used because saturation and air are merged into the hunger bar.
+- Added Spin Compass Without a Target (on by default). When the compass has no target, like a compass in the Nether or the End, the compass keys now spin with the same wobble as Minecraft's own needle instead of a fixed loop. Turn it off to show biome colors on those keys instead (`/minelights set spin-compass-without-target off`). With Always Show Compass on, the keyboard compass also spins in dimensions where the fallback target has no position.
 
 # MineLights 2.4.0
 

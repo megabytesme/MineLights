@@ -57,6 +57,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "プレイヤーのスポーン地点",
   "option.mine-lights.ignoreInventoryCompass": "所持しているコンパスを無視",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "コンパス、ロードストーンコンパス、リカバリーコンパスを持っていても、\n常に下の目標を指します。",
+  "option.mine-lights.spinCompassWithoutTarget": "目標がないときにコンパスを回す",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "ネザーやジ・エンドなどでコンパスに目標がないとき、\nゲーム内の針と同じように回ります。オフにするとバイオームの色を表示します。",
   "text.mine-lights.saturationBarKeys.merged": "現在は使用されません：飽和度と空気は空腹キーに表示されます。",
   "section.mine-lights.health": "体力",
   "section.mine-lights.hunger": "空腹度と飽和度",

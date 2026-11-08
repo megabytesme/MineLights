@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "uʍɐdS ɹǝʎɐןԀ",
   "option.mine-lights.ignoreInventoryCompass": "sǝssɐdɯoƆ pǝıɹɹɐƆ ǝɹouƃI",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "˙ssɐdɯoɔ ʎɹǝʌoɔǝɹ ɹo ssɐdɯoɔ ǝuoʇsǝpoן\n'ssɐdɯoɔ ɐ ʎɹɹɐɔ noʎ uǝɥʍ uǝʌǝ 'ʍoןǝq ʇǝbɹɐʇ ǝɥʇ oʇ ʇuıod sʎɐʍן∀",
+  "option.mine-lights.spinCompassWithoutTarget": "ʇǝbɹɐ⊥ ɐ ʇnoɥʇıM ssɐdɯoƆ uıdS",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "˙pɐǝʇsuı ǝɹǝɥʇ sɹoןoɔ ǝɯoıq ʍoɥs 'ɟɟo uǝɥM ˙suıds ǝןpǝǝu ǝɯɐb-uı ǝɥʇ ʎɐʍ ǝɯɐs ǝɥʇ ʇı uıds\n'puƎ ǝɥʇ ɹo ɹǝɥʇǝN ǝɥʇ uı ssɐdɯoɔ ɐ ǝʞıן 'ʇǝbɹɐʇ ou sɐɥ ssɐdɯoɔ ǝɥʇ uǝɥM",
   "text.mine-lights.saturationBarKeys.merged": "˙sʎǝʞ ɹǝbunɥ ǝɥʇ uo ʍoɥs ɹıɐ puɐ uoıʇɐɹnʇɐs os 'uo sı ɹɐq ɹǝbunH oʇuı ɹı∀ ⅋ uoıʇɐɹnʇɐS ǝbɹǝW :ʍou ʇɥbıɹ pǝsn ʇoN",
   "section.mine-lights.health": "ɥʇןɐǝH",
   "section.mine-lights.hunger": "uoıʇɐɹnʇɐS ⅋ ɹǝbunH",

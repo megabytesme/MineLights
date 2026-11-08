@@ -67,6 +67,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Player Spawn",
   "option.mine-lights.ignoreInventoryCompass": "Ignore Carried Compasses",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Always point to the target below, even when you carry a compass,\nlodestone compass or recovery compass.",
+  "option.mine-lights.spinCompassWithoutTarget": "Spin Compass Without a Target",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "When the compass has no target, like a compass in the Nether or the End,\nspin it the same way the in-game needle spins. When off, show biome colors there instead.",
   "text.mine-lights.saturationBarKeys.merged": "Not used right now: Merge Saturation & Air into Hunger Bar is on, so saturation and air show on the hunger keys.",
   "section.mine-lights.health": "Health",
   "section.mine-lights.hunger": "Hunger & Saturation",

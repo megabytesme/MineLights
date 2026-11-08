@@ -186,6 +186,8 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
                 (1, Some([0.0, 0.0, 0.0]))
             } else if show_fallback && dimension == "minecraft:overworld" {
                 (1, game.spawn.map(|spawn| [spawn.x, spawn.y, spawn.z]))
+            } else if show_fallback {
+                (1, None)
             } else {
                 (0, None)
             }
@@ -204,6 +206,12 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
         }
     } else {
         (false, 0.0, 0.0)
+    };
+    // Without a target the compass spins, or shows biome colors when spinning is off.
+    let compass_type = if compass_pointing || settings.spin_compass_without_target {
+        compass_type
+    } else {
+        0
     };
     let waypoints = game
         .waypoints

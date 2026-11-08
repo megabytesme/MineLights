@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Point d’apparition du joueur",
   "option.mine-lights.ignoreInventoryCompass": "Ignorer les boussoles portées",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Pointe toujours vers la cible ci-dessous, même si vous portez une boussole,\nune boussole magnétisée ou une boussole de récupération.",
+  "option.mine-lights.spinCompassWithoutTarget": "Faire tourner la boussole sans cible",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Quand la boussole n’a pas de cible, comme dans le Nether ou l’End,\nelle tourne comme l’aiguille du jeu. Désactivé : les couleurs du biome s’affichent à la place.",
   "text.mine-lights.saturationBarKeys.merged": "Non utilisé pour l’instant : la saturation et l’air s’affichent sur les touches de faim.",
   "section.mine-lights.health": "Santé",
   "section.mine-lights.hunger": "Faim et saturation",
