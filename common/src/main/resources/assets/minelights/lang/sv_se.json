@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Spelarens startpunkt",
   "option.mine-lights.ignoreInventoryCompass": "Ignorera kompasser du bär",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Pekar alltid mot målet nedan, även när du bär en kompass,\nmagnetitkompass eller återvinningskompass.",
+  "option.mine-lights.spinCompassWithoutTarget": "Snurra kompassen utan mål",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "När kompassen saknar mål, till exempel i Nether eller End,\nsnurrar den precis som nålen i spelet. Av: visar biomfärger där i stället.",
   "text.mine-lights.saturationBarKeys.merged": "Används inte nu: mättnad och luft visas på hungertangenterna.",
   "section.mine-lights.health": "Hälsa",
   "section.mine-lights.hunger": "Hunger och mättnad",

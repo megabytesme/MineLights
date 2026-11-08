@@ -130,8 +130,6 @@ public class EffectPainter {
     private boolean isHeartBeatingUp = true;
     private long lastHeartbeatStep = 0;
 
-    private long lastCompassSpinTime = 0;
-    private int compassSpinIndex = 0;
     private static long lastSheenTime = 0;
     private static int sheenIndex = 0;
 
@@ -933,14 +931,14 @@ public class EffectPainter {
         }
 
         if (player.getCompassState() == CompassState.SPINNING) {
-            long now = System.currentTimeMillis();
-            if (now - lastCompassSpinTime > 75) {
-                compassSpinIndex = (compassSpinIndex + 1) % compassKeys.size();
-                lastCompassSpinTime = now;
+            Double spinRotation = player.getCompassSpinRotation();
+            if (spinRotation != null) {
+                double sector = 360.0 / compassKeys.size();
+                int keyIndex = (int) Math.floor(((spinRotation + sector / 2.0) % 360.0 + 360.0) % 360.0 / sector);
+                String keyToLight = compassKeys.get(keyIndex % compassKeys.size());
+                for (Integer ledId : getMappedIds(keyToLight))
+                    state.keys.put(ledId, compassColor);
             }
-            String keyToLight = compassKeys.get(compassSpinIndex % compassKeys.size());
-            for (Integer ledId : getMappedIds(keyToLight))
-                state.keys.put(ledId, compassColor);
         } else if (player.getCompassState() == CompassState.POINTING) {
             if (player.getCompassDistance() != null && player.getCompassDistance() < 8) {
                 for (Integer centerLedId : getMappedIds(KeyMap.getNumpadCenter())) {

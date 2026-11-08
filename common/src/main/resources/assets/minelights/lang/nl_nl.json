@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Spelerspawn",
   "option.mine-lights.ignoreInventoryCompass": "Gedragen kompassen negeren",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Wijs altijd naar het doel hieronder, ook als je een kompas,\nmagneetsteenkompas of herstelkompas bij je hebt.",
+  "option.mine-lights.spinCompassWithoutTarget": "Kompas zonder doel laten draaien",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Als het kompas geen doel heeft, zoals in de Nether of het End,\ndraait het net als de naald in het spel. Uit: daar worden biomekleuren getoond.",
   "text.mine-lights.saturationBarKeys.merged": "Nu niet gebruikt: verzadiging en lucht worden op de hongertoetsen getoond.",
   "section.mine-lights.health": "Gezondheid",
   "section.mine-lights.hunger": "Honger & verzadiging",

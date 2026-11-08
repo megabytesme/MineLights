@@ -57,6 +57,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Точка возрождения игрока",
   "option.mine-lights.ignoreInventoryCompass": "Игнорировать носимые компасы",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Всегда указывать на цель ниже, даже если у вас есть компас,\nкомпас магнетита или компас восстановления.",
+  "option.mine-lights.spinCompassWithoutTarget": "Вращать компас без цели",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Когда у компаса нет цели, например в Незере или Энде,\nон вращается так же, как стрелка в игре. Выкл.: вместо этого показываются цвета биома.",
   "text.mine-lights.saturationBarKeys.merged": "Сейчас не используется: насыщение и воздух показываются на клавишах голода.",
   "section.mine-lights.health": "Здоровье",
   "section.mine-lights.hunger": "Голод и насыщение",

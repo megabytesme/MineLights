@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Ponto de renascimento do jogador",
   "option.mine-lights.ignoreInventoryCompass": "Ignorar bússolas carregadas",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Sempre aponta para o alvo abaixo, mesmo quando você carrega uma bússola,\nbússola magnetizada ou bússola de recuperação.",
+  "option.mine-lights.spinCompassWithoutTarget": "Girar bússola sem alvo",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Quando a bússola não tem alvo, como no Nether ou no End,\nela gira igual à agulha do jogo. Desligado: mostra as cores do bioma.",
   "text.mine-lights.saturationBarKeys.merged": "Não usado agora: saturação e ar aparecem nas teclas de fome.",
   "section.mine-lights.health": "Vida",
   "section.mine-lights.hunger": "Fome e saturação",

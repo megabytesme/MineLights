@@ -29,6 +29,7 @@ public class PlayerDto {
     private List<WaypointDto> waypoints;
     private CompassState compassState = CompassState.NONE;
     private Double compassRelativeYaw;
+    private Double compassSpinRotation;
     private Double compassDistance;
     private CompassType compassType = CompassType.NONE;
     private boolean isChatReceived;
@@ -235,6 +236,14 @@ public class PlayerDto {
 
     public void setCompassRelativeYaw(Double compassRelativeYaw) {
         this.compassRelativeYaw = compassRelativeYaw;
+    }
+
+    public Double getCompassSpinRotation() {
+        return compassSpinRotation;
+    }
+
+    public void setCompassSpinRotation(Double compassSpinRotation) {
+        this.compassSpinRotation = compassSpinRotation;
     }
 
     public Double getCompassDistance() {

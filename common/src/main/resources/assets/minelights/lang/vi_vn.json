@@ -59,6 +59,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Điểm hồi sinh người chơi",
   "option.mine-lights.ignoreInventoryCompass": "Bỏ qua la bàn đang mang",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Luôn chỉ về mục tiêu bên dưới, kể cả khi bạn mang la bàn,\nla bàn đá nam châm hoặc la bàn hồi phục.",
+  "option.mine-lights.spinCompassWithoutTarget": "Xoay la bàn khi không có mục tiêu",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Khi la bàn không có mục tiêu, như ở Nether hoặc End,\nnó xoay giống hệt kim trong game. Tắt: hiển thị màu quần xã sinh vật thay vào đó.",
   "text.mine-lights.saturationBarKeys.merged": "Hiện không dùng: độ bão hòa và dưỡng khí hiển thị trên các phím đói.",
   "section.mine-lights.health": "Máu",
   "section.mine-lights.hunger": "Đói & Bão hòa",

@@ -57,6 +57,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Titik muncul pemain",
   "option.mine-lights.ignoreInventoryCompass": "Abaikan kompas yang dibawa",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Selalu tunjuk ke target di bawah, meskipun kamu membawa kompas,\nkompas lodestone, atau kompas pemulihan.",
+  "option.mine-lights.spinCompassWithoutTarget": "Putar kompas tanpa target",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Saat kompas tidak punya target, misalnya di Nether atau End,\nkompas berputar sama seperti jarum di dalam game. Mati: tampilkan warna bioma.",
   "text.mine-lights.saturationBarKeys.merged": "Tidak dipakai sekarang: saturasi dan udara ditampilkan di tombol lapar.",
   "section.mine-lights.health": "Kesehatan",
   "section.mine-lights.hunger": "Lapar & Saturasi",

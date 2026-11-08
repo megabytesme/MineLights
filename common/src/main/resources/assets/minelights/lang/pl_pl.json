@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Punkt odrodzenia gracza",
   "option.mine-lights.ignoreInventoryCompass": "Ignoruj noszone kompasy",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Zawsze wskazuj cel poniżej, nawet gdy masz przy sobie kompas,\nkompas magnetytowy lub kompas odzyskiwania.",
+  "option.mine-lights.spinCompassWithoutTarget": "Obracaj kompas bez celu",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Gdy kompas nie ma celu, np. w Netherze lub Endzie,\nobraca się tak jak igła w grze. Wyłączone: zamiast tego pokazuje kolory biomu.",
   "text.mine-lights.saturationBarKeys.merged": "Obecnie nieużywane: nasycenie i powietrze są pokazywane na klawiszach głodu.",
   "section.mine-lights.health": "Zdrowie",
   "section.mine-lights.hunger": "Głód i nasycenie",

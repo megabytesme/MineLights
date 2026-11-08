@@ -59,6 +59,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "ಆಟಗಾರನ ಸ್ಪಾನ್",
   "option.mine-lights.ignoreInventoryCompass": "ಹೊತ್ತಿರುವ ದಿಕ್ಸೂಚಿಗಳನ್ನು ನಿರ್ಲಕ್ಷಿಸಿ",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "ನಿಮ್ಮ ಬಳಿ ದಿಕ್ಸೂಚಿ, ಲೋಡ್‌ಸ್ಟೋನ್ ದಿಕ್ಸೂಚಿ ಅಥವಾ ರಿಕವರಿ ದಿಕ್ಸೂಚಿ ಇದ್ದರೂ\nಯಾವಾಗಲೂ ಕೆಳಗಿನ ಗುರಿಯನ್ನು ತೋರಿಸಿ.",
+  "option.mine-lights.spinCompassWithoutTarget": "ಗುರಿ ಇಲ್ಲದಿದ್ದಾಗ ದಿಕ್ಸೂಚಿ ತಿರುಗಿಸಿ",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "ನೆದರ್ ಅಥವಾ ಎಂಡ್‌ನಂತೆ ದಿಕ್ಸೂಚಿಗೆ ಗುರಿ ಇಲ್ಲದಿದ್ದಾಗ,\nಆಟದ ಸೂಜಿಯಂತೆಯೇ ತಿರುಗುತ್ತದೆ. ಆಫ್ ಆಗಿದ್ದರೆ ಬದಲಿಗೆ ಬಯೋಮ್ ಬಣ್ಣಗಳನ್ನು ತೋರಿಸುತ್ತದೆ.",
   "text.mine-lights.saturationBarKeys.merged": "ಈಗ ಬಳಸಲಾಗುತ್ತಿಲ್ಲ: ತೃಪ್ತಿ ಮತ್ತು ಗಾಳಿ ಹಸಿವಿನ ಕೀಲಿಗಳಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.",
   "section.mine-lights.health": "ಆರೋಗ್ಯ",
   "section.mine-lights.hunger": "ಹಸಿವು ಮತ್ತು ತೃಪ್ತಿ",

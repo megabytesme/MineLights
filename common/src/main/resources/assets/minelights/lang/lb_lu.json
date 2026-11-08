@@ -56,6 +56,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Spiller-Spawn",
   "option.mine-lights.ignoreInventoryCompass": "Gedroe Kompasser ignoréieren",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Weist ëmmer op d’Zil hei ënnen, och wann s du e Kompass,\ne Leetsteen-Kompass oder e Recuperatiouns-Kompass dobäi hues.",
+  "option.mine-lights.spinCompassWithoutTarget": "Kompass ouni Zil dréinen",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Wann de Kompass keen Zil huet, z. B. am Nether oder am End,\ndréint e sech grad wéi d’Nol am Spill. Aus: do ginn amplaz Biomfaarwe gewisen.",
   "text.mine-lights.saturationBarKeys.merged": "Elo net benotzt: Sättegung a Loft ginn op den Honger-Tasten ugewisen.",
   "section.mine-lights.health": "Gesondheet",
   "section.mine-lights.hunger": "Honger & Sättegung",

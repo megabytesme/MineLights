@@ -54,6 +54,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Thy Resting Place",
   "option.mine-lights.ignoreInventoryCompass": "Heed Not Carried Compasses",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Ever point to the mark below, even when thou bearest a compass,\nlodestone compass or recovery compass.",
+  "option.mine-lights.spinCompassWithoutTarget": "Spin the Compass Lacking a Mark",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "When the compass hath no mark, as a compass in the Nether or the End,\nlet it spin e'en as the needle spinneth in the game. When off, show the hues of the biome instead.",
   "text.mine-lights.saturationBarKeys.merged": "Unused anon: saturation and air are merged into the hunger keys.",
   "section.mine-lights.health": "Health",
   "section.mine-lights.hunger": "Hunger & Satiety",

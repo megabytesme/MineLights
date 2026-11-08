@@ -56,6 +56,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Jokalariaren agerlekua",
   "option.mine-lights.ignoreInventoryCompass": "Ez ikusi daramatzazun iparrorratzak",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Seinalatu beti beheko helburua, iparrorratza,\nmagnetita-iparrorratza edo berreskuratze-iparrorratza eraman arren.",
+  "option.mine-lights.spinCompassWithoutTarget": "Biratu iparrorratza helbururik gabe",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Iparrorratzak helbururik ez duenean, Netherrean edo Enden adibidez,\njokoko orratzak bezala biratzen da. Desaktibatuta: biomaren koloreak erakusten dira.",
   "text.mine-lights.saturationBarKeys.merged": "Orain ez da erabiltzen: asetasuna eta airea gosearen teklen gainean erakusten dira.",
   "section.mine-lights.health": "Osasuna",
   "section.mine-lights.hunger": "Gosea eta asetasuna",

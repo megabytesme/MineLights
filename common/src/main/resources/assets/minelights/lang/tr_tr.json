@@ -57,6 +57,8 @@
   "enum.mine-lights.compassFallbackTarget.player_spawn": "Oyuncu Doğma Noktası",
   "option.mine-lights.ignoreInventoryCompass": "Taşınan Pusulaları Yok Say",
   "option.mine-lights.ignoreInventoryCompass.tooltip": "Pusula, mıknatıs taşı pusulası veya kurtarma pusulası taşısan bile\nher zaman aşağıdaki hedefi gösterir.",
+  "option.mine-lights.spinCompassWithoutTarget": "Hedefsiz Pusulayı Döndür",
+  "option.mine-lights.spinCompassWithoutTarget.tooltip": "Pusulanın hedefi olmadığında, örneğin Nether'da veya End'de,\noyundaki iğne gibi döner. Kapalı: bunun yerine biyom renklerini gösterir.",
   "text.mine-lights.saturationBarKeys.merged": "Şu an kullanılmıyor: doygunluk ve hava açlık tuşlarında gösteriliyor.",
   "section.mine-lights.health": "Can",
   "section.mine-lights.hunger": "Açlık ve Doygunluk",
