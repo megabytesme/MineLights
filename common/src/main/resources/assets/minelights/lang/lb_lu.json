@@ -71,6 +71,8 @@
   "option.mine-lights.enableInWaterEffect": "Ënnerwaasser-Effekt aktivéieren",
   "option.mine-lights.enableInWaterEffect.tooltip": "Hieft d’Beweegungstaste blo ervir, wann Dir ënner Waasser sidd.",
   "option.mine-lights.enablePortalEffects": "Portal-Effekter aktivéieren",
+  "option.mine-lights.lodestoneCompassShimmer": "Leetsteen-Kompass-Glanz",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Weist de mof Glanz op de Kompass-Tasten, wann s du e Leetsteen-Kompass benotz.\nAus: d’Taste behalen d’Faarwen, ouni Animatioun.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

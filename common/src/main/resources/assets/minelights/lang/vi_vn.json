@@ -76,6 +76,8 @@
   "option.mine-lights.enableInWaterEffect": "Bật hiệu ứng dưới nước",
   "option.mine-lights.enableInWaterEffect.tooltip": "Làm nổi bật phím di chuyển bằng màu xanh khi bạn ở dưới nước.",
   "option.mine-lights.enablePortalEffects": "Bật hiệu ứng cổng dịch chuyển",
+  "option.mine-lights.lodestoneCompassShimmer": "Ánh lấp lánh của la bàn đá nam châm",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Hiển thị ánh tím lấp lánh trên các phím la bàn khi bạn dùng la bàn đá nam châm.\nTắt: các phím giữ màu nhưng không có hiệu ứng động.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

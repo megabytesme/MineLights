@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "„Im Wasser“-Effekt aktivieren",
   "option.mine-lights.enableInWaterEffect.tooltip": "Hebt Bewegungstasten mit einer blauen Farbe hervor, wenn man untergetaucht ist.",
   "option.mine-lights.enablePortalEffects": "Portaleffekte aktivieren",
+  "option.mine-lights.lodestoneCompassShimmer": "Leitstein-Kompass-Schimmer",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Zeigt den violetten Schimmer auf den Kompasstasten, während du einen Leitstein-Kompass nutzt.\nAus: Die Tasten behalten die Leitstein-Farben, aber ohne Animation.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

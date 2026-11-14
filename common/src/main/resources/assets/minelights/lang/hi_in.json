@@ -76,6 +76,8 @@
   "option.mine-lights.enableInWaterEffect": "पानी के अंदर का प्रभाव सक्षम करें",
   "option.mine-lights.enableInWaterEffect.tooltip": "पानी में डूबे होने पर मूवमेंट कुंजियों को नीले रंग से हाइलाइट करता है।",
   "option.mine-lights.enablePortalEffects": "पोर्टल प्रभाव सक्षम करें",
+  "option.mine-lights.lodestoneCompassShimmer": "लोडस्टोन कम्पास चमक",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "लोडस्टोन कम्पास इस्तेमाल करते समय कम्पास कुंजियों पर बैंगनी चमक दिखाता है।\nबंद होने पर कुंजियाँ रंग रखती हैं, पर एनिमेशन नहीं होता।",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

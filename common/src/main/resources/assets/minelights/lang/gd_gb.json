@@ -71,6 +71,8 @@
   "option.mine-lights.enableInWaterEffect": "Cuir buaidh fon uisge an comas",
   "option.mine-lights.enableInWaterEffect.tooltip": "Soillsichidh seo iuchraichean gluasad ann an gorm nuair a bhios tu fon uisge.",
   "option.mine-lights.enablePortalEffects": "Cuir buaidhean nam portal an comas",
+  "option.mine-lights.lodestoneCompassShimmer": "Deàrrsadh na combaist clach-iùil",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Seallaidh seo an deàrrsadh purpaidh air iuchraichean na combaist fhad ’s a chleachdas tu combaist clach-iùil.\nDheth: cumaidh na h-iuchraichean na dathan, gun bheòthachadh.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

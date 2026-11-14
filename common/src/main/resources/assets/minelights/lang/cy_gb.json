@@ -71,6 +71,8 @@
   "option.mine-lights.enableInWaterEffect": "Galluogi Effaith Dan Ddŵr",
   "option.mine-lights.enableInWaterEffect.tooltip": "Yn amlygu bysellau symud mewn glas pan fyddwch dan ddŵr.",
   "option.mine-lights.enablePortalEffects": "Galluogi Effeithiau Pyrth",
+  "option.mine-lights.lodestoneCompassShimmer": "Sglein y Cwmpawd Magnetfaen",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Yn dangos y sglein porffor ar fysellau’r cwmpawd tra byddwch yn defnyddio cwmpawd magnetfaen.\nI ffwrdd: mae’r bysellau’n cadw’r lliwiau, heb yr animeiddiad.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

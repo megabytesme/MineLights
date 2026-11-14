@@ -71,6 +71,8 @@
   "option.mine-lights.enableInWaterEffect": "Effekt ûnder wetter ynskeakelje",
   "option.mine-lights.enableInWaterEffect.tooltip": "Markearret bewegingstoetsen blau ast ûnder wetter bist.",
   "option.mine-lights.enablePortalEffects": "Portaleffekten ynskeakelje",
+  "option.mine-lights.lodestoneCompassShimmer": "Glâns fan seilstienkompas",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Toant de pearse glâns op de kompaskaaien wylst asto in seilstienkompas brûkst.\nÚt: de kaaien hâlde de kleuren, sûnder de animaasje.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

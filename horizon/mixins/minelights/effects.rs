@@ -835,7 +835,7 @@ impl Painter {
             let index = ((yaw + sector / 2.0).rem_euclid(360.0) / sector) as usize;
             paint_key(frame, layouts, &directions[index % directions.len()], color);
         }
-        if player.compass_type == 2 {
+        if player.compass_type == 2 && settings.lodestone_compass_shimmer {
             if now.duration_since(self.last_sheen) > Duration::from_millis(60) {
                 self.sheen_index = (self.sheen_index + 1) % directions.len();
                 self.last_sheen = now;

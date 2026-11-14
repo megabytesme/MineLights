@@ -74,6 +74,8 @@
   "option.mine-lights.enableInWaterEffect": "Dayakan Kesan Dalam Air",
   "option.mine-lights.enableInWaterEffect.tooltip": "Menyerlahkan kekunci pergerakan dengan warna biru apabila tenggelam.",
   "option.mine-lights.enablePortalEffects": "Dayakan Kesan Portal",
+  "option.mine-lights.lodestoneCompassShimmer": "Kilauan Kompas Lodestone",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Menunjukkan kilauan ungu pada kekunci kompas semasa anda menggunakan kompas lodestone.\nMati: kekunci kekal berwarna, tanpa animasi.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

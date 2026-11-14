@@ -214,6 +214,8 @@ public final class MineLightsLegacyConfigScreen extends GuiScreen {
                         value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects,
                         value -> MineLightsClient.CONFIG.enablePortalEffects = value);
+                toggle(options, "Lodestone compass shimmer", () -> MineLightsClient.CONFIG.lodestoneCompassShimmer,
+                        value -> MineLightsClient.CONFIG.lodestoneCompassShimmer = value);
                 break;
             case 4:
                 List<String> devices = new ArrayList<>(MineLightsClient.discoveredDevices);

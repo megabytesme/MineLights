@@ -76,6 +76,8 @@
   "option.mine-lights.enableInWaterEffect": "ನೀರಿನೊಳಗಿನ ಪರಿಣಾಮವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
   "option.mine-lights.enableInWaterEffect.tooltip": "ನೀರಿನಲ್ಲಿ ಮುಳುಗಿದಾಗ ಚಲನೆಯ ಕೀಲಿಗಳನ್ನು ನೀಲಿ ಬಣ್ಣದಲ್ಲಿ ಹೈಲೈಟ್ ಮಾಡುತ್ತದೆ.",
   "option.mine-lights.enablePortalEffects": "ಪೋರ್ಟಲ್ ಪರಿಣಾಮಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+  "option.mine-lights.lodestoneCompassShimmer": "ಲೋಡ್‌ಸ್ಟೋನ್ ದಿಕ್ಸೂಚಿ ಹೊಳಪು",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "ಲೋಡ್‌ಸ್ಟೋನ್ ದಿಕ್ಸೂಚಿ ಬಳಸುವಾಗ ದಿಕ್ಸೂಚಿ ಕೀಲಿಗಳ ಮೇಲೆ ನೇರಳೆ ಹೊಳಪು ತೋರಿಸುತ್ತದೆ.\nಆಫ್ ಆಗಿದ್ದರೆ ಕೀಲಿಗಳು ಬಣ್ಣ ಉಳಿಸಿಕೊಳ್ಳುತ್ತವೆ, ಅನಿಮೇಷನ್ ಇಲ್ಲದೆ.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",
