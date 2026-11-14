@@ -76,6 +76,8 @@
   "option.mine-lights.enableInWaterEffect": "Су астындагы эффектны кабызу",
   "option.mine-lights.enableInWaterEffect.tooltip": "Су астында булганда хәрәкәт төймәләрен зәңгәр төстә аерып күрсәтә.",
   "option.mine-lights.enablePortalEffects": "Портал эффектларын кабызу",
+  "option.mine-lights.lodestoneCompassShimmer": "Магнитташ компасы ялтыравы",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Магнитташ компасын кулланганда компас төймәләрендә шәмәхә ялтырау күрсәтә.\nСүнек: төймәләр төсләрне саклый, анимациясез.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

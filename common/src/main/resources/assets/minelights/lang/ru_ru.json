@@ -74,6 +74,8 @@
   "option.mine-lights.enableInWaterEffect": "Включить эффект нахождения в воде",
   "option.mine-lights.enableInWaterEffect.tooltip": "Подсвечивает клавиши передвижения синим цветом под водой.",
   "option.mine-lights.enablePortalEffects": "Включить эффекты портала",
+  "option.mine-lights.lodestoneCompassShimmer": "Блеск компаса магнетита",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Показывает фиолетовый блеск на клавишах компаса, когда вы используете компас магнетита.\nВыкл.: клавиши сохраняют цвета, но без анимации.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

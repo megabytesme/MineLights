@@ -390,6 +390,11 @@ public final class ModMenuIntegration {
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
                 .build());
+        environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.lodestoneCompassShimmer"), MineLightsClient.CONFIG.lodestoneCompassShimmer)
+                .setDefaultValue(true)
+                .setTooltip(translatable("option.mine-lights.lodestoneCompassShimmer.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.lodestoneCompassShimmer = newValue)
+                .build());
 
         ConfigCategory about = builder.getOrCreateCategory(translatable("category.mine-lights.about"));
         about.addEntry(entryBuilder.startTextDescription(Component.translatable("text.mine-lights.about.title")).build());
