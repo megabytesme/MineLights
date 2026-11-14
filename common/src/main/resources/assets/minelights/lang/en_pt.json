@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "Show In-Water Effect",
   "option.mine-lights.enableInWaterEffect.tooltip": "Highlights movement keys with a blue colour when submerged.",
   "option.mine-lights.enablePortalEffects": "Show Portal Effects",
+  "option.mine-lights.lodestoneCompassShimmer": "Lodestone Star Chart Shimmer",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Plays the purple shimmer across the compass keys while ye use a lodestone compass.\nWhen off, the keys keep the lodestone colours without the dancin'.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

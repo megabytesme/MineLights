@@ -1,3 +1,7 @@
+# Unreleased
+
+- Added Lodestone Compass Shimmer in the Environment settings (on by default). Turn it off to keep the lodestone compass colors on the compass keys without the purple shimmer animation (`/minelights set lodestone-shimmer off`). Also available in Horizon through the command.
+
 # MineLights 2.4.0
 
 This release brings the authenticated MineLights Server V2 protocol to Java and Horizon clients, adds Horizon support for Minecraft 26.3, and introduces configurable lighting controls.

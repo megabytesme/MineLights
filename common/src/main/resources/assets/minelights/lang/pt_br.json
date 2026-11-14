@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "Ativar efeito de submersão",
   "option.mine-lights.enableInWaterEffect.tooltip": "Destaca as teclas de movimento em azul quando você está submerso.",
   "option.mine-lights.enablePortalEffects": "Ativar efeitos de portal",
+  "option.mine-lights.lodestoneCompassShimmer": "Brilho da bússola magnetizada",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Mostra o brilho roxo nas teclas da bússola enquanto você usa uma bússola magnetizada.\nDesligado: as teclas mantêm as cores, sem a animação.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

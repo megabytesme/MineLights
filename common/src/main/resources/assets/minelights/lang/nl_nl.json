@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "Onderwatereffect inschakelen",
   "option.mine-lights.enableInWaterEffect.tooltip": "Markeert bewegingstoetsen blauw wanneer je onder water bent.",
   "option.mine-lights.enablePortalEffects": "Portaleffecten inschakelen",
+  "option.mine-lights.lodestoneCompassShimmer": "Glans van magneetsteenkompas",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Toont de paarse glans op de kompastoetsen terwijl je een magneetsteenkompas gebruikt.\nUit: de toetsen houden de kleuren, zonder de animatie.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

@@ -33,7 +33,7 @@ public final class MineLightsCommands {
             "saturation-bar", "experience-bar", "locator-bar", "compass-effect", "always-show-compass",
             "compass-priority", "low-health-warning", "biome-effects", "dimming-mode", "min-brightness",
             "weather-effects", "mirror-ram-rain-direction", "end-flash-effect", "fire-effect", "water-effect",
-            "portal-effects", "movement-keys", "chat-key-pulse", "absorption-overlay",
+            "portal-effects", "lodestone-shimmer", "movement-keys", "chat-key-pulse", "absorption-overlay",
             "merge-saturation-into-hunger", "restore-lighting-outside-world"
         };
         List<String> all = new ArrayList<String>();
@@ -439,6 +439,7 @@ public final class MineLightsCommands {
             case "fire-effect": return Boolean.valueOf(config.enableOnFireEffect);
             case "water-effect": return Boolean.valueOf(config.enableInWaterEffect);
             case "portal-effects": return Boolean.valueOf(config.enablePortalEffects);
+            case "lodestone-shimmer": return Boolean.valueOf(config.lodestoneCompassShimmer);
             case "movement-keys": return Boolean.valueOf(config.highlightMovementKeys);
             case "chat-key-pulse": return Boolean.valueOf(config.pulseChatKey);
             default: return null;
@@ -483,6 +484,7 @@ public final class MineLightsCommands {
             case "fire-effect": config.enableOnFireEffect = value; break;
             case "water-effect": config.enableInWaterEffect = value; break;
             case "portal-effects": config.enablePortalEffects = value; break;
+            case "lodestone-shimmer": config.lodestoneCompassShimmer = value; break;
             case "movement-keys": config.highlightMovementKeys = value; break;
             case "chat-key-pulse": config.pulseChatKey = value; break;
             default: throw new IllegalArgumentException("Unknown boolean setting '" + name + "'.");
@@ -544,6 +546,7 @@ public final class MineLightsCommands {
         if ("fire".equals(name)) return "fire-effect";
         if ("water".equals(name)) return "water-effect";
         if ("portal".equals(name)) return "portal-effects";
+        if ("lodestone-glint".equals(name) || "lodestone-compass-shimmer".equals(name)) return "lodestone-shimmer";
         if ("movement".equals(name) || "movement-highlight".equals(name)) return "movement-keys";
         if ("chat-pulse".equals(name)) return "chat-key-pulse";
         if ("low-health".equals(name)) return "low-health-warning";

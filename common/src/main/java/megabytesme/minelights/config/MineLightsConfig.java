@@ -87,6 +87,7 @@ public class MineLightsConfig {
     public boolean enableOnFireEffect = true;
     public boolean enableInWaterEffect = true;
     public boolean enablePortalEffects = true;
+    public boolean lodestoneCompassShimmer = true;
     public boolean highlightMovementKeys = true;
     public boolean pulseChatKey = true;
 

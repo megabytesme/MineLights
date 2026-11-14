@@ -963,7 +963,7 @@ public class EffectPainter {
             }
         }
 
-        if (player.getCompassType() == CompassType.LODESTONE) {
+        if (player.getCompassType() == CompassType.LODESTONE && MineLightsClient.CONFIG.lodestoneCompassShimmer) {
             long now = System.currentTimeMillis();
             if (now - lastSheenTime > 60) {
                 sheenIndex = (sheenIndex + 1) % compassKeys.size();

@@ -74,6 +74,8 @@
   "option.mine-lights.enableInWaterEffect": "启用在水下效果",
   "option.mine-lights.enableInWaterEffect.tooltip": "在水下时用蓝色高亮移动键。",
   "option.mine-lights.enablePortalEffects": "启用传送门效果",
+  "option.mine-lights.lodestoneCompassShimmer": "磁石指针闪光",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "使用磁石指针时，在指南针按键上显示紫色闪光。\n关闭后按键保留颜色，但没有动画。",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

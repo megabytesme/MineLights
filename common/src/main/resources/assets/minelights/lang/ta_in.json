@@ -76,6 +76,8 @@
   "option.mine-lights.enableInWaterEffect": "நீருக்குள் விளைவை இயக்கு",
   "option.mine-lights.enableInWaterEffect.tooltip": "நீரில் மூழ்கியிருக்கும்போது இயக்க விசைகளை நீல நிறத்தில் முன்னிலைப்படுத்தும்.",
   "option.mine-lights.enablePortalEffects": "போர்டல் விளைவுகளை இயக்கு",
+  "option.mine-lights.lodestoneCompassShimmer": "காந்தக்கல் திசைகாட்டி மினுமினுப்பு",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "காந்தக்கல் திசைகாட்டியைப் பயன்படுத்தும்போது திசைகாட்டி விசைகளில் ஊதா மினுமினுப்பைக் காட்டும்.\nஅணைத்தால் விசைகள் நிறங்களை வைத்திருக்கும், அனிமேஷன் இல்லாமல்.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

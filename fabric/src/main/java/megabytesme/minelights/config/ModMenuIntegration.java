@@ -1235,6 +1235,27 @@ public class ModMenuIntegration implements ModMenuApi {
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
                 .build());
+        //? if >=1.16 {
+        environment.addEntry(entryBuilder
+                .startBooleanToggle(
+                        translatable("option.mine-lights.lodestoneCompassShimmer"),
+                        MineLightsClient.CONFIG.lodestoneCompassShimmer)
+                .setDefaultValue(true)
+                .setTooltip(
+                    translatable("option.mine-lights.lodestoneCompassShimmer.tooltip"))
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.lodestoneCompassShimmer = newValue)
+                .build());
+        //?} else {
+        /*environment.addEntry(entryBuilder
+                .startBooleanToggle(
+                        new TranslatableText("option.mine-lights.lodestoneCompassShimmer").getString(),
+                        MineLightsClient.CONFIG.lodestoneCompassShimmer)
+                .setDefaultValue(true)
+                .setSaveConsumer(
+                        newValue -> MineLightsClient.CONFIG.lodestoneCompassShimmer = newValue)
+                .build());
+        *///?}
 
         //? if >=1.16 {
         addLayoutCategories(builder, entryBuilder);

@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "Onflow In-Water Working",
   "option.mine-lights.enableInWaterEffect.tooltip": "Highlights fare keys with a blue hue when underwater.",
   "option.mine-lights.enablePortalEffects": "Onflow Gate Workings",
+  "option.mine-lights.lodestoneCompassShimmer": "Lodestone Wayfinder Shimmer",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Plays the purple shimmer across the wayfinder keys while you use a lodestone wayfinder.\nWhen off, the keys keep the lodestone hues without the stirring.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

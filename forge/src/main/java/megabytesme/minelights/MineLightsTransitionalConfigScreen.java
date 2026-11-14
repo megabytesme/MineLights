@@ -219,6 +219,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect, value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect, value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects, value -> MineLightsClient.CONFIG.enablePortalEffects = value);
+                toggle(options, "Lodestone compass shimmer", () -> MineLightsClient.CONFIG.lodestoneCompassShimmer, value -> MineLightsClient.CONFIG.lodestoneCompassShimmer = value);
                 break;
             case 4:
                 List<String> devices = new ArrayList<>(MineLightsClient.discoveredDevices);

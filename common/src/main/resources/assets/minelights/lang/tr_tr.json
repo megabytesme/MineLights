@@ -74,6 +74,8 @@
   "option.mine-lights.enableInWaterEffect": "Su Altı Efektini Etkinleştir",
   "option.mine-lights.enableInWaterEffect.tooltip": "Su altındayken hareket tuşlarını mavi renkle vurgular.",
   "option.mine-lights.enablePortalEffects": "Portal Efektlerini Etkinleştir",
+  "option.mine-lights.lodestoneCompassShimmer": "Mıknatıs Taşı Pusulası Parıltısı",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Mıknatıs taşı pusulası kullanırken pusula tuşlarında mor parıltıyı gösterir.\nKapalı: tuşlar renklerini korur, animasyon olmaz.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",

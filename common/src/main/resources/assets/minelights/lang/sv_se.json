@@ -69,6 +69,8 @@
   "option.mine-lights.enableInWaterEffect": "Aktivera undervattenseffekt",
   "option.mine-lights.enableInWaterEffect.tooltip": "Markerar rörelsetangenter blå när du är under vatten.",
   "option.mine-lights.enablePortalEffects": "Aktivera portaleffekter",
+  "option.mine-lights.lodestoneCompassShimmer": "Skimmer för magnetitkompass",
+  "option.mine-lights.lodestoneCompassShimmer.tooltip": "Visar det lila skimret på kompasstangenterna när du använder en magnetitkompass.\nAv: tangenterna behåller färgerna, utan animationen.",
   "integration.mine-lights.corsair": "Corsair (iCUE)",
   "integration.mine-lights.asus": "Asus (Aura/Armoury Crate)",
   "integration.mine-lights.logitech": "Logitech (G HUB)",
