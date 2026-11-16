@@ -330,6 +330,24 @@ public final class ModMenuIntegration {
                 .setTooltip(translatable("option.mine-lights.alwaysShowCompass.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.alwaysShowCompass = newValue)
                 .build());
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.ignoreInventoryCompass"), MineLightsClient.CONFIG.ignoreInventoryCompass)
+                .setDefaultValue(false)
+                .setTooltip(translatable("option.mine-lights.ignoreInventoryCompass.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.ignoreInventoryCompass = newValue)
+                .build());
+        playerStatus.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.spinCompassWithoutTarget"), MineLightsClient.CONFIG.spinCompassWithoutTarget)
+                .setDefaultValue(true)
+                .setTooltip(translatable("option.mine-lights.spinCompassWithoutTarget.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.spinCompassWithoutTarget = newValue)
+                .build());
+        playerStatus.addEntry(entryBuilder.startEnumSelector(translatable("option.mine-lights.compassFallbackTarget"),
+                        CompassFallbackTarget.class,
+                        MineLightsClient.CONFIG.compassFallbackTarget != null ? MineLightsClient.CONFIG.compassFallbackTarget : CompassFallbackTarget.WORLD_SPAWN)
+                .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
+                .setEnumNameProvider(value -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase(java.util.Locale.ROOT)))
+                .setTooltip(translatable("option.mine-lights.compassFallbackTarget.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
+                .build());
         playerStatus.addEntry(entryBuilder.startEnumSelector(translatable("option.mine-lights.compassPriority"),
                         CompassPriority.class,
                         MineLightsClient.CONFIG.compassPriority != null ? MineLightsClient.CONFIG.compassPriority : CompassPriority.PRIORITY)
@@ -389,6 +407,11 @@ public final class ModMenuIntegration {
         environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.enablePortalEffects"), MineLightsClient.CONFIG.enablePortalEffects)
                 .setDefaultValue(true)
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.enablePortalEffects = newValue)
+                .build());
+        environment.addEntry(entryBuilder.startBooleanToggle(translatable("option.mine-lights.lodestoneCompassShimmer"), MineLightsClient.CONFIG.lodestoneCompassShimmer)
+                .setDefaultValue(true)
+                .setTooltip(translatable("option.mine-lights.lodestoneCompassShimmer.tooltip"))
+                .setSaveConsumer(newValue -> MineLightsClient.CONFIG.lodestoneCompassShimmer = newValue)
                 .build());
 
         ConfigCategory about = builder.getOrCreateCategory(translatable("category.mine-lights.about"));

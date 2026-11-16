@@ -1,3 +1,12 @@
+# Unreleased
+
+- Added a compass fallback target. With Always Show Compass on and no compass in your inventory, the compass effect can point to world spawn (default), 0, 0, or your player spawn. Player spawn uses your bed or respawn anchor in singleplayer on Fabric and Quilt 1.16+, Forge 1.17+, and NeoForge. Multiplayer, Horizon, and older versions use world spawn when it is available; a known player spawn in another dimension has no target. A carried compass takes priority unless Ignore Carried Compasses is enabled. Available in the settings screens and through `/minelights set compass-fallback-target`.
+- Added Ignore Carried Compasses, which always uses the fallback target even when you carry a compass, lodestone compass or recovery compass (`/minelights set ignore-inventory-compass on`).
+- Grouped the Player Status, Key Layout and Colors settings under section titles (Health, Hunger & Saturation, Experience & Locator Bar, Compass, Other Keys, Devices, Outside Worlds) on Fabric and Quilt 1.16+.
+- The Key Layout page now says when the Saturation / Air keys aren't used because saturation and air are merged into the hunger bar.
+- Added Spin Compass Without a Target (on by default). When the compass has no target, like a compass in the Nether or the End, the compass keys now spin with a wobble like Minecraft's needle instead of a fixed loop. Turn it off to show biome colors on those keys instead (`/minelights set spin-compass-without-target off`). With Always Show Compass on, the keyboard compass also spins in dimensions where the fallback target has no position.
+- Added Lodestone Compass Shimmer in the Environment settings (on by default). Turn it off to keep the lodestone compass colors on the compass keys without the purple shimmer animation (`/minelights set lodestone-shimmer off`).
+
 # MineLights 2.4.0
 
 This release brings the authenticated MineLights Server V2 protocol to Java and Horizon clients, adds Horizon support for Minecraft 26.3, and introduces configurable lighting controls.

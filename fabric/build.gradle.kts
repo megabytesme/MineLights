@@ -31,6 +31,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/rgb",
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
+            "src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
             "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
@@ -77,6 +78,10 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
         }
         copy {
             from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/CompassPriority.java"))
+            into(rootProject.file("src/main/java/megabytesme/minelights/config"))
+        }
+        copy {
+            from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java"))
             into(rootProject.file("src/main/java/megabytesme/minelights/config"))
         }
         copy {
@@ -249,7 +254,8 @@ tasks {
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
             "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration",
-            "fabric_api_id" to fabricApiId
+            "fabric_api_id" to fabricApiId,
+            "fabric_loader_constraint" to if (stonecutter.current.version == "26.3") ">=0.20.1" else "*"
         )
 
         filesMatching("fabric.mod.json") { expand(props) }

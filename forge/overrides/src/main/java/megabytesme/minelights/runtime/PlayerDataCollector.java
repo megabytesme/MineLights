@@ -1,6 +1,7 @@
 package megabytesme.minelights.runtime;
 
 import megabytesme.minelights.MineLightsClient;
+import megabytesme.minelights.config.CompassFallbackTarget;
 //? if loader_forge && <=1.14.3 {
 import megabytesme.minelights.MineLightsForge;
 //?}
@@ -170,9 +171,22 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+//? if loader_forge && >=1.17 {
+import java.util.UUID;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
+//?}
 
 public class PlayerDataCollector {
     public static final Logger LOGGER = LogManager.getLogger("MineLights-PlayerDataCollector");
+    //? if loader_forge && >=1.17 {
+    private static final long PLAYER_SPAWN_REFRESH_NANOS = 250_000_000L;
+    private static final Object playerSpawnLookupLock = new Object();
+    private static final AtomicReference<PlayerSpawnRequest> pendingPlayerSpawnLookup = new AtomicReference<>();
+    private static volatile PlayerSpawnLookup cachedPlayerSpawnLookup;
+    //?}
 
     public static PlayerDto getCurrentState(Minecraft client) {
         PlayerDto playerDto = new PlayerDto();
@@ -643,11 +657,42 @@ public class PlayerDataCollector {
     //?} else {
     private static void updateCompassData(PlayerDto dto, LocalPlayer player, ClientLevel world) {
     //?}
-        CompassFindResult result = findCompass(player);
+        CompassFindResult result = MineLightsClient.CONFIG.ignoreInventoryCompass ? null : findCompass(player);
 
         if (result == null) {
+            CompassFallbackTarget fallbackTarget = MineLightsClient.CONFIG.compassFallbackTarget == null
+                    ? CompassFallbackTarget.WORLD_SPAWN
+                    : MineLightsClient.CONFIG.compassFallbackTarget;
+            if (showsFallbackCompass() && fallbackTarget == CompassFallbackTarget.ORIGIN) {
+                dto.setCompassType(CompassType.STANDARD);
+                //? if loader_forge && <=1.7.10 {
+                setCompassTarget(dto, player, new ChunkCoordinates(0, 0, 0));
+                //?} else {
+                setCompassTarget(dto, player, new BlockPos(0, 0, 0));
+                //?}
+                return;
+            }
+            //? if loader_forge && >=1.17 {
+            boolean playerSpawnHasNoTargetHere = false;
+            if (showsFallbackCompass() && fallbackTarget == CompassFallbackTarget.PLAYER_SPAWN) {
+                PlayerSpawnLookup lookup = getPlayerSpawnLookup(player, world);
+                if (lookup != null && lookup.respawnConfigured) {
+                    BlockPos playerSpawn = resolvePlayerSpawnFallback(true, true, lookup.target, null);
+                    if (playerSpawn != null) {
+                        dto.setCompassType(CompassType.STANDARD);
+                        setCompassTarget(dto, player, playerSpawn);
+                        return;
+                    }
+                    playerSpawnHasNoTargetHere = true;
+                }
+            }
+            //?}
             //? if >=1.21.9 {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && isOverworld(world)) {
+            if (showsFallbackCompass() && isOverworld(world)
+                    //? if loader_forge && >=1.17 {
+                    && !playerSpawnHasNoTargetHere
+                    //?}
+                    ) {
                 dto.setCompassType(CompassType.STANDARD);
                 net.minecraft.world.level.storage.LevelData.RespawnData respawnData = world.getLevelData().getRespawnData();
                 if (respawnData != null && respawnData.dimension().equals(world.dimension())) {
@@ -661,7 +706,11 @@ public class PlayerDataCollector {
                 dto.setCompassType(CompassType.NONE);
             }
             //?} else {
-            if (MineLightsClient.CONFIG.alwaysShowCompass && isOverworld(world)) {
+            if (showsFallbackCompass() && isOverworld(world)
+                    //? if loader_forge && >=1.17 {
+                    && !playerSpawnHasNoTargetHere
+                    //?}
+                    ) {
                 dto.setCompassType(CompassType.STANDARD);
                 //? if loader_forge && <=1.14.3 {
                 //? if loader_forge && <=1.12.2 {
@@ -679,6 +728,15 @@ public class PlayerDataCollector {
                 dto.setCompassType(CompassType.NONE);
             }
             //?}
+            if (dto.getCompassType() == CompassType.NONE && showsFallbackCompass()
+                    && MineLightsClient.CONFIG.spinCompassWithoutTarget) {
+                dto.setCompassType(CompassType.STANDARD);
+                //? if loader_forge && <=1.12.2 {
+                setCompassSpinning(dto, world.getTotalWorldTime(), 0);
+                //?} else {
+                setCompassSpinning(dto, world.getGameTime(), 0);
+                //?}
+            }
             return;
         }
 
@@ -707,18 +765,251 @@ public class PlayerDataCollector {
                 //?}
                 >= 1.0E-5) {
             setCompassTarget(dto, player, targetPos);
+        } else if (MineLightsClient.CONFIG.spinCompassWithoutTarget) {
+            //? if loader_forge && <=1.12.2 {
+            setCompassSpinning(dto, world.getTotalWorldTime(), result.seed);
+            //?} else {
+            setCompassSpinning(dto, world.getGameTime(), result.seed);
+            //?}
         } else {
-            dto.setCompassState(CompassState.SPINNING);
+            dto.setCompassState(CompassState.NONE);
+            dto.setCompassType(CompassType.NONE);
         }
+    }
+
+    //? if loader_forge && >=1.17 {
+    /** The server only shares the player's bed or anchor with the client in singleplayer. */
+    private static PlayerSpawnLookup getPlayerSpawnLookup(LocalPlayer player, ClientLevel world) {
+        try {
+            net.minecraft.client.server.IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+            if (server == null) return null;
+            java.util.UUID playerId = player.getUUID();
+            Object clientWorld = world;
+            net.minecraft.resources.ResourceKey<Level> dimensionKey = world.dimension();
+            Object dimension = dimensionKey;
+            return getCachedPlayerSpawnLookup(server, playerId, clientWorld, dimension,
+                    task -> server.submit(task),
+                    () -> readPlayerSpawnData(server, playerId, dimensionKey));
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static PlayerSpawnData readPlayerSpawnData(net.minecraft.client.server.IntegratedServer server,
+            java.util.UUID playerId, net.minecraft.resources.ResourceKey<Level> dimension) {
+        net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(playerId);
+        if (serverPlayer == null) return new PlayerSpawnData(false, null);
+        //? if >=1.21.5 {
+        if (serverPlayer.getRespawnConfig() == null) return new PlayerSpawnData(false, null);
+        //? if >=1.21.9 {
+        net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
+        return new PlayerSpawnData(true,
+                respawnData.dimension().equals(dimension) ? respawnData.pos() : null);
+        //?} else {
+        return new PlayerSpawnData(true,
+                serverPlayer.getRespawnConfig().dimension().equals(dimension)
+                        ? serverPlayer.getRespawnConfig().pos() : null);
+        //?}
+        //?} else {
+        if (serverPlayer.getRespawnPosition() == null) return new PlayerSpawnData(false, null);
+        return new PlayerSpawnData(true,
+                serverPlayer.getRespawnDimension().equals(dimension) ? serverPlayer.getRespawnPosition() : null);
+        //?}
+    }
+
+    private static PlayerSpawnLookup getCachedPlayerSpawnLookup(Object server, Object playerId, Object clientWorld,
+            Object dimension, Function<Runnable, ? extends Future<?>> scheduleOnServer, Supplier<PlayerSpawnData> readOnServer) {
+        long now = System.nanoTime();
+        PlayerSpawnLookup snapshot = cachedPlayerSpawnLookup;
+        boolean matches = snapshot != null && snapshot.matches(server, playerId, clientWorld, dimension);
+        if (matches && now - snapshot.updatedAtNanos < PLAYER_SPAWN_REFRESH_NANOS) {
+            return snapshot;
+        }
+
+        PlayerSpawnRequest request = new PlayerSpawnRequest(server, playerId, clientWorld, dimension);
+        boolean scheduleRequest = false;
+        synchronized (playerSpawnLookupLock) {
+            PlayerSpawnRequest pending = pendingPlayerSpawnLookup.get();
+            if (pending == null || !pending.matches(server, playerId, clientWorld, dimension)) {
+                if (pending != null) {
+                    pending.cancel();
+                }
+                pendingPlayerSpawnLookup.set(request);
+                scheduleRequest = true;
+            }
+        }
+        if (scheduleRequest) {
+            try {
+                Future<?> scheduled = scheduleOnServer.apply(() -> {
+                    PlayerSpawnData data;
+                    try {
+                        data = readOnServer.get();
+                    } catch (RuntimeException e) {
+                        data = new PlayerSpawnData(false, null);
+                    }
+                    PlayerSpawnLookup result = new PlayerSpawnLookup(
+                            server, playerId, clientWorld, dimension,
+                            data.respawnConfigured, data.target, System.nanoTime());
+                    synchronized (playerSpawnLookupLock) {
+                        if (pendingPlayerSpawnLookup.get() == request) {
+                            cachedPlayerSpawnLookup = result;
+                            pendingPlayerSpawnLookup.set(null);
+                        }
+                    }
+                });
+                synchronized (playerSpawnLookupLock) {
+                    if (pendingPlayerSpawnLookup.get() == request) {
+                        request.setFuture(scheduled);
+                    } else {
+                        scheduled.cancel(false);
+                    }
+                }
+            } catch (RuntimeException e) {
+                synchronized (playerSpawnLookupLock) {
+                    if (pendingPlayerSpawnLookup.get() == request) {
+                        pendingPlayerSpawnLookup.set(null);
+                    }
+                }
+            }
+        }
+
+        return matches ? snapshot : null;
+    }
+
+    static BlockPos resolvePlayerSpawnFallback(boolean lookupAvailable, boolean respawnConfigured,
+            BlockPos playerSpawn, BlockPos worldSpawn) {
+        if (!lookupAvailable || !respawnConfigured) {
+            return worldSpawn;
+        }
+        return playerSpawn;
+    }
+
+    private static class PlayerSpawnData {
+        final boolean respawnConfigured;
+        final BlockPos target;
+
+        PlayerSpawnData(boolean respawnConfigured, BlockPos target) {
+            this.respawnConfigured = respawnConfigured;
+            this.target = target;
+        }
+    }
+
+    private static class PlayerSpawnLookup {
+        final Object server;
+        final Object playerId;
+        final Object clientWorld;
+        final Object dimension;
+        final boolean respawnConfigured;
+        final BlockPos target;
+        final long updatedAtNanos;
+
+        PlayerSpawnLookup(Object server, Object playerId, Object clientWorld, Object dimension,
+                boolean respawnConfigured, BlockPos target, long updatedAtNanos) {
+            this.server = server;
+            this.playerId = playerId;
+            this.clientWorld = clientWorld;
+            this.dimension = dimension;
+            this.respawnConfigured = respawnConfigured;
+            this.target = target;
+            this.updatedAtNanos = updatedAtNanos;
+        }
+
+        boolean matches(Object server, Object playerId, Object clientWorld, Object dimension) {
+            return this.server == server && this.clientWorld == clientWorld
+                    && this.playerId.equals(playerId) && this.dimension.equals(dimension);
+        }
+    }
+
+    private static class PlayerSpawnRequest {
+        final Object server;
+        final Object playerId;
+        final Object clientWorld;
+        final Object dimension;
+        private volatile Future<?> future;
+
+        PlayerSpawnRequest(Object server, Object playerId, Object clientWorld, Object dimension) {
+            this.server = server;
+            this.playerId = playerId;
+            this.clientWorld = clientWorld;
+            this.dimension = dimension;
+        }
+
+        boolean matches(Object server, Object playerId, Object clientWorld, Object dimension) {
+            return this.server == server && this.clientWorld == clientWorld
+                    && this.playerId.equals(playerId) && this.dimension.equals(dimension);
+        }
+
+        void setFuture(Future<?> future) {
+            this.future = future;
+        }
+
+        void cancel() {
+            Future<?> future = this.future;
+            if (future != null) {
+                future.cancel(false);
+            }
+        }
+    }
+    //?}
+
+    // Same wobble as Minecraft's compass needle when it has no target (CompassAngleState):
+    // the needle chases a new random angle each game tick, and the seed offsets it per slot.
+    private static float spinWobbleRotation;
+    private static float spinWobbleStep;
+    private static long spinWobbleTime = Long.MIN_VALUE;
+
+    private static void setCompassSpinning(PlayerDto dto, long time, int seed) {
+        if (time != spinWobbleTime) {
+            spinWobbleTime = time;
+            float delta = floorMod((float) Math.random() - spinWobbleRotation + 0.5F, 1.0F) - 0.5F;
+            spinWobbleStep += delta * 0.1F;
+            spinWobbleStep *= 0.8F;
+            spinWobbleRotation = floorMod(spinWobbleRotation + spinWobbleStep, 1.0F);
+        }
+        float rotation = floorMod(spinWobbleRotation + (float) (seed * 1327217883) / 2.1474836E9F, 1.0F);
+        dto.setCompassState(CompassState.SPINNING);
+        dto.setCompassSpinRotation(rotation * 360.0D);
+    }
+
+    private static float floorMod(float value, float mod) {
+        return (value % mod + mod) % mod;
+    }
+
+    // Minecraft passes slot + 1 as the needle seed for hotbar slots and 10 for the offhand.
+    private static int compassSeed(List<ItemStack> inventory, int index) {
+        int hands = inventory.size() - 36;
+        if (index == 0) {
+            for (int slot = 0; slot < 9; slot++) {
+                if (inventory.get(hands + slot) == inventory.get(0)) {
+                    return slot + 1;
+                }
+            }
+            return 0;
+        }
+        if (index < hands) {
+            return 10;
+        }
+        int slot = index - hands;
+        return slot < 9 ? slot + 1 : 0;
+    }
+
+    private static boolean showsFallbackCompass() {
+        return MineLightsClient.CONFIG.alwaysShowCompass || MineLightsClient.CONFIG.ignoreInventoryCompass;
     }
 
     private static class CompassFindResult {
         final ItemStack stack;
         final CompassType type;
+        final int seed;
 
         CompassFindResult(ItemStack stack, CompassType type) {
+            this(stack, type, 0);
+        }
+
+        CompassFindResult(ItemStack stack, CompassType type, int seed) {
             this.stack = stack;
             this.type = type;
+            this.seed = seed;
         }
     }
 
@@ -755,16 +1046,18 @@ public class PlayerDataCollector {
             //?}
         }
 
-        for (ItemStack stack : inventory) {
+        for (int index = 0; index < inventory.size(); index++) {
+            ItemStack stack = inventory.get(index);
             //? if loader_forge && <=1.10.2 {
             if (stack.stackSize <= 0) continue;
             //?} else {
             if (stack.isEmpty()) continue;
             //?}
+            int seed = compassSeed(inventory, index);
 
             //? if >=1.19 {
             if (stack.getItem() == Items.RECOVERY_COMPASS) {
-                foundCompasses.add(new CompassFindResult(stack, CompassType.RECOVERY));
+                foundCompasses.add(new CompassFindResult(stack, CompassType.RECOVERY, seed));
                 continue;
             }
             //?}
@@ -797,9 +1090,9 @@ public class PlayerDataCollector {
                 //?}
 
                 if (isLodestone) {
-                    foundCompasses.add(new CompassFindResult(stack, CompassType.LODESTONE));
+                    foundCompasses.add(new CompassFindResult(stack, CompassType.LODESTONE, seed));
                 } else {
-                    foundCompasses.add(new CompassFindResult(stack, CompassType.STANDARD));
+                    foundCompasses.add(new CompassFindResult(stack, CompassType.STANDARD, seed));
                 }
             }
         }

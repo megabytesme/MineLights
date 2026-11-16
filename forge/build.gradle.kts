@@ -1,8 +1,10 @@
+import groovy.json.JsonSlurper
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import net.minecraftforge.renamer.gradle.RenameJar
 import java.io.RandomAccessFile
+import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 plugins {
@@ -101,6 +103,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/rgb",
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
+            "src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
             "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
@@ -129,6 +132,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
         copyShared("overrides/src/main/java/megabytesme/minelights/runtime/PlayerDataCollector.java", "src/main/java/megabytesme/minelights/runtime")
         copyShared("../common/src/main/java/megabytesme/minelights/config/SimpleJsonConfig.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/CompassPriority.java", "src/main/java/megabytesme/minelights/config")
+        copyShared("../common/src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/DimmingMode.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java", "src/main/java/megabytesme/minelights/config")
         copyShared("../common/src/main/java/megabytesme/minelights/config/MineLightsConfig.java", "src/main/java/megabytesme/minelights/config")
@@ -373,6 +377,44 @@ tasks.processResources {
     dependsOn("stonecutterPrepare")
     dependsOn("stonecutterGenerate")
     doLast {
+        if (usesLegacyForgeMetadata) {
+            val languageDirectory = destinationDir.resolve("assets/$modId/lang")
+            val oldUpperRegionNames = mcVersion in setOf("1.7.2", "1.7.10", "1.8", "1.8.8", "1.8.9", "1.9", "1.9.4", "1.10", "1.10.2")
+            val languageFiles = requireNotNull(languageDirectory.listFiles { file -> file.isFile && file.extension == "json" }) {
+                "Missing language resources in ${languageDirectory.absolutePath}"
+            }
+            require(languageFiles.isNotEmpty()) { "No JSON language resources in ${languageDirectory.absolutePath}" }
+            // This output directory contains generated .lang files only. Remove old spellings
+            // first so case-insensitive filesystems preserve the casing this game version uses.
+            languageDirectory.listFiles { file -> file.isFile && file.extension.equals("lang", ignoreCase = true) }
+                ?.forEach { file -> check(file.delete()) { "Could not replace generated language file ${file.absolutePath}" } }
+            languageFiles.forEach { jsonFile ->
+                    @Suppress("UNCHECKED_CAST")
+                    val translations = JsonSlurper().parse(jsonFile) as? Map<String, Any?>
+                        ?: error("Expected a JSON object in ${jsonFile.absolutePath}")
+                    val langContents = buildString {
+                        translations.forEach { (key, value) ->
+                            require(value is String) { "Expected a string translation for '$key' in ${jsonFile.name}" }
+                            require('\n' !in key && '\r' !in key && '=' !in key) {
+                                "Translation key '$key' in ${jsonFile.name} cannot be represented in a simple .lang file"
+                            }
+                            append(key)
+                            append('=')
+                            append(value.replace(Regex("[\\r\\n\\t]+"), " "))
+                            appendLine()
+                        }
+                    }
+                    val baseName = jsonFile.nameWithoutExtension.lowercase(Locale.ROOT)
+                    val legacyName = when {
+                        baseName == "enws" -> if (oldUpperRegionNames) "en_WS" else "en_ws"
+                        oldUpperRegionNames -> Regex("^([a-z]{2,3})_([a-z]{2,4})$").matchEntire(baseName)
+                            ?.let { match -> "${match.groupValues[1]}_${match.groupValues[2].uppercase(Locale.ROOT)}" }
+                            ?: baseName
+                        else -> baseName
+                    }
+                    languageDirectory.resolve("$legacyName.lang").writeText(langContents, Charsets.UTF_8)
+                }
+        }
         rootProject.file("src/main/resources/assets/minelights/icon.png")
             .copyTo(destinationDir.resolve(modIcon), overwrite = true)
         if (needsMixinRefmap) {

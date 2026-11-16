@@ -11,6 +11,12 @@ plugins {
 val isUnobfuscatedVersion = stonecutter.eval(stonecutter.current.version, ">=26.1")
 val usesModrinthModDependencies = stonecutter.eval(stonecutter.current.version, ">=26.3") ||
         stonecutter.current.version == "1.21.11" || stonecutter.current.version == "1.19.3"
+val usesModrinthModMenuDependency = usesModrinthModDependencies || stonecutter.current.version == "1.14.4"
+val modMenuModrinthCoordinate = if (stonecutter.current.version == "1.14.4") {
+    "maven.modrinth:${property("deps.modmenu")}"
+} else {
+    "maven.modrinth:modmenu:${property("deps.modmenu")}"
+}
 val usesJava8Runtime = stonecutter.eval(stonecutter.current.version, "<1.17")
 
 apply(plugin = if (isUnobfuscatedVersion) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
@@ -29,6 +35,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             "src/main/java/megabytesme/minelights/rgb",
             "src/main/java/megabytesme/minelights/runtime",
             "src/main/java/megabytesme/minelights/config/CompassPriority.java",
+            "src/main/java/megabytesme/minelights/config/CompassFallbackTarget.java",
             "src/main/java/megabytesme/minelights/config/DimmingMode.java",
             "src/main/java/megabytesme/minelights/config/ExperienceLocatorMode.java",
             "src/main/java/megabytesme/minelights/config/MineLightsConfig.java",
@@ -52,7 +59,7 @@ val syncSharedSources = rootProject.tasks.findByName("syncSharedSources") ?: roo
             }
         }
 
-        listOf("CompassPriority.java", "DimmingMode.java", "ExperienceLocatorMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
+        listOf("CompassFallbackTarget.java", "CompassPriority.java", "DimmingMode.java", "ExperienceLocatorMode.java", "MineLightsConfig.java", "SimpleJsonConfig.java").forEach { fileName ->
             copy {
                 from(rootProject.file("../common/src/main/java/megabytesme/minelights/config/$fileName"))
                 into(rootProject.file("src/main/java/megabytesme/minelights/config"))
@@ -122,9 +129,12 @@ dependencies {
         add("modCompileOnly", "net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         if (usesModrinthModDependencies) {
             add("modCompileOnly", "maven.modrinth:cloth-config:${property("deps.cloth_config")}")
-            add("modCompileOnly", "maven.modrinth:modmenu:${property("deps.modmenu")}")
         } else {
             add("modCompileOnly", "curse.maven:${property("deps.cloth_config")}")
+        }
+        if (usesModrinthModMenuDependency) {
+            add("modCompileOnly", modMenuModrinthCoordinate)
+        } else {
             add("modCompileOnly", "curse.maven:${property("deps.modmenu")}")
         }
     } else {
@@ -132,9 +142,12 @@ dependencies {
         compileOnly("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         if (usesModrinthModDependencies) {
             compileOnly("maven.modrinth:cloth-config:${property("deps.cloth_config")}")
-            compileOnly("maven.modrinth:modmenu:${property("deps.modmenu")}")
         } else {
             compileOnly("curse.maven:${property("deps.cloth_config")}")
+        }
+        if (usesModrinthModMenuDependency) {
+            compileOnly(modMenuModrinthCoordinate)
+        } else {
             compileOnly("curse.maven:${property("deps.modmenu")}")
         }
     }
@@ -220,7 +233,10 @@ tasks {
             "icon" to prop("mod.icon"),
             "cloth_config_mod_id" to clothConfigModId,
             "minecraft_versions_json" to minecraftTargets.joinToString(", ") { "\"=$it\"" },
-            "quilt_loader_version_range" to if (isUnobfuscatedVersion) ">=0.31.0-beta.4" else ">=0.16.0"
+            "quilt_loader_version_range" to if (isUnobfuscatedVersion) ">=0.31.0-beta.4" else ">=0.16.0",
+            "modmenu_version_constraint" to if (stonecutter.current.version == "1.14.4") {
+                "\"versions\": \">=1.7.18\","
+            } else ""
         )
 
         inputs.properties(props)
