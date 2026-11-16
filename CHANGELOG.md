@@ -1,59 +1,15 @@
-# Unreleased
+# MineLights 2.4.1
+## Changes
+- Choose a fallback target for the keyboard compass: world spawn (default), 0, 0, or player spawn. Player spawn uses your bed or respawn anchor in singleplayer on Fabric and Quilt 1.16+, Forge 1.17+, and NeoForge. Multiplayer, Horizon and older versions use world spawn when it is available. A known player spawn in another dimension has no target.
+- Enable **Ignore Carried Compasses** to use the fallback target even when you carry a compass, lodestone compass or recovery compass. It is off by default.
+- **Spin Compass Without a Target** is on by default. When there is no target, compass keys wobble like Minecraft's needle; turn it off to show biome colors instead.
+- **Lodestone Compass Shimmer** is on by default. Turn it off to keep the lodestone colors without the purple sweep.
+- Use the settings screens or `/minelights set` commands to change these options. Horizon also has controls for the new compass settings.
+- Grouped the Player Status, Key Layout and Colors settings under section titles on Fabric and Quilt 1.16+. The Key Layout page explains when Saturation / Air keys are unused because those bars are merged into the hunger bar.
 
-- Added a compass fallback target. With Always Show Compass on and no compass in your inventory, the compass effect can point to world spawn (default), 0, 0, or your player spawn. Player spawn uses your bed or respawn anchor in singleplayer on Fabric and Quilt 1.16+, Forge 1.17+, and NeoForge. Multiplayer, Horizon, and older versions use world spawn when it is available; a known player spawn in another dimension has no target. A carried compass takes priority unless Ignore Carried Compasses is enabled. Available in the settings screens and through `/minelights set compass-fallback-target`.
-- Added Ignore Carried Compasses, which always uses the fallback target even when you carry a compass, lodestone compass or recovery compass (`/minelights set ignore-inventory-compass on`).
-- Grouped the Player Status, Key Layout and Colors settings under section titles (Health, Hunger & Saturation, Experience & Locator Bar, Compass, Other Keys, Devices, Outside Worlds) on Fabric and Quilt 1.16+.
-- The Key Layout page now says when the Saturation / Air keys aren't used because saturation and air are merged into the hunger bar.
-- Added Spin Compass Without a Target (on by default). When the compass has no target, like a compass in the Nether or the End, the compass keys now spin with a wobble like Minecraft's needle instead of a fixed loop. Turn it off to show biome colors on those keys instead (`/minelights set spin-compass-without-target off`). With Always Show Compass on, the keyboard compass also spins in dimensions where the fallback target has no position.
-- Added Lodestone Compass Shimmer in the Environment settings (on by default). Turn it off to keep the lodestone compass colors on the compass keys without the purple shimmer animation (`/minelights set lodestone-shimmer off`).
+## Compatibility and fixes
 
-# MineLights 2.4.0
-
-This release brings the authenticated MineLights Server V2 protocol to Java and Horizon clients, adds Horizon support for Minecraft 26.3, and introduces configurable lighting controls.
-
-## Key Features & Major Changes
-
-- Added V2 server communication with per-install credentials, automatic local enrollment, and optional remote pairing.
-- Updated clients use V2 exclusively. Older V1 clients can still connect after explicit approval in MineLights Server.
-- Added stable device identities, per-client device leases and provider interests, remote server profiles, and expanded server controls.
-- Stop a client-started server automatically when it is safe; keep it running while other clients are connected or legacy access is enabled.
-- Added `/minelights` settings and control commands across Fabric, Quilt, Forge, NeoForge, and Horizon.
-- Added a manual server management option for Java clients on Windows, with configurable installation and update notices. Automatic downloads and updates remain enabled by default.
-- Kept Horizon server downloads off by default, with confirmation required before a download or launch.
-- Bumped the Java mods, Horizon mod, and MineLights Server to version 2.4.0.
-- Added configurable status lighting, custom key layouts and colors, OpenRGB keyboard fixes, and locator-bar lighting.
-
-## Installation / Upgrade Instructions
-
-- Install the Java mod build matching your loader and Minecraft version. Java artifacts retain their loader and Minecraft version names.
-- V2 Java and Horizon clients require MineLights Server 2.4.0. Older V1 clients can connect only when legacy access is explicitly enabled in the server.
-- By default, Java clients download a missing server and check for updates. Enable manual server management to disable automatic downloads and replacement and receive installation or update notices instead.
-- Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge, and NeoForge, or the game's `MineLights` folder for Quilt.
-- Horizon keeps server downloads opt-in and requires confirmation before downloading or starting the reviewed server.
-- OpenRGB and Yeelight can connect directly and do not need MineLights Server.
-
-## Full Changelog & Technical Details
-
-### Original contribution in [PR #32](https://github.com/megabytesme/MineLights/pull/32) by [obaba-samich](https://github.com/obaba-samich)
-
-- Mapped OpenRGB LEDs by index so repeated LED names are retained, standardized symbol, modifier, arrow, and numpad key names, and added overrides for devices that report incorrect names.
-- Added key-layout and color settings pages for Fabric and Quilt 1.16+, with key selection by pressing the desired keys.
-- Filled the experience bar gradually through its final key.
-- Added locator-bar lighting for Minecraft 1.21.6+, with colored waypoint dots, vanilla distance steps, and a mode that follows the active experience or locator HUD bar.
-- Added golden absorption-heart overlays, an option to show saturation and air on hunger keys, and a configurable low-health threshold.
-- Restored OpenRGB devices' own lighting outside a world, with an optional OpenRGB profile.
-
-### Follow-up fixes and parity work
-
-- Ported effect commands and configuration controls to Forge, NeoForge, Horizon, and older supported Fabric and Quilt versions, with version-specific feature gating.
-- Fixed player-status labels and locator-bar selection, improved handling for programmable and unnamed OpenRGB keys, made LED overrides consistent, and preserved device exclusions when restoring lighting.
-- Added Horizon OpenRGB key-name logging and documentation for configurable lighting. Translation cleanup and completion followed the original contribution.
-- The authenticated server protocol, pairing, multi-client lifecycle, Java installation controls, and Horizon server-download safeguards are separate 2.4.0 release work.
-
-### Later 2.4.0 update
-
-- Added an option to enable or disable MineLights Server download chat notices across Java and Horizon clients. Notices report a transfer that starts while the player is in a world, an active earlier transfer after they join one, and whether the server started or needs a restart. If a shared server starts during an update, Fabric and Quilt now retain the verified update for the next restart and report that restart is required.
-
-## New Contributors ⭐
-
-- [obaba-samich](https://github.com/obaba-samich): [PR #32](https://github.com/megabytesme/MineLights/pull/32)
+- Added translated labels for the compass settings to Forge's built-in settings screens, including older Forge language files.
+- Fixed the settings-menu entry on older Fabric and Quilt versions. Quilt 1.14.4 uses ModMenu 1.7.18 or later; Fabric 26.3 requires Fabric Loader 0.20.1 or later.
+- Made singleplayer spawn lookup safe across world and player changes, and clarified the fallback behavior in the settings descriptions.
+- Compass fallback, carried-compass options, settings sections and lodestone shimmer: [obaba-samich](https://github.com/obaba-samich), in [PR #40](https://github.com/megabytesme/MineLights/pull/40) and [PR #41](https://github.com/megabytesme/MineLights/pull/41).
