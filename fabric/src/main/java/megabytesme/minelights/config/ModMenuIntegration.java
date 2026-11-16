@@ -47,7 +47,7 @@ public class ModMenuIntegration implements ModMenuApi {
     /*
     @Override
     public String getModId() {
-        return "mine-lights";
+        return "minelights";
     }
 
     @Override
@@ -977,7 +977,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                 CompassFallbackTarget.class,
                                 fallbackInitial)
                 .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
-                .setEnumNameProvider((value) -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                .setEnumNameProvider((value) -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase(java.util.Locale.ROOT)))
                 .setTooltip(translatable("option.mine-lights.compassFallbackTarget.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
                 .build());
@@ -993,13 +993,25 @@ public class ModMenuIntegration implements ModMenuApi {
                         fallbackInitial)
                 .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
                 .setEnumNameProvider((value) -> new TranslatableText(
-                        "enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                        "enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase(java.util.Locale.ROOT)))
                 .setTooltip(new TranslatableText("option.mine-lights.compassFallbackTarget.tooltip"))
                 .setSaveConsumer(
                         newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
                 .build());
          */
-        //?}
+        //?} else {
+        /*CompassFallbackTarget fallbackInitial = MineLightsClient.CONFIG.compassFallbackTarget != null
+                ? MineLightsClient.CONFIG.compassFallbackTarget : CompassFallbackTarget.WORLD_SPAWN;
+        playerStatus.addEntry(entryBuilder
+                .startEnumSelector(new TranslatableText("option.mine-lights.compassFallbackTarget").getString(),
+                        CompassFallbackTarget.class, fallbackInitial)
+                .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
+                .setEnumNameProvider(value -> new TranslatableText(
+                        "enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase(java.util.Locale.ROOT)).getString())
+                .setTooltip(new TranslatableText("option.mine-lights.compassFallbackTarget.tooltip").getString())
+                .setSaveConsumer(value -> MineLightsClient.CONFIG.compassFallbackTarget = (CompassFallbackTarget) value)
+                .build());
+        *///?}
 
         //? if >=1.19 {
         CompassPriority initial = MineLightsClient.CONFIG.compassPriority != null

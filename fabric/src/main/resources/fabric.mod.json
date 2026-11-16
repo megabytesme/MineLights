@@ -20,6 +20,7 @@
   "mixins": ["minelights.mixins.json"],
   "depends": {
     "minecraft": "${minecraft}",
+    "fabricloader": "${fabric_loader_constraint}",
     "${fabric_api_id}": "*"
   },
   "suggests": {},

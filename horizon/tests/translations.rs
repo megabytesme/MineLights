@@ -32,6 +32,13 @@ fn generated_labels_match_every_java_language_file() {
         (40, "enum.mine-lights.dimmingMode.local_light"),
         (46, "enum.mine-lights.compassPriority.recovery_first"),
         (54, "option.mine-lights.notifyServerDownloadProgress"),
+        (55, "option.mine-lights.ignoreInventoryCompass"),
+        (56, "option.mine-lights.spinCompassWithoutTarget"),
+        (57, "option.mine-lights.compassFallbackTarget"),
+        (58, "enum.mine-lights.compassFallbackTarget.world_spawn"),
+        (59, "enum.mine-lights.compassFallbackTarget.origin"),
+        (60, "enum.mine-lights.compassFallbackTarget.player_spawn"),
+        (61, "option.mine-lights.lodestoneCompassShimmer"),
     ];
     let mut count = 0;
     for entry in std::fs::read_dir(languages).unwrap() {
@@ -56,7 +63,7 @@ fn generated_labels_match_every_java_language_file() {
             "{language}: empty download tooltip"
         );
         for (index, key) in labels {
-            if index == 54 {
+            if index == 54 || index >= 55 {
                 assert!(
                     java.get(key).and_then(serde_json::Value::as_str).is_some(),
                     "{language}: missing {key}"

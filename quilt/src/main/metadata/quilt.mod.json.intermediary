@@ -35,6 +35,7 @@
       },
       {
         "id": "modmenu",
+        ${modmenu_version_constraint}
         "optional": true
       },
       {

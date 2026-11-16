@@ -74,9 +74,20 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PlayerDataCollector {
     public static final Logger LOGGER = LogManager.getLogger("MineLights-PlayerDataCollector");
+    //? if >=1.16 && !loader_forge || >=1.17 && loader_forge {
+    private static final long PLAYER_SPAWN_REFRESH_NANOS = 250_000_000L;
+    private static final Object playerSpawnLookupLock = new Object();
+    private static final AtomicReference<PlayerSpawnRequest> pendingPlayerSpawnLookup = new AtomicReference<>();
+    private static volatile PlayerSpawnLookup cachedPlayerSpawnLookup;
+    //?}
 
     //? if >=26.1 {
     public static PlayerDto getCurrentState(Minecraft client) {
@@ -560,10 +571,12 @@ public class PlayerDataCollector {
             return new BlockPos(0, 0, 0);
         }
         if (target == CompassFallbackTarget.PLAYER_SPAWN) {
-            BlockPos playerSpawn = getPlayerSpawnPos(player, world);
-            if (playerSpawn != null) {
-                return playerSpawn;
-            }
+            //? if >=1.16 && !loader_forge || >=1.17 && loader_forge {
+            PlayerSpawnLookup lookup = getPlayerSpawnLookup(player, world);
+            BlockPos worldSpawn = getWorldSpawnPos(world);
+            return resolvePlayerSpawnFallback(lookup != null, lookup != null && lookup.respawnConfigured,
+                    lookup == null ? null : lookup.target, worldSpawn);
+            //?}
         }
         return getWorldSpawnPos(world);
     }
@@ -591,65 +604,235 @@ public class PlayerDataCollector {
     }
     *///?}
 
-    /** The server only shares the player's bed or anchor with the client in singleplayer. */
+    //? if >=1.16 && !loader_forge || >=1.17 && loader_forge {
+    /** The integrated server owns respawn configuration, so inspect it only on its thread. */
     //? if >=26.1 {
-    private static BlockPos getPlayerSpawnPos(LocalPlayer player, ClientLevel world) {
+    private static PlayerSpawnLookup getPlayerSpawnLookup(LocalPlayer player, ClientLevel world) {
         try {
             net.minecraft.client.server.IntegratedServer server = MineLightsClient.getMinecraft().getSingleplayerServer();
             if (server == null) return null;
-            net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
-            if (serverPlayer == null || serverPlayer.getRespawnConfig() == null) return null;
-            net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
-            return respawnData.dimension().equals(world.dimension()) ? respawnData.pos() : null;
+            UUID playerId = player.getUUID();
+            Object clientWorld = world;
+            Object dimensionKey = world.dimension();
+            Object dimension = dimensionKey;
+            return getCachedPlayerSpawnLookup(server, playerId, clientWorld, dimension,
+                    task -> server.submit(task),
+                    () -> readPlayerSpawnData(server, playerId, dimensionKey));
         } catch (RuntimeException e) {
             return null;
         }
     }
-    //?} else if >=1.21.9 {
-    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+
+    private static PlayerSpawnData readPlayerSpawnData(net.minecraft.client.server.IntegratedServer server,
+            UUID playerId, Object dimension) {
+        net.minecraft.server.level.ServerPlayer serverPlayer = server.getPlayerList().getPlayer(playerId);
+        if (serverPlayer == null || serverPlayer.getRespawnConfig() == null) {
+            return new PlayerSpawnData(false, null);
+        }
+        net.minecraft.world.level.storage.LevelData.RespawnData respawnData = serverPlayer.getRespawnConfig().respawnData();
+        return new PlayerSpawnData(true,
+                respawnData.dimension().equals(dimension) ? respawnData.pos() : null);
+    }
+    //?} else if >=1.21.5 {
+    /* private static PlayerSpawnLookup getPlayerSpawnLookup(ClientPlayerEntity player, ClientWorld world) {
         try {
             net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
             if (server == null) return null;
-            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
-            if (serverPlayer == null) return null;
-            if (serverPlayer.getRespawn() == null) return null;
-            net.minecraft.world.WorldProperties.SpawnPoint spawnPoint = serverPlayer.getRespawn().respawnData();
-            return spawnPoint.getDimension().equals(world.getRegistryKey()) ? spawnPoint.getPos() : null;
+            java.util.UUID playerId = player.getUuid();
+            Object clientWorld = world;
+            Object dimensionKey = world.getRegistryKey();
+            Object dimension = dimensionKey;
+            return getCachedPlayerSpawnLookup(server, playerId, clientWorld, dimension,
+                    task -> server.submit(task),
+                    () -> readPlayerSpawnData(server, playerId, dimensionKey));
         } catch (RuntimeException e) {
             return null;
         }
     }
-    *///?} else if >=1.21.5 {
-    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
-        try {
-            net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
-            if (server == null) return null;
-            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
-            if (serverPlayer == null) return null;
-            if (serverPlayer.getRespawn() == null) return null;
-            return serverPlayer.getRespawn().dimension().equals(world.getRegistryKey()) ? serverPlayer.getRespawn().pos() : null;
-        } catch (RuntimeException e) {
-            return null;
+
+    private static PlayerSpawnData readPlayerSpawnData(net.minecraft.server.integrated.IntegratedServer server,
+            java.util.UUID playerId, Object dimension) {
+        net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(playerId);
+        if (serverPlayer == null || serverPlayer.getRespawn() == null) {
+            return new PlayerSpawnData(false, null);
         }
+        //? if >=1.21.9 {
+        net.minecraft.world.WorldProperties.SpawnPoint spawnPoint = serverPlayer.getRespawn().respawnData();
+        return new PlayerSpawnData(true,
+                spawnPoint.getDimension().equals(dimension) ? spawnPoint.getPos() : null);
+        //?} else {
+        return new PlayerSpawnData(true,
+                serverPlayer.getRespawn().dimension().equals(dimension) ? serverPlayer.getRespawn().pos() : null);
+        //?}
     }
     *///?} else if >=1.16 {
-    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
+    /* private static PlayerSpawnLookup getPlayerSpawnLookup(ClientPlayerEntity player, ClientWorld world) {
         try {
             net.minecraft.server.integrated.IntegratedServer server = net.minecraft.client.MinecraftClient.getInstance().getServer();
             if (server == null) return null;
-            net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
-            if (serverPlayer == null) return null;
-            if (serverPlayer.getSpawnPointPosition() == null) return null;
-            return serverPlayer.getSpawnPointDimension().equals(world.getRegistryKey()) ? serverPlayer.getSpawnPointPosition() : null;
+            java.util.UUID playerId = player.getUuid();
+            Object clientWorld = world;
+            Object dimensionKey = world.getRegistryKey();
+            Object dimension = dimensionKey;
+            return getCachedPlayerSpawnLookup(server, playerId, clientWorld, dimension,
+                    task -> server.submit(task),
+                    () -> readPlayerSpawnData(server, playerId, dimensionKey));
         } catch (RuntimeException e) {
             return null;
         }
     }
+
+    private static PlayerSpawnData readPlayerSpawnData(net.minecraft.server.integrated.IntegratedServer server,
+            java.util.UUID playerId, Object dimension) {
+        net.minecraft.server.network.ServerPlayerEntity serverPlayer = server.getPlayerManager().getPlayer(playerId);
+        if (serverPlayer == null || serverPlayer.getSpawnPointPosition() == null) {
+            return new PlayerSpawnData(false, null);
+        }
+        return new PlayerSpawnData(true,
+                serverPlayer.getSpawnPointDimension().equals(dimension) ? serverPlayer.getSpawnPointPosition() : null);
+    }
     *///?} else {
-    /* private static BlockPos getPlayerSpawnPos(ClientPlayerEntity player, ClientWorld world) {
-        return null;
+    /* private static PlayerSpawnData readPlayerSpawnData(net.minecraft.server.integrated.IntegratedServer server,
+            java.util.UUID playerId, Object dimension) {
+        return new PlayerSpawnData(false, null);
     }
     *///?}
+
+    private static PlayerSpawnLookup getCachedPlayerSpawnLookup(Object server, Object playerId, Object clientWorld,
+            Object dimension, Function<Runnable, ? extends Future<?>> scheduleOnServer, Supplier<PlayerSpawnData> readOnServer) {
+        long now = System.nanoTime();
+        PlayerSpawnLookup snapshot = cachedPlayerSpawnLookup;
+        boolean matches = snapshot != null && snapshot.matches(server, playerId, clientWorld, dimension);
+        if (matches && now - snapshot.updatedAtNanos < PLAYER_SPAWN_REFRESH_NANOS) {
+            return snapshot;
+        }
+
+        PlayerSpawnRequest request = new PlayerSpawnRequest(server, playerId, clientWorld, dimension);
+        boolean scheduleRequest = false;
+        synchronized (playerSpawnLookupLock) {
+            PlayerSpawnRequest pending = pendingPlayerSpawnLookup.get();
+            if (pending == null || !pending.matches(server, playerId, clientWorld, dimension)) {
+                if (pending != null) {
+                    pending.cancel();
+                }
+                pendingPlayerSpawnLookup.set(request);
+                scheduleRequest = true;
+            }
+        }
+        if (scheduleRequest) {
+            try {
+                Future<?> scheduled = scheduleOnServer.apply(() -> {
+                    PlayerSpawnData data;
+                    try {
+                        data = readOnServer.get();
+                    } catch (RuntimeException e) {
+                        data = new PlayerSpawnData(false, null);
+                    }
+                    PlayerSpawnLookup result = new PlayerSpawnLookup(
+                            server, playerId, clientWorld, dimension,
+                            data.respawnConfigured, data.target, System.nanoTime());
+                    synchronized (playerSpawnLookupLock) {
+                        if (pendingPlayerSpawnLookup.get() == request) {
+                            cachedPlayerSpawnLookup = result;
+                            pendingPlayerSpawnLookup.set(null);
+                        }
+                    }
+                });
+                synchronized (playerSpawnLookupLock) {
+                    if (pendingPlayerSpawnLookup.get() == request) {
+                        request.setFuture(scheduled);
+                    } else {
+                        scheduled.cancel(false);
+                    }
+                }
+            } catch (RuntimeException e) {
+                synchronized (playerSpawnLookupLock) {
+                    if (pendingPlayerSpawnLookup.get() == request) {
+                        pendingPlayerSpawnLookup.set(null);
+                    }
+                }
+            }
+        }
+
+        return matches ? snapshot : null;
+    }
+
+    static BlockPos resolvePlayerSpawnFallback(boolean lookupAvailable, boolean respawnConfigured,
+            BlockPos playerSpawn, BlockPos worldSpawn) {
+        if (!lookupAvailable || !respawnConfigured) {
+            return worldSpawn;
+        }
+        return playerSpawn;
+    }
+
+    private static class PlayerSpawnData {
+        final boolean respawnConfigured;
+        final BlockPos target;
+
+        PlayerSpawnData(boolean respawnConfigured, BlockPos target) {
+            this.respawnConfigured = respawnConfigured;
+            this.target = target;
+        }
+    }
+
+    private static class PlayerSpawnLookup {
+        final Object server;
+        final Object playerId;
+        final Object clientWorld;
+        final Object dimension;
+        final boolean respawnConfigured;
+        final BlockPos target;
+        final long updatedAtNanos;
+
+        PlayerSpawnLookup(Object server, Object playerId, Object clientWorld, Object dimension,
+                boolean respawnConfigured, BlockPos target, long updatedAtNanos) {
+            this.server = server;
+            this.playerId = playerId;
+            this.clientWorld = clientWorld;
+            this.dimension = dimension;
+            this.respawnConfigured = respawnConfigured;
+            this.target = target;
+            this.updatedAtNanos = updatedAtNanos;
+        }
+
+        boolean matches(Object server, Object playerId, Object clientWorld, Object dimension) {
+            return this.server == server && this.clientWorld == clientWorld
+                    && this.playerId.equals(playerId) && this.dimension.equals(dimension);
+        }
+
+    }
+
+    private static class PlayerSpawnRequest {
+        final Object server;
+        final Object playerId;
+        final Object clientWorld;
+        final Object dimension;
+        private volatile Future<?> future;
+
+        PlayerSpawnRequest(Object server, Object playerId, Object clientWorld, Object dimension) {
+            this.server = server;
+            this.playerId = playerId;
+            this.clientWorld = clientWorld;
+            this.dimension = dimension;
+        }
+
+        boolean matches(Object server, Object playerId, Object clientWorld, Object dimension) {
+            return this.server == server && this.clientWorld == clientWorld
+                    && this.playerId.equals(playerId) && this.dimension.equals(dimension);
+        }
+
+        void setFuture(Future<?> future) {
+            this.future = future;
+        }
+
+        void cancel() {
+            Future<?> future = this.future;
+            if (future != null) {
+                future.cancel(false);
+            }
+        }
+    }
+    //?}
 
     private static boolean showsFallbackCompass() {
         return MineLightsClient.CONFIG.alwaysShowCompass || MineLightsClient.CONFIG.ignoreInventoryCompass;

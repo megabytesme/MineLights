@@ -36,6 +36,13 @@ keys = {
     51: 'option.mine-lights.saturationTintStrength', 52: 'option.mine-lights.experienceLocatorMode',
     53: 'option.mine-lights.locatorDotSize',
     54: 'option.mine-lights.notifyServerDownloadProgress',
+    55: 'option.mine-lights.ignoreInventoryCompass',
+    56: 'option.mine-lights.spinCompassWithoutTarget',
+    57: 'option.mine-lights.compassFallbackTarget',
+    58: 'enum.mine-lights.compassFallbackTarget.world_spawn',
+    59: 'enum.mine-lights.compassFallbackTarget.origin',
+    60: 'enum.mine-lights.compassFallbackTarget.player_spawn',
+    61: 'option.mine-lights.lodestoneCompassShimmer',
 }
 server_messages = {
     0: 'message.minelights.server.download.started',
