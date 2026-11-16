@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: MineLights Server issues
+    url: https://github.com/megabytesme/MineLights-Server/issues
+    about: Report an issue specific to MineLights Server.

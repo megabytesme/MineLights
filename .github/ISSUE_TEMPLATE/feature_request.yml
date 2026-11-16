@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest an improvement to MineLights.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to improve?
+      description: Describe the problem or use case.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: Describe the change you would like to see.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Relevant Minecraft versions or loaders
+      description: Leave this blank if the idea is not version-specific.
+  - type: textarea
+    id: context
+    attributes:
+      label: Other context
+      description: Add examples, alternatives or screenshots if useful.

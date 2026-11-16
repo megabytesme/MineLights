@@ -1,0 +1,46 @@
+name: Bug report
+description: Report something that is not working as expected.
+body:
+  - type: markdown
+    attributes:
+      value: Please search existing issues first, and remove credentials, pairing files and private information from logs or screenshots.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: List the steps, if you know them.
+  - type: input
+    id: versions
+    attributes:
+      label: Minecraft and MineLights versions
+      placeholder: e.g. Minecraft 1.21.9, MineLights 2.4.0
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader or component
+      options:
+        - Fabric
+        - Quilt
+        - Forge
+        - NeoForge
+        - Horizon
+        - MineLights Server
+        - Not sure
+      default: 6
+  - type: textarea
+    id: environment
+    attributes:
+      label: Operating system, RGB software and devices
+      description: Include only the details relevant to the problem.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots or additional details
+      description: Remove credentials and personal information before sharing.

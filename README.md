@@ -91,7 +91,7 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, testing and pull request guidance.
 
 ## Contact
 
