@@ -71,7 +71,7 @@ import java.util.regex.Pattern;
 public class MineLightsClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.4.0";
+    public static final String MOD_VERSION = "2.4.1";
     private static Path configDir = Paths.get(".");
     private static String resolvedModVersion = MOD_VERSION;
     private static String resolvedModLoader = "fabric";

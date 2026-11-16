@@ -98,7 +98,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MineLightsClient {
     public static final Logger LOGGER = LogManager.getLogger("MineLights");
     public static final String MOD_ID = "minelights";
-    public static final String MOD_VERSION = "2.4.0";
+    public static final String MOD_VERSION = "2.4.1";
     private static Path configDir = Paths.get(".");
     private static volatile String resolvedModVersion;
     private static volatile String resolvedModLoader;

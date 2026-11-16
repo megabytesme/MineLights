@@ -169,7 +169,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "minelights-engine"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "base64",
  "getrandom 0.3.4",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "minelights-horizon"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "base64",
  "fs4",
