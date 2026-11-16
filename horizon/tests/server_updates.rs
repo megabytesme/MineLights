@@ -4,21 +4,21 @@ mod server;
 
 #[test]
 fn pinned_release_ignores_build_metadata_in_version_precedence() {
-    assert_eq!(server::SERVER_VERSION, "v2.4.0");
+    assert_eq!(server::SERVER_VERSION, "v2.4.1");
     let equal = r#"[
-      {"tag_name":"v2.4.0","draft":false,"prerelease":false},
-      {"tag_name":"v2.4.0+different.1","draft":false,"prerelease":false},
-      {"tag_name":"v2.4.1-rc.1","draft":false,"prerelease":false},
+      {"tag_name":"v2.4.1","draft":false,"prerelease":false},
+      {"tag_name":"v2.4.1+different.1","draft":false,"prerelease":false},
+      {"tag_name":"v2.4.2-rc.1","draft":false,"prerelease":false},
       {"tag_name":"v2.5.0","draft":false,"prerelease":true}
     ]"#;
     assert!(server::parse_update_notice(equal).is_none());
 
     let newer = r#"[
-      {"tag_name":"v2.4.1+build.9","draft":false,"prerelease":false,"body":"Fix"},
+      {"tag_name":"v2.4.2+build.9","draft":false,"prerelease":false,"body":"Fix"},
       {"tag_name":"v999.0.0+bad..metadata","draft":false,"prerelease":false}
     ]"#;
     let notice = server::parse_update_notice(newer).unwrap();
-    assert_eq!(notice.version, "v2.4.1+build.9");
+    assert_eq!(notice.version, "v2.4.2+build.9");
     assert_eq!(notice.changelog, ["Fix"]);
 }
 
