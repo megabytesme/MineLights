@@ -25,9 +25,12 @@ const SETTING_NAMES: &[&str] = &[
     "movement-highlight",
     "chat-pulse",
     "always-show-compass",
+    "ignore-inventory-compass",
+    "spin-compass-without-target",
     "locator-bar",
     "server-autostart",
     "compass-priority",
+    "compass-fallback-target",
     "corsair",
     "asus",
     "logitech",
@@ -242,7 +245,7 @@ fn show_help(game: &mut super::Game<'_>) {
     );
     chat(
         game,
-        "Boolean values: on/off. Dimming: local/sky/off. Brightness: 0-100. Compass priority: inventory/standard/lodestone/recovery.",
+        "Boolean values: on/off. Dimming: local/sky/off. Brightness: 0-100. Compass priority: inventory/standard/lodestone/recovery. Compass fallback target: world-spawn/origin/player-spawn.",
     );
     chat(
         game,
@@ -975,6 +978,18 @@ fn set_setting(
         settings.server_confirmation_pending = false;
         return Ok("Compass priority updated.");
     }
+    if name == "compass-fallback-target" {
+        settings.compass_fallback_target = match value.to_ascii_lowercase().as_str() {
+            "world-spawn" | "world_spawn" | "spawn" => 0,
+            "origin" | "0,0" | "zero" => 1,
+            "player-spawn" | "player_spawn" | "bed" | "respawn" => 2,
+            _ => {
+                return Err("Compass fallback target must be world-spawn, origin, or player-spawn.");
+            }
+        };
+        settings.server_confirmation_pending = false;
+        return Ok("Compass fallback target updated.");
+    }
     if name == "min-brightness" {
         let Ok(percent) = value.parse::<u8>() else {
             return Err("Minimum brightness must be a number from 0 to 100.");
@@ -1008,6 +1023,8 @@ fn set_setting(
         "movement-highlight" => &mut settings.movement_highlight,
         "chat-pulse" => &mut settings.chat_pulse,
         "always-show-compass" => &mut settings.always_show_compass,
+        "ignore-inventory-compass" => &mut settings.ignore_inventory_compass,
+        "spin-compass-without-target" => &mut settings.spin_compass_without_target,
         "locator-bar" => &mut settings.locator_bar,
         "corsair" => &mut settings.enable_corsair,
         "asus" => &mut settings.enable_asus,
@@ -1054,11 +1071,16 @@ fn setting_value(settings: &Settings, name: &str) -> Option<String> {
         "movement-highlight" => on_off(settings.movement_highlight).into(),
         "chat-pulse" => on_off(settings.chat_pulse).into(),
         "always-show-compass" => on_off(settings.always_show_compass).into(),
+        "ignore-inventory-compass" => on_off(settings.ignore_inventory_compass).into(),
+        "spin-compass-without-target" => on_off(settings.spin_compass_without_target).into(),
         "locator-bar" => on_off(settings.locator_bar).into(),
         "server-autostart" if settings.server_confirmation_pending => "pending confirmation".into(),
         "server-autostart" => on_off(settings.allow_reviewed_server).into(),
         "compass-priority" => ["inventory", "standard", "lodestone", "recovery"]
             [usize::from(settings.compass_priority.min(3))]
+        .into(),
+        "compass-fallback-target" => ["world-spawn", "origin", "player-spawn"]
+            [usize::from(settings.compass_fallback_target.min(2))]
         .into(),
         "corsair" => on_off(settings.enable_corsair).into(),
         "asus" => on_off(settings.enable_asus).into(),
@@ -1103,6 +1125,8 @@ fn boolean_setting(settings: &Settings, name: &str) -> Option<bool> {
         "movement-highlight" => settings.movement_highlight,
         "chat-pulse" => settings.chat_pulse,
         "always-show-compass" => settings.always_show_compass,
+        "ignore-inventory-compass" => settings.ignore_inventory_compass,
+        "spin-compass-without-target" => settings.spin_compass_without_target,
         "locator-bar" => settings.locator_bar,
         "corsair" => settings.enable_corsair,
         "asus" => settings.enable_asus,
@@ -1141,6 +1165,7 @@ fn normalize_name(name: &str) -> String {
         "movement-keys" => "movement-highlight".into(),
         "chat-key-pulse" => "chat-pulse".into(),
         "always-compass" => "always-show-compass".into(),
+        "compass-spin" | "spin-compass" => "spin-compass-without-target".into(),
         "auto-start"
         | "auto-start-server"
         | "autostart"

@@ -1,5 +1,6 @@
 package megabytesme.minelights;
 
+import megabytesme.minelights.config.CompassFallbackTarget;
 import megabytesme.minelights.config.CompassPriority;
 import megabytesme.minelights.config.DimmingMode;
 //? if loader_forge && <=1.13.2 {
@@ -190,6 +191,13 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 toggle(options, "Experience bar", () -> MineLightsClient.CONFIG.enableExperienceBar, value -> MineLightsClient.CONFIG.enableExperienceBar = value);
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass, value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
+                toggle(options, "Ignore carried compasses", () -> MineLightsClient.CONFIG.ignoreInventoryCompass, value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value);
+                toggle(options, "Spin compass without target", () -> MineLightsClient.CONFIG.spinCompassWithoutTarget, value -> MineLightsClient.CONFIG.spinCompassWithoutTarget = value);
+                cycle(options, "Compass target without one", () -> String.valueOf(MineLightsClient.CONFIG.compassFallbackTarget), () -> {
+                    CompassFallbackTarget[] values = CompassFallbackTarget.values();
+                    int current = MineLightsClient.CONFIG.compassFallbackTarget == null ? -1 : MineLightsClient.CONFIG.compassFallbackTarget.ordinal();
+                    MineLightsClient.CONFIG.compassFallbackTarget = values[(current + 1) % values.length];
+                });
                 cycle(options, "Compass priority", () -> MineLightsClient.CONFIG.compassPriority.toString(), () -> {
                     CompassPriority[] values = CompassPriority.values();
                     MineLightsClient.CONFIG.compassPriority = values[(MineLightsClient.CONFIG.compassPriority.ordinal() + 1) % values.length];

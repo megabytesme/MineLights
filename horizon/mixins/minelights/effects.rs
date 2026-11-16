@@ -111,8 +111,10 @@ pub(super) struct Painter {
     heartbeat: f32,
     heartbeat_rising: bool,
     heartbeat_step: Instant,
-    spin_index: usize,
-    last_spin: Instant,
+    spin_rotation: f32,
+    spin_step: f32,
+    spin_tick: u128,
+    spin_random: u32,
     sheen_index: usize,
     last_sheen: Instant,
     rain_phase: bool,
@@ -148,8 +150,10 @@ impl Painter {
             heartbeat: 0.1,
             heartbeat_rising: true,
             heartbeat_step: now,
-            spin_index: 0,
-            last_spin: now,
+            spin_rotation: 0.0,
+            spin_step: 0.0,
+            spin_tick: 0,
+            spin_random: 0x9E37_79B9,
             sheen_index: 0,
             last_sheen: now,
             rain_phase: false,
@@ -806,16 +810,27 @@ impl Painter {
         }
         paint_key(frame, layouts, &settings.compass_center_key, color);
         if !player.compass_pointing {
-            if now.duration_since(self.last_spin) > Duration::from_millis(75) {
-                self.spin_index = (self.spin_index + 1) % directions.len();
-                self.last_spin = now;
+            // Same wobble as Minecraft's compass needle without a target: each game tick
+            // (50 ms) it chases a new random angle with damping.
+            let tick = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis()
+                / 50;
+            if tick != self.spin_tick {
+                self.spin_tick = tick;
+                self.spin_random ^= self.spin_random << 13;
+                self.spin_random ^= self.spin_random >> 17;
+                self.spin_random ^= self.spin_random << 5;
+                let random = (self.spin_random >> 8) as f32 / (1u32 << 24) as f32;
+                let delta = (random - self.spin_rotation + 0.5).rem_euclid(1.0) - 0.5;
+                self.spin_step = (self.spin_step + delta * 0.1) * 0.8;
+                self.spin_rotation = (self.spin_rotation + self.spin_step).rem_euclid(1.0);
             }
-            paint_key(
-                frame,
-                layouts,
-                &directions[self.spin_index % directions.len()],
-                color,
-            );
+            let sector = 360.0 / directions.len() as f32;
+            let index =
+                ((self.spin_rotation * 360.0 + sector / 2.0).rem_euclid(360.0) / sector) as usize;
+            paint_key(frame, layouts, &directions[index % directions.len()], color);
         } else if player.compass_distance < 8.0 {
             let wave = (SystemTime::now()
                 .duration_since(UNIX_EPOCH)
