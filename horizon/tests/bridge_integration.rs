@@ -101,6 +101,73 @@ fn configurable_bars_use_the_selected_keys_and_absorption_color() {
     );
 }
 
+#[test]
+fn lodestone_shimmer_changes_only_the_directional_overlay() {
+    use std::collections::HashMap;
+    use std::time::{Duration, Instant};
+
+    let mut settings = minelights_config::Settings::default();
+    settings.biome_lighting = false;
+    settings.dimming_mode = 2;
+    settings.health_bar = false;
+    settings.hunger_bar = false;
+    settings.saturation_air_bar = false;
+    settings.experience_bar = false;
+    settings.locator_bar = false;
+    settings.low_health_warning = false;
+    settings.compass_keys = vec!["Q".into(), "W".into(), "E".into(), "R".into()];
+    settings.compass_center_key = "T".into();
+    let player = minelights::Snapshot {
+        in_game: true,
+        compass_type: 2,
+        compass_pointing: true,
+        compass_yaw: 180.0,
+        compass_distance: 20.0,
+        ..Default::default()
+    };
+    let layout = minelights::DeviceLayout {
+        keys: HashMap::from([
+            ("Q".into(), vec![1]),
+            ("W".into(), vec![2]),
+            ("E".into(), vec![3]),
+            ("R".into(), vec![4]),
+            ("T".into(), vec![5]),
+        ]),
+        leds: vec![1, 2, 3, 4, 5],
+        ..Default::default()
+    };
+    let mut plain_painter = minelights_effects::Painter::new();
+    let mut shimmer_painter = minelights_effects::Painter::new();
+    let now = Instant::now();
+    settings.lodestone_compass_shimmer = false;
+    let plain = plain_painter.render(player.clone(), &[layout.clone()], settings.clone(), now);
+    settings.lodestone_compass_shimmer = true;
+    let shimmer = shimmer_painter.render(player.clone(), &[layout.clone()], settings.clone(), now);
+    let later = shimmer_painter.render(
+        player,
+        &[layout],
+        settings,
+        now + Duration::from_millis(100),
+    );
+
+    assert_eq!(plain.keys.get(&1), Some(&minelights::Color(25, 0, 25)));
+    assert_eq!(plain.keys.get(&2), Some(&minelights::Color(25, 0, 25)));
+    assert_eq!(plain.keys.get(&3), Some(&minelights::Color(238, 130, 238)));
+    assert_eq!(plain.keys.get(&4), Some(&minelights::Color(25, 0, 25)));
+    assert_eq!(plain.keys.get(&5), Some(&minelights::Color(238, 130, 238)));
+    assert_eq!(plain.keys.get(&5), shimmer.keys.get(&5));
+    assert_eq!(plain.keys.get(&5), later.keys.get(&5));
+    let initial_sweep: Vec<_> = (1..=4)
+        .filter(|id| plain.keys.get(id) != shimmer.keys.get(id))
+        .collect();
+    let later_sweep: Vec<_> = (1..=4)
+        .filter(|id| plain.keys.get(id) != later.keys.get(id))
+        .collect();
+    assert_eq!(initial_sweep.len(), 3);
+    assert_eq!(later_sweep.len(), 3);
+    assert_ne!(initial_sweep, later_sweep);
+}
+
 // Binds legacy ports and therefore runs only under an isolated explicit test run.
 #[test]
 #[ignore = "binds legacy ports; requires an isolated test environment"]

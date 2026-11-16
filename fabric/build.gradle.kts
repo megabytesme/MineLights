@@ -254,7 +254,8 @@ tasks {
             "kofi" to project.property("mod.kofi"),
             "discord" to project.property("mod.discord"),
             "modmenu_entrypoint_class" to "megabytesme.minelights.config.ModMenuIntegration",
-            "fabric_api_id" to fabricApiId
+            "fabric_api_id" to fabricApiId,
+            "fabric_loader_constraint" to if (stonecutter.current.version == "26.3") ">=0.20.1" else "*"
         )
 
         filesMatching("fabric.mod.json") { expand(props) }

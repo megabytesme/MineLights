@@ -815,6 +815,20 @@ mod effect_setting_tests {
             "notify-server-download-progress"
         );
     }
+
+    #[test]
+    fn compass_fallback_aliases_match_java_commands() {
+        let mut settings = Settings::default();
+        for alias in ["compass-fallback", "compass-target"] {
+            let name = normalize_name(alias);
+            assert_eq!(name, "compass-fallback-target");
+            set_setting(&mut settings, &name, "player-spawn").unwrap();
+            assert_eq!(
+                setting_value(&settings, &name).as_deref(),
+                Some("player-spawn")
+            );
+        }
+    }
 }
 
 fn effect_value(settings: &Settings, name: &str) -> Option<String> {
@@ -985,7 +999,9 @@ fn set_setting(
             "origin" | "0,0" | "zero" => 1,
             "player-spawn" | "player_spawn" | "bed" | "respawn" => 2,
             _ => {
-                return Err("Compass fallback target must be world-spawn, origin, or player-spawn.");
+                return Err(
+                    "Compass fallback target must be world-spawn, origin, or player-spawn.",
+                );
             }
         };
         settings.server_confirmation_pending = false;
@@ -1170,6 +1186,7 @@ fn normalize_name(name: &str) -> String {
         "movement-keys" => "movement-highlight".into(),
         "chat-key-pulse" => "chat-pulse".into(),
         "always-compass" => "always-show-compass".into(),
+        "compass-fallback" | "compass-target" => "compass-fallback-target".into(),
         "compass-spin" | "spin-compass" => "spin-compass-without-target".into(),
         "auto-start"
         | "auto-start-server"

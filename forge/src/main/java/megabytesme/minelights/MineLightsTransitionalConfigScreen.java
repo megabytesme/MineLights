@@ -17,6 +17,7 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -191,9 +192,15 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 toggle(options, "Experience bar", () -> MineLightsClient.CONFIG.enableExperienceBar, value -> MineLightsClient.CONFIG.enableExperienceBar = value);
                 toggle(options, "Compass effect", () -> MineLightsClient.CONFIG.enableCompassEffect, value -> MineLightsClient.CONFIG.enableCompassEffect = value);
                 toggle(options, "Always show compass", () -> MineLightsClient.CONFIG.alwaysShowCompass, value -> MineLightsClient.CONFIG.alwaysShowCompass = value);
-                toggle(options, "Ignore carried compasses", () -> MineLightsClient.CONFIG.ignoreInventoryCompass, value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value);
-                toggle(options, "Spin compass without target", () -> MineLightsClient.CONFIG.spinCompassWithoutTarget, value -> MineLightsClient.CONFIG.spinCompassWithoutTarget = value);
-                cycle(options, "Compass target without one", () -> String.valueOf(MineLightsClient.CONFIG.compassFallbackTarget), () -> {
+                toggle(options, translated("option.mine-lights.ignoreInventoryCompass", "Ignore carried compasses"), () -> MineLightsClient.CONFIG.ignoreInventoryCompass, value -> MineLightsClient.CONFIG.ignoreInventoryCompass = value);
+                toggle(options, translated("option.mine-lights.spinCompassWithoutTarget", "Spin compass without target"), () -> MineLightsClient.CONFIG.spinCompassWithoutTarget, value -> MineLightsClient.CONFIG.spinCompassWithoutTarget = value);
+                cycle(options, translated("option.mine-lights.compassFallbackTarget", "Compass fallback target"), () -> {
+                    CompassFallbackTarget target = MineLightsClient.CONFIG.compassFallbackTarget == null
+                            ? CompassFallbackTarget.WORLD_SPAWN : MineLightsClient.CONFIG.compassFallbackTarget;
+                    String fallback = target.name().replace('_', ' ');
+                    String key = "enum.mine-lights.compassFallbackTarget." + target.name().toLowerCase(Locale.ROOT);
+                    return translated(key, fallback);
+                }, () -> {
                     CompassFallbackTarget[] values = CompassFallbackTarget.values();
                     int current = MineLightsClient.CONFIG.compassFallbackTarget == null ? -1 : MineLightsClient.CONFIG.compassFallbackTarget.ordinal();
                     MineLightsClient.CONFIG.compassFallbackTarget = values[(current + 1) % values.length];
@@ -227,7 +234,7 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
                 toggle(options, "On-fire effect", () -> MineLightsClient.CONFIG.enableOnFireEffect, value -> MineLightsClient.CONFIG.enableOnFireEffect = value);
                 toggle(options, "Underwater effect", () -> MineLightsClient.CONFIG.enableInWaterEffect, value -> MineLightsClient.CONFIG.enableInWaterEffect = value);
                 toggle(options, "Portal effects", () -> MineLightsClient.CONFIG.enablePortalEffects, value -> MineLightsClient.CONFIG.enablePortalEffects = value);
-                toggle(options, "Lodestone compass shimmer", () -> MineLightsClient.CONFIG.lodestoneCompassShimmer, value -> MineLightsClient.CONFIG.lodestoneCompassShimmer = value);
+                toggle(options, translated("option.mine-lights.lodestoneCompassShimmer", "Lodestone compass shimmer"), () -> MineLightsClient.CONFIG.lodestoneCompassShimmer, value -> MineLightsClient.CONFIG.lodestoneCompassShimmer = value);
                 break;
             case 4:
                 List<String> devices = new ArrayList<>(MineLightsClient.discoveredDevices);
@@ -272,6 +279,11 @@ public final class MineLightsTransitionalConfigScreen extends GuiScreen {
 
     private static void toggle(List<Option> options, String label, BooleanSupplier value, Consumer<Boolean> setter) {
         options.add(new Option(label, () -> value.getAsBoolean() ? "ON" : "OFF", () -> setter.accept(!value.getAsBoolean())));
+    }
+
+    private static String translated(String key, String fallback) {
+        String value = translated(key);
+        return value.equals(key) ? fallback : value;
     }
 
     private static String translated(String key) {

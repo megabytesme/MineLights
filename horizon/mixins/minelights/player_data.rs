@@ -181,7 +181,8 @@ pub(super) fn snapshot(game: &super::Game<'_>, settings: &Settings) -> Snapshot 
     let (compass_type, target) = selected_compass
         .map(|(kind, target)| (*kind, *target))
         .unwrap_or_else(|| {
-            // Horizon has no singleplayer server access, so player spawn uses world spawn.
+            // Horizon's game snapshot exposes the level spawn but not the local player's
+            // respawn position or integrated server. Player Spawn therefore uses world spawn.
             if show_fallback && settings.compass_fallback_target == 1 {
                 (1, Some([0.0, 0.0, 0.0]))
             } else if show_fallback && dimension == "minecraft:overworld" {

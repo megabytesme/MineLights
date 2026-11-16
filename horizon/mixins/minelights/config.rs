@@ -195,7 +195,7 @@ fn keys(values: &[&str]) -> Vec<String> {
     values.iter().map(|value| (*value).to_owned()).collect()
 }
 
-pub(super) const STATIC_SETTING_COUNT: usize = 49;
+pub(super) const STATIC_SETTING_COUNT: usize = 53;
 
 pub(super) static SETTINGS: OnceLock<Mutex<Settings>> = OnceLock::new();
 
@@ -354,8 +354,48 @@ pub(super) fn settings_labels(settings: Settings, language: &str) -> Vec<String>
             on_off(settings.notify_server_download_progress)
         ),
         "Configure keys and colors with /minelights set".into(),
+        format!(
+            "Ignore Carried Compasses: {}",
+            on_off(settings.ignore_inventory_compass)
+        ),
+        format!(
+            "Compass Fallback Target: {}",
+            ["World Spawn", "0, 0", "Player Spawn"]
+                [usize::from(settings.compass_fallback_target.min(2))]
+        ),
+        format!(
+            "Spin Compass Without a Target: {}",
+            on_off(settings.spin_compass_without_target)
+        ),
+        format!(
+            "Lodestone Compass Shimmer: {}",
+            on_off(settings.lodestone_compass_shimmer)
+        ),
     ];
     for (index, label) in labels.iter_mut().enumerate() {
+        if (49..=52).contains(&index) {
+            let key_index = match index {
+                49 => 55,
+                50 => 57,
+                51 => 56,
+                52 => 61,
+                _ => unreachable!(),
+            };
+            if let Some(translated) =
+                super::minelights_lang::setting_label_or_english(language, key_index)
+            {
+                if index == 50 {
+                    let target_index = 58 + usize::from(settings.compass_fallback_target.min(2));
+                    let target =
+                        super::minelights_lang::setting_label_or_english(language, target_index)
+                            .unwrap_or("World Spawn");
+                    *label = format!("{translated}: {target}");
+                } else if let Some((_, value)) = label.rsplit_once(": ") {
+                    *label = format!("{translated}: {value}");
+                }
+            }
+            continue;
+        }
         if (40..=46).contains(&index) {
             if let Some(translated) = super::minelights_lang::setting_label(language, index + 7) {
                 if let Some((_, value)) = label.rsplit_once(": ") {
@@ -471,6 +511,10 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
             settings.compass_priority = (settings.compass_priority + 1) % 4;
             return;
         }
+        50 => {
+            settings.compass_fallback_target = (settings.compass_fallback_target + 1) % 3;
+            return;
+        }
         43 => {
             settings.low_health_threshold = if settings.low_health_threshold >= 20.0 {
                 1.0
@@ -543,6 +587,9 @@ pub(super) fn toggle_setting(settings: &mut Settings, index: usize) {
         41 => &mut settings.merge_saturation_into_hunger,
         42 => &mut settings.restore_lighting_outside_world,
         47 => &mut settings.notify_server_download_progress,
+        49 => &mut settings.ignore_inventory_compass,
+        51 => &mut settings.spin_compass_without_target,
+        52 => &mut settings.lodestone_compass_shimmer,
         _ => return,
     };
     *value = !*value;

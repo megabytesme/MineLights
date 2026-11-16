@@ -387,7 +387,7 @@ public final class ModMenuIntegration {
                         CompassFallbackTarget.class,
                         MineLightsClient.CONFIG.compassFallbackTarget != null ? MineLightsClient.CONFIG.compassFallbackTarget : CompassFallbackTarget.WORLD_SPAWN)
                 .setDefaultValue(CompassFallbackTarget.WORLD_SPAWN)
-                .setEnumNameProvider(value -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase()))
+                .setEnumNameProvider(value -> translatable("enum.mine-lights.compassFallbackTarget." + value.toString().toLowerCase(java.util.Locale.ROOT)))
                 .setTooltip(translatable("option.mine-lights.compassFallbackTarget.tooltip"))
                 .setSaveConsumer(newValue -> MineLightsClient.CONFIG.compassFallbackTarget = newValue)
                 .build());
