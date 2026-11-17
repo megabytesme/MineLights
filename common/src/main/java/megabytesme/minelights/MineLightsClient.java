@@ -442,7 +442,7 @@ public class MineLightsClient {
     //? if loader_neoforge {
     private static void showOpenRgbRestoreWarning(Minecraft client) {
         net.minecraft.client.gui.screens.Screen parent = currentScreen(client);
-        if (!(parent instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
+        if (isLoading(client) || !(parent instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
             return;
         }
         openScreen(client, new net.minecraft.client.gui.screens.ConfirmScreen(dontShowAgain -> {
@@ -453,6 +453,14 @@ public class MineLightsClient {
             openScreen(client, parent);
         }, Component.translatable(OPENRGB_WARNING + "title"), Component.translatable(OPENRGB_WARNING + "message"),
                 Component.translatable(OPENRGB_WARNING + "dont_show_again"), Component.translatable(OPENRGB_WARNING + "close")));
+    }
+
+    private static boolean isLoading(Minecraft client) {
+        //? if >=26.2 {
+        return client.gui.overlay() != null;
+        //?} else {
+        return client.getOverlay() != null;
+        //?}
     }
 
     private static net.minecraft.client.gui.screens.Screen currentScreen(Minecraft client) {

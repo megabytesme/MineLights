@@ -500,7 +500,7 @@ public class MineLightsClient implements ClientModInitializer {
     //? if >=26.1 {
     private static void showOpenRgbRestoreWarning(Minecraft client) {
         net.minecraft.client.gui.screens.Screen parent = currentScreen(client);
-        if (!(parent instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
+        if (isLoading(client) || !(parent instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
             return;
         }
         openScreen(client, new net.minecraft.client.gui.screens.ConfirmScreen(dontShowAgain -> {
@@ -511,6 +511,14 @@ public class MineLightsClient implements ClientModInitializer {
             openScreen(client, parent);
         }, Component.translatable(OPENRGB_WARNING + "title"), Component.translatable(OPENRGB_WARNING + "message"),
                 Component.translatable(OPENRGB_WARNING + "dont_show_again"), Component.translatable(OPENRGB_WARNING + "close")));
+    }
+
+    private static boolean isLoading(Minecraft client) {
+        //? if >=26.2 {
+        return client.gui.overlay() != null;
+        //?} else {
+        /* return client.getOverlay() != null; */
+        //?}
     }
 
     private static net.minecraft.client.gui.screens.Screen currentScreen(Minecraft client) {
@@ -530,7 +538,7 @@ public class MineLightsClient implements ClientModInitializer {
     }
     //?} else {
     /* private static void showOpenRgbRestoreWarning(MinecraftClient client) {
-        if (!(client.currentScreen instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
+        if (client.getOverlay() != null || !(client.currentScreen instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
             return;
         }
         net.minecraft.client.gui.screen.Screen parent = client.currentScreen;
