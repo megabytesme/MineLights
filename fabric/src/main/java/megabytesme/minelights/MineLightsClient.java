@@ -210,6 +210,8 @@ public class MineLightsClient implements ClientModInitializer {
 
     private static final String MODRINTH_PROJECT_ID = "minelights"; 
     private static final AtomicBoolean hasCheckedForUpdate = new AtomicBoolean(false);
+    private static final AtomicBoolean openRgbRestoreWarningShown = new AtomicBoolean(false);
+    private static final String OPENRGB_WARNING = "message.minelights.openrgb_restore_warning.";
     private static final AtomicReference<String> pendingUpdateVersion = new AtomicReference<>(null);
     private static final AtomicReference<String> pendingUpdateUrl = new AtomicReference<>(null);
     private static final AtomicBoolean pendingUpdateNotification = new AtomicBoolean(false);
@@ -396,6 +398,7 @@ public class MineLightsClient implements ClientModInitializer {
             new Thread(MineLightsClient::checkForUpdate, "MineLights-Modrinth-Update-Check").start();
         }
 
+        showOpenRgbRestoreWarning(client);
         flushPendingUpdateNotification();
         flushPendingServerNotification();
     }
@@ -481,6 +484,87 @@ public class MineLightsClient implements ClientModInitializer {
         //?}
         LOGGER.info("Delivered queued update notification for version {}.", version);
     }
+
+    private static boolean shouldShowOpenRgbRestoreWarning() {
+        if (CONFIG == null || !CONFIG.enableMod || !CONFIG.enableOpenRgb || !CONFIG.showOpenRgbRestoreWarning) {
+            return false;
+        }
+        synchronized (discoveredDevices) {
+            if (discoveredDevices.stream().noneMatch(id -> id.startsWith("OpenRGB|"))) {
+                return false;
+            }
+        }
+        return openRgbRestoreWarningShown.compareAndSet(false, true);
+    }
+
+    //? if >=26.1 {
+    private static void showOpenRgbRestoreWarning(Minecraft client) {
+        net.minecraft.client.gui.screens.Screen parent = currentScreen(client);
+        if (!(parent instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
+            return;
+        }
+        openScreen(client, new net.minecraft.client.gui.screens.ConfirmScreen(dontShowAgain -> {
+            if (dontShowAgain) {
+                CONFIG.showOpenRgbRestoreWarning = false;
+                saveConfig();
+            }
+            openScreen(client, parent);
+        }, Component.translatable(OPENRGB_WARNING + "title"), Component.translatable(OPENRGB_WARNING + "message"),
+                Component.translatable(OPENRGB_WARNING + "dont_show_again"), Component.translatable(OPENRGB_WARNING + "close")));
+    }
+
+    private static net.minecraft.client.gui.screens.Screen currentScreen(Minecraft client) {
+        //? if >=26.2 {
+        return client.gui.screen();
+        //?} else {
+        /* return client.screen; */
+        //?}
+    }
+
+    private static void openScreen(Minecraft client, net.minecraft.client.gui.screens.Screen screen) {
+        //? if >=26.2 {
+        client.gui.setScreen(screen);
+        //?} else {
+        /* client.setScreen(screen); */
+        //?}
+    }
+    //?} else {
+    /* private static void showOpenRgbRestoreWarning(MinecraftClient client) {
+        if (!(client.currentScreen instanceof TitleScreen) || !shouldShowOpenRgbRestoreWarning()) {
+            return;
+        }
+        net.minecraft.client.gui.screen.Screen parent = client.currentScreen;
+        net.minecraft.client.gui.screen.ConfirmScreen warning = new net.minecraft.client.gui.screen.ConfirmScreen(dontShowAgain -> {
+            if (dontShowAgain) {
+                CONFIG.showOpenRgbRestoreWarning = false;
+                saveConfig();
+            }
+            //? if >=1.17.1 {
+            client.setScreen(parent);
+            //?} else {
+            client.openScreen(parent);
+            //?}
+        }, openRgbWarningText("title"), openRgbWarningText("message"),
+        //? if >=1.16 {
+                openRgbWarningText("dont_show_again"), openRgbWarningText("close"));
+        //?} else {
+                openRgbWarningText("dont_show_again").getString(), openRgbWarningText("close").getString());
+        //?}
+        //? if >=1.17.1 {
+        client.setScreen(warning);
+        //?} else {
+        client.openScreen(warning);
+        //?}
+    }
+
+    private static Text openRgbWarningText(String key) {
+        //? if >=1.19 {
+        return Text.translatable(OPENRGB_WARNING + key);
+        //?} else {
+        return new net.minecraft.text.TranslatableText(OPENRGB_WARNING + key);
+        //?}
+    } */
+    //?}
 
     public void shutdown() {
         if (!shutdownStarted.compareAndSet(false, true)) {
