@@ -45,7 +45,7 @@ Run the checks that are practical for your change, including a game launch or de
 
 Language files live in `common/src/main/resources/assets/minelights/lang/`. Keep translation keys and format placeholders consistent with `en_us.json`. Preserve the character of the novelty locales. If you cannot confidently translate a string, an English fallback and a note in the pull request are more useful than an uncertain translation.
 
-After changing setting names or server messages used by Horizon, run `python horizon/tools/generate_translations.py` and include the generated `horizon/mixins/minelights/translations.rs` changes. The generator reads tracked language files; stage a new language file before running it.
+After changing setting names or server messages used by Horizon, run `python horizon/tools/generate_translations.py` and include the generated `horizon/src/translations.rs` changes. The generator reads tracked language files. Stage a new language file before running it.
 
 ## Pull request checklist
 

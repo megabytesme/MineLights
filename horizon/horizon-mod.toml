@@ -1,0 +1,75 @@
+id = "minelights"
+name = "MineLights"
+version = "2.4.1"
+description = "MineLights brings RGB lighting integrations to Minecraft Java Edition."
+authors = ["MegaBytesMe"]
+license = "CC-BY-NC-SA-4.0"
+homepage = "https://github.com/megabytesme/MineLights"
+issues = "https://github.com/megabytesme/MineLights/issues"
+api = "0.2"
+side = "client"
+capabilities = ["registries"]
+
+[native]
+game = "26.3"
+horizon = "0b14f8acfd97fa2c750e42795249dcc981178ca4"
+mixins = "e59da9094f0c2fdda6c627fe9eff22dec6a906f0"
+
+# Reuse the engine's Rustls and ring so the native build links one provider.
+[[native.module]]
+id = "pinned_tls"
+file = "crates/horizon-client/src/game/native_hooks/client_setup.rs"
+name = "minelights_pinned_tls"
+source = "src/native/pinned_tls.rs"
+
+[[native.mixin]]
+id = "register_pinned_tls"
+target = "horizon_client::game::native_hooks::client_setup::Game<'_>::native_client_setup"
+kind = "HEAD"
+helper = "src/mixins/register_pinned_tls.rs"
+
+# Exact client observations that are unavailable through ClientHost.
+[[native.mixin]]
+id = "frame_reads"
+target = "horizon_client::game::native_hooks::render_frame_post::Game<'_>::native_render_frame_post"
+kind = "HEAD"
+helper = "src/mixins/frame_reads.rs"
+bindings = [{ name = "game", ty = "&Game<'_>", value = "&*self" }]
+
+# ClientWaypoints is private in the game library. The SDK exposes no waypoint
+# values, so observe the same update and clear operations as the locator HUD.
+[[native.mixin]]
+id = "waypoint"
+target = "horizon_client::game::locator_bar::Game<'_>::handle_waypoint"
+kind = "HEAD"
+helper = "src/mixins/waypoint.rs"
+bindings = [
+  { name = "game", ty = "&Game<'_>", value = "&*self" },
+  { name = "packet", ty = "&TrackedWaypoint", value = "packet" },
+]
+
+[[native.mixin]]
+id = "clear_waypoints"
+target = "horizon_client::game::locator_bar::Game<'_>::clear_waypoints"
+kind = "HEAD"
+helper = "src/mixins/clear_waypoints.rs"
+bindings = [{ name = "game", ty = "&Game<'_>", value = "&*self" }]
+
+# Request cleanup while the quit save runs. The SDK stopping hook is later and
+# the launcher suppresses it if the player disabled the mod after startup.
+[[native.mixin]]
+id = "begin_closing"
+target = "horizon_client::game::saving::Game<'_>::begin_closing_save"
+kind = "HEAD"
+helper = "src/mixins/begin_closing.rs"
+bindings = [
+  { name = "game", ty = "&Game<'_>", value = "&*self" },
+  { name = "quit", ty = "bool", value = "quit" },
+]
+
+[[native.mixin]]
+id = "stopping_disabled"
+target = "horizon_client::game::native_hooks::client_stopping::Game<'_>::native_client_stopping"
+kind = "HEAD"
+helper = "src/mixins/stopping_disabled.rs"
+bindings = [{ name = "game", ty = "&Game<'_>", value = "&*self" }]

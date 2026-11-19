@@ -6,22 +6,20 @@ license = "CC-BY-NC-SA-4.0"
 publish = false
 description = "MineLights native mod for Horizon"
 
-[lib]
-path = "mixins/minelights/direct.rs"
-
 [dependencies]
+horizon-mod-api = { path = ".horizon/sdk/api/crates/horizon-mod-api" }
 base64 = "0.22"
 getrandom = "0.3"
 hex = "0.4"
 hmac = "0.12"
-rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
-minelights-engine = { path = "mixins/minelights/engine" }
+minelights-engine = { path = "src/engine" }
 
 [target.'cfg(windows)'.dependencies]
+fs4 = { version = "1.1.0", default-features = false, features = ["sync"] }
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_IO"] }
 
 [dev-dependencies]
-fs4 = { version = "1.1.0", default-features = false, features = ["sync"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }

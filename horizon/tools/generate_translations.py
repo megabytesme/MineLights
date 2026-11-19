@@ -3,6 +3,8 @@ import json
 import subprocess
 
 root = Path(__file__).resolve().parents[2]
+asset_dir = root / 'horizon/assets/minelights/lang'
+asset_dir.mkdir(parents=True, exist_ok=True)
 tracked = subprocess.check_output(
     ['git', 'ls-files', 'common/src/main/resources/assets/minelights/lang/*.json'],
     cwd=root, text=True,
@@ -63,6 +65,15 @@ for path in sorted(root / item for item in tracked):
     values = [(index, data[key]) for index, key in keys.items() if isinstance(data.get(key), str)]
     if not values:
         continue
+    sdk_labels = {
+        f'minelights.horizon.setting.{index}': text.replace(' (%s)', '').replace('%s', '').strip()
+        for index, text in values
+        if index not in {20, 31, 34, 35, 36}
+    }
+    (asset_dir / path.name).write_text(
+        json.dumps(sdk_labels, ensure_ascii=False, indent=2) + '\n',
+        encoding='utf-8', newline='\n',
+    )
     lines.append(f'        {json.dumps(path.stem)} => match index {{')
     for index, value in values:
         lines.append(f'            {index} => Some({json.dumps(value, ensure_ascii=False)}),')
@@ -88,5 +99,5 @@ lines.extend(['        _ => None,', '    }', '}', '',
               'pub fn server_message_or_english(language: &str, index: usize) -> Option<&\'static str> {',
               '    server_message(language, index).or_else(|| server_message("en_us", index))',
               '}', ''])
-(root / 'horizon/mixins/minelights/translations.rs').write_text('\n'.join(lines), encoding='utf-8', newline='\n')
+(root / 'horizon/src/translations.rs').write_text('\n'.join(lines), encoding='utf-8', newline='\n')
 print(f'Generated settings translations for {count} languages.')
