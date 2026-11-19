@@ -1,7 +1,7 @@
 id = "minelights"
 name = "MineLights"
 version = "2.4.1"
-description = "MineLights brings RGB lighting integrations to Minecraft Java Edition."
+description = "MineLights brings RGB lighting integrations to Horizon."
 authors = ["MegaBytesMe"]
 license = "CC-BY-NC-SA-4.0"
 homepage = "https://github.com/megabytesme/MineLights"
