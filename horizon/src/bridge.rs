@@ -590,27 +590,10 @@ fn bridge_worker(
                 } else {
                     direct.disconnect_openrgb();
                 }
-                if config.enable_yeelight {
-                    if Instant::now() >= next_yeelight_discovery {
-                        direct.discover_yeelights();
-                        next_yeelight_discovery = Instant::now() + Duration::from_secs(60);
-                    }
-                } else {
+                if !config.enable_yeelight {
                     direct.disconnect_yeelights();
-                    next_yeelight_discovery = Instant::now() + Duration::from_secs(5);
                 }
-                direct_layouts = direct
-                    .layouts_with_overrides(&config.led_overrides)
-                    .into_iter()
-                    .map(|device| DeviceLayout {
-                        keys: device.keys,
-                        leds: device.leds,
-                        unique_id: device.unique_id,
-                        legacy_id: None,
-                        display_name: device.display_name,
-                        integration: device.integration,
-                    })
-                    .collect();
+                direct_layouts = direct_device_layouts(&direct, &config);
                 publish_layouts(&layouts, &v2_layouts, &direct_layouts);
                 #[cfg(test)]
                 TEST_COMPLETED_HANDSHAKES.fetch_add(1, Ordering::Release);
@@ -674,6 +657,20 @@ fn bridge_worker(
             next_handshake = Instant::now();
             next_yeelight_discovery = Instant::now();
             previous_direct = Some(direct_policy);
+        }
+        let use_yeelight = is_active && current_policy.enable_yeelight;
+        if !use_yeelight {
+            direct.disconnect_yeelights();
+        }
+        if direct.poll_yeelight_discovery() {
+            direct_layouts = direct_device_layouts(&direct, &current_policy);
+            publish_layouts(&layouts, &v2_layouts, &direct_layouts);
+        }
+        if use_yeelight
+            && Instant::now() >= next_yeelight_discovery
+            && direct.start_yeelight_discovery()
+        {
+            next_yeelight_discovery = Instant::now() + Duration::from_secs(60);
         }
         let local_policy_failed = local_v2
             .as_mut()
@@ -1468,6 +1465,21 @@ pub(super) fn minelights_shutdown() {
             thread::sleep(Duration::from_millis(20));
         }
     }
+}
+
+fn direct_device_layouts(direct: &DirectOutputs, settings: &Settings) -> Vec<DeviceLayout> {
+    direct
+        .layouts_with_overrides(&settings.led_overrides)
+        .into_iter()
+        .map(|device| DeviceLayout {
+            keys: device.keys,
+            leds: device.leds,
+            unique_id: device.unique_id,
+            legacy_id: None,
+            display_name: device.display_name,
+            integration: device.integration,
+        })
+        .collect()
 }
 
 fn publish_layouts(

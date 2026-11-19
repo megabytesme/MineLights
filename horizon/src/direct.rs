@@ -4,7 +4,7 @@ use std::{
     collections::{HashMap, HashSet},
     io::{BufRead, BufReader, Read, Write},
     net::{SocketAddr, TcpStream, ToSocketAddrs, UdpSocket},
-    thread,
+    thread::{self, JoinHandle},
     time::{Duration, Instant},
 };
 
@@ -31,6 +31,12 @@ pub struct DirectLayout {
 pub struct DirectOutputs {
     openrgb: Vec<OpenRgbClient>,
     yeelights: Vec<YeelightDevice>,
+    yeelight_scan: Option<YeelightScan>,
+}
+
+struct YeelightScan {
+    worker: JoinHandle<Vec<YeelightDevice>>,
+    discard: bool,
 }
 
 impl DirectOutputs {
@@ -75,12 +81,39 @@ impl DirectOutputs {
         }
     }
 
-    pub fn discover_yeelights(&mut self) {
-        self.disconnect_yeelights();
-        self.yeelights = YeelightDevice::discover();
+    pub fn start_yeelight_discovery(&mut self) -> bool {
+        if self.yeelight_scan.is_some() {
+            return false;
+        }
+        self.yeelight_scan = thread::Builder::new()
+            .name("MineLights-Yeelight-Discovery".into())
+            .spawn(YeelightDevice::discover)
+            .ok()
+            .map(|worker| YeelightScan {
+                worker,
+                discard: false,
+            });
+        true
+    }
+
+    /// Returns whether a completed discovery supplied new device layouts.
+    pub fn poll_yeelight_discovery(&mut self) -> bool {
+        let Some(scan) = self.yeelight_scan.take_if(|scan| scan.worker.is_finished()) else {
+            return false;
+        };
+        if let Ok(devices) = scan.worker.join()
+            && !scan.discard
+        {
+            self.yeelights = devices;
+            return true;
+        }
+        false
     }
 
     pub fn disconnect_yeelights(&mut self) {
+        if let Some(scan) = &mut self.yeelight_scan {
+            scan.discard = true;
+        }
         for device in &mut self.yeelights {
             device.disconnect();
         }
@@ -888,6 +921,39 @@ impl Drop for YeelightDevice {
 mod tests {
     use super::*;
     use std::net::{Ipv4Addr, TcpListener};
+    use std::sync::mpsc;
+
+    #[test]
+    fn pending_yeelight_discovery_does_not_block_and_can_be_discarded() {
+        let (complete, result) = mpsc::channel();
+        let mut direct = DirectOutputs {
+            yeelight_scan: Some(YeelightScan {
+                worker: thread::spawn(move || result.recv().unwrap()),
+                discard: false,
+            }),
+            ..DirectOutputs::default()
+        };
+        assert!(!direct.poll_yeelight_discovery());
+        assert!(!direct.start_yeelight_discovery());
+        direct.disconnect_yeelights();
+        complete
+            .send(vec![YeelightDevice {
+                id: "test-bulb".into(),
+                name: String::new(),
+                address: ([127, 0, 0, 1], 55443).into(),
+                stream: None,
+                last_color: None,
+                command_id: 1,
+            }])
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while direct.yeelight_scan.is_some() && Instant::now() < deadline {
+            assert!(!direct.poll_yeelight_discovery());
+            thread::yield_now();
+        }
+        assert!(direct.yeelight_scan.is_none());
+        assert!(direct.yeelights.is_empty());
+    }
 
     fn openrgb_device_packet(include_active_mode: bool) -> Vec<u8> {
         fn string(out: &mut Vec<u8>, value: &str) {
@@ -986,8 +1052,8 @@ mod tests {
             command_id: 1,
         };
         let mut outputs = DirectOutputs {
-            openrgb: Vec::new(),
             yeelights: vec![device],
+            ..DirectOutputs::default()
         };
         let frame = HashMap::from([(YEELIGHT_LED_BASE, [0, 0, 0])]);
         outputs.update(&frame, &["Yeelight|test".into()]);

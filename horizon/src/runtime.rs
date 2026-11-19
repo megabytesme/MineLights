@@ -7,7 +7,7 @@ use std::{
     sync::{
         Mutex, OnceLock,
         atomic::{AtomicBool, Ordering},
-        mpsc::TrySendError,
+        mpsc::{SyncSender, TrySendError},
     },
     time::{Duration, Instant},
 };
@@ -20,6 +20,7 @@ pub(super) use super::minelights_bridge::minelights_shutdown;
 use super::minelights_bridge::{BRIDGE, Bridge, Notice, SERVER_DOWNLOAD_IN_PROGRESS, bridge_for};
 use super::minelights_config::Settings;
 use super::minelights_effects::Painter;
+use super::minelights_protocol::LIGHTING_FRAME_TTL_MS;
 use super::minelights_settings::config_dir;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -289,7 +290,7 @@ pub(super) fn minelights_frame(host: &mut dyn ClientHost, player: Snapshot, conf
     }
     painter.last_paint = now;
     let frame = painter.render(player, &layouts, config.clone(), now);
-    send_frame_if_needed(bridge, &mut painter, frame, now);
+    send_frame_if_needed(&bridge.sender, &mut painter, frame, now);
 }
 
 fn server_download_message(language: &str, index: usize, fallback: &str) -> String {
@@ -367,11 +368,18 @@ mod server_download_completion_tests {
     }
 }
 
-fn send_frame_if_needed(bridge: &Bridge, painter: &mut Painter, frame: Frame, now: Instant) {
+fn send_frame_if_needed(
+    sender: &SyncSender<Frame>,
+    painter: &mut Painter,
+    frame: Frame,
+    now: Instant,
+) {
+    // Leave room for the next render pass and worker dispatch before the server expires this frame.
+    const REFRESH_INTERVAL: Duration = Duration::from_millis(LIGHTING_FRAME_TTL_MS / 2);
     if painter.last_frame.as_ref() != Some(&frame)
-        || now.duration_since(painter.last_frame_sent) >= Duration::from_secs(1)
+        || now.duration_since(painter.last_frame_sent) >= REFRESH_INTERVAL
     {
-        match bridge.sender.try_send(frame.clone()) {
+        match sender.try_send(frame.clone()) {
             Ok(()) => {
                 painter.last_frame = Some(frame);
                 painter.last_frame_sent = now;
@@ -405,8 +413,30 @@ pub(super) fn minelights_disabled_frame() {
 #[cfg(test)]
 mod tests {
     use super::super::minelights_effects::biome_color;
-    use super::Color;
+    use super::{Color, Frame, LIGHTING_FRAME_TTL_MS, Painter, send_frame_if_needed};
     use minelights_engine::standardize_key;
+    use std::{sync::mpsc, time::Duration};
+
+    #[test]
+    fn unchanged_frame_refreshes_before_the_server_expires_it() {
+        let (sender, receiver) = mpsc::sync_channel(1);
+        let mut painter = Painter::new();
+        let start = painter.last_frame_sent;
+        let frame = Frame::default();
+        let interval = Duration::from_millis(LIGHTING_FRAME_TTL_MS / 2);
+
+        send_frame_if_needed(&sender, &mut painter, frame.clone(), start);
+        assert_eq!(receiver.try_recv().unwrap(), frame);
+        send_frame_if_needed(
+            &sender,
+            &mut painter,
+            frame.clone(),
+            start + interval - Duration::from_millis(1),
+        );
+        assert_eq!(receiver.try_recv(), Err(mpsc::TryRecvError::Empty));
+        send_frame_if_needed(&sender, &mut painter, frame.clone(), start + interval);
+        assert_eq!(receiver.try_recv().unwrap(), frame);
+    }
 
     #[test]
     fn standardizes_device_key_names_like_the_java_client() {

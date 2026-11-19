@@ -26,6 +26,7 @@ const MAX_SUPPORTED_MINOR: u16 = 0;
 const MAX_OUTPUT_ELEMENTS_PER_SERVER: u32 = 100_000;
 const MAX_REMOTE_SERVERS: usize = 1022;
 const MAX_CLIENT_STORE_BYTES: usize = 256 * 1024;
+pub const LIGHTING_FRAME_TTL_MS: u64 = 1000;
 
 const CLIENT_HELLO: u16 = 0x0001;
 const SERVER_HELLO: u16 = 0x0002;
@@ -382,7 +383,7 @@ impl V2Connection {
         self.sequence = self.sequence.wrapping_add(1);
         self.write_message(
             LIGHTING_FRAME,
-            json!({"sequence": self.sequence, "ttl_ms": 1000, "targets": targets}),
+            json!({"sequence": self.sequence, "ttl_ms": LIGHTING_FRAME_TTL_MS, "targets": targets}),
         )
         .is_ok()
     }
