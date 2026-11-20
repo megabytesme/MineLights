@@ -307,8 +307,12 @@ public class PlayerDataCollector {
 
     private static WaypointDto toWaypointDto(ClientLevel world, LocalPlayer player, TrackedWaypoint trackedWaypoint,
             TrackedWaypoint.Camera camera, float partialTick) {
+        double relativeYaw = AngleMath.normalizeYaw(trackedWaypoint.yawAngleToCamera(world, camera, entity -> partialTick));
+        if (!Double.isFinite(relativeYaw)) {
+            return null;
+        }
         WaypointDto waypointDto = new WaypointDto();
-        waypointDto.setRelativeYaw(normalizeYaw(trackedWaypoint.yawAngleToCamera(world, camera, entity -> partialTick)));
+        waypointDto.setRelativeYaw(relativeYaw);
         net.minecraft.world.waypoints.Waypoint.Icon icon = trackedWaypoint.icon().cloneAndAssignStyle(player);
         waypointDto.setColor(icon.color.orElseGet(() -> fallbackWaypointColor(trackedWaypoint)) & 0xFFFFFF);
         waypointDto.setDistance((float) Math.sqrt(trackedWaypoint.distanceSquared(player)));
@@ -360,16 +364,6 @@ public class PlayerDataCollector {
         } catch (ReflectiveOperationException ignored) {
             return null;
         }
-    }
-
-    private static double normalizeYaw(double yaw) {
-        while (yaw <= -180.0D) {
-            yaw += 360.0D;
-        }
-        while (yaw > 180.0D) {
-            yaw -= 360.0D;
-        }
-        return yaw;
     }
 
     private static int fallbackWaypointColor(TrackedWaypoint trackedWaypoint) {
@@ -1132,11 +1126,10 @@ public class PlayerDataCollector {
         //?}
         //?}
 
-        double relativeYaw = targetYaw - playerYaw;
-        while (relativeYaw <= -180.0D)
-            relativeYaw += 360.0D;
-        while (relativeYaw > 180.0D)
-            relativeYaw -= 360.0D;
+        double relativeYaw = AngleMath.normalizeYaw(targetYaw - playerYaw);
+        if (!Double.isFinite(relativeYaw)) {
+            return;
+        }
 
         dto.setCompassState(CompassState.POINTING);
         dto.setCompassRelativeYaw(relativeYaw);

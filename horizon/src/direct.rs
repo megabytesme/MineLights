@@ -2,7 +2,7 @@ use minelights_engine::standardize_key;
 
 use std::{
     collections::{HashMap, HashSet},
-    io::{BufRead, BufReader, Read, Write},
+    io::{self, BufRead, BufReader, Read, Write},
     net::{SocketAddr, TcpStream, ToSocketAddrs, UdpSocket},
     thread::{self, JoinHandle},
     time::{Duration, Instant},
@@ -17,6 +17,8 @@ const MAX_OPENRGB_ENDPOINTS: usize =
 const OPENRGB_STATE_RETRY_DELAY: Duration = Duration::from_secs(1);
 const YEELIGHT_MULTICAST: &str = "239.255.255.250:1982";
 const YEELIGHT_DISCOVERY: &[u8] = b"M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1982\r\nMAN: \"ssdp:discover\"\r\nST: wifi_bulb\r\n\r\n";
+const YEELIGHT_CONTROL_PORT: u16 = 55443;
+const YEELIGHT_MAX_REPLY_BYTES: usize = 4096;
 
 #[derive(Clone, Debug)]
 pub struct DirectLayout {
@@ -768,12 +770,79 @@ struct YeelightDevice {
     id: String,
     name: String,
     address: SocketAddr,
-    stream: Option<TcpStream>,
+    connection: Option<(TcpStream, JoinHandle<()>)>,
     last_color: Option<[u8; 3]>,
     command_id: u64,
 }
 
+fn drain_yeelight_replies(reader: &mut impl BufRead) -> io::Result<()> {
+    let mut remaining = YEELIGHT_MAX_REPLY_BYTES;
+    loop {
+        let buffer = match reader.fill_buf() {
+            Ok([]) => return Ok(()),
+            Ok(buffer) => buffer,
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::WouldBlock
+                        | io::ErrorKind::TimedOut
+                        | io::ErrorKind::Interrupted
+                ) =>
+            {
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        let length = buffer.len().min(remaining);
+        if let Some(end) = buffer[..length].iter().position(|&byte| byte == b'\n') {
+            reader.consume(end + 1);
+            remaining = YEELIGHT_MAX_REPLY_BYTES;
+        } else if length == remaining {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Yeelight reply exceeded the frame limit",
+            ));
+        } else {
+            reader.consume(length);
+            remaining -= length;
+        }
+    }
+}
+
 impl YeelightDevice {
+    fn from_discovery_reply(response: &str, mut source: SocketAddr) -> Option<Self> {
+        let mut id = "";
+        let mut location = "";
+        let mut name = "";
+        for line in response.lines() {
+            if let Some((key, value)) = line.split_once(':') {
+                match key.trim().to_ascii_lowercase().as_str() {
+                    "id" => id = value.trim(),
+                    "location" => location = value.trim(),
+                    "name" => name = value.trim(),
+                    _ => {}
+                }
+            }
+        }
+        let address = location
+            .strip_prefix("yeelight://")?
+            .parse::<SocketAddr>()
+            .ok()?;
+        if id.is_empty() || address.ip() != source.ip() || address.port() != YEELIGHT_CONTROL_PORT {
+            return None;
+        }
+        // Connect to the peer that sent the discovery reply, on Yeelight's control port.
+        source.set_port(YEELIGHT_CONTROL_PORT);
+        Some(Self {
+            id: id.into(),
+            name: name.into(),
+            address: source,
+            connection: None,
+            last_color: None,
+            command_id: 1,
+        })
+    }
+
     fn discover() -> Vec<Self> {
         let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
             return Vec::new();
@@ -790,52 +859,25 @@ impl YeelightDevice {
         let mut ids = HashSet::new();
         let mut buffer = [0u8; 2048];
         while Instant::now() < deadline {
-            let Ok((length, _source)) = socket.recv_from(&mut buffer) else {
+            let Ok((length, source)) = socket.recv_from(&mut buffer) else {
                 continue;
             };
             let response = String::from_utf8_lossy(&buffer[..length]);
-            let mut id = String::new();
-            let mut location = String::new();
-            let mut name = String::new();
-            for line in response.lines() {
-                if let Some((key, value)) = line.split_once(':') {
-                    match key.trim().to_ascii_lowercase().as_str() {
-                        "id" => id = value.trim().to_owned(),
-                        "location" => location = value.trim().to_owned(),
-                        "name" => name = value.trim().to_owned(),
-                        _ => {}
-                    }
-                }
+            let Some(device) = Self::from_discovery_reply(&response, source) else {
+                continue;
+            };
+            if ids.insert(device.id.clone()) {
+                found.push(device);
             }
-            if id.is_empty() || location.is_empty() || !ids.insert(id.clone()) {
-                continue;
-            }
-            let Some(location) = location.strip_prefix("yeelight://") else {
-                continue;
-            };
-            let Some((host, port)) = location.rsplit_once(':') else {
-                continue;
-            };
-            let Ok(address) = format!("{host}:{port}").parse::<SocketAddr>() else {
-                continue;
-            };
-            found.push(Self {
-                id,
-                name,
-                address,
-                stream: None,
-                last_color: None,
-                command_id: 1,
-            });
         }
         found
     }
 
     fn connect(&mut self) -> bool {
         if self
-            .stream
+            .connection
             .as_ref()
-            .is_some_and(|stream| stream.peer_addr().is_ok())
+            .is_some_and(|(_, reader)| !reader.is_finished())
         {
             return true;
         }
@@ -849,39 +891,30 @@ impl YeelightDevice {
             Ok(reader) => reader,
             Err(_) => return false,
         };
-        let _ = thread::Builder::new()
-            .name(format!("MineLights-Yeelight-{}", self.id))
+        let Ok(reader) = thread::Builder::new()
+            .name("MineLights-Yeelight-Replies".into())
             .spawn(move || {
                 let _ = reader.set_read_timeout(Some(Duration::from_secs(2)));
-                let mut reader = BufReader::new(reader);
-                let mut line = String::new();
-                loop {
-                    line.clear();
-                    match reader.read_line(&mut line) {
-                        Ok(0) => break,
-                        Ok(_) => {}
-                        Err(error)
-                            if error.kind() == std::io::ErrorKind::WouldBlock
-                                || error.kind() == std::io::ErrorKind::TimedOut => {}
-                        Err(_) => break,
-                    }
-                }
-            });
-        self.stream = Some(stream);
+                let mut reader = BufReader::with_capacity(YEELIGHT_MAX_REPLY_BYTES, reader);
+                let _ = drain_yeelight_replies(&mut reader);
+                let _ = reader.get_ref().shutdown(std::net::Shutdown::Both);
+            })
+        else {
+            return false;
+        };
+        self.connection = Some((stream, reader));
         true
     }
 
     fn disconnect(&mut self) {
-        if let Some(stream) = self.stream.take() {
+        self.last_color = None;
+        if let Some((stream, _)) = self.connection.take() {
             let _ = stream.shutdown(std::net::Shutdown::Both);
         }
     }
 
     fn set_color(&mut self, color: [u8; 3]) {
-        if self.last_color == Some(color) {
-            return;
-        }
-        if !self.connect() {
+        if !self.connect() || self.last_color == Some(color) {
             return;
         }
         let rgb = (u32::from(color[0]) << 16) | (u32::from(color[1]) << 8) | u32::from(color[2]);
@@ -896,7 +929,7 @@ impl YeelightDevice {
             Err(_) => return,
         };
         bytes.extend_from_slice(b"\r\n");
-        let Some(stream) = self.stream.as_mut() else {
+        let Some((stream, _)) = self.connection.as_mut() else {
             return;
         };
         if stream
@@ -941,7 +974,7 @@ mod tests {
                 id: "test-bulb".into(),
                 name: String::new(),
                 address: ([127, 0, 0, 1], 55443).into(),
-                stream: None,
+                connection: None,
                 last_color: None,
                 command_id: 1,
             }])
@@ -953,6 +986,49 @@ mod tests {
         }
         assert!(direct.yeelight_scan.is_none());
         assert!(direct.yeelights.is_empty());
+    }
+
+    #[test]
+    fn yeelight_discovery_validates_the_sender_and_control_port() {
+        let source = ([192, 0, 2, 42], 1982).into();
+        let reply = |location| {
+            format!("HTTP/1.1 200 OK\r\nLOCATION: {location}\r\nid: 0x123\r\nname: Desk\r\n")
+        };
+        let device =
+            YeelightDevice::from_discovery_reply(&reply("yeelight://192.0.2.42:55443"), source)
+                .unwrap();
+        assert_eq!(device.id, "0x123");
+        assert_eq!(device.name, "Desk");
+        assert_eq!(device.address, ([192, 0, 2, 42], 55443).into());
+        for location in [
+            "yeelight://192.0.2.43:55443",
+            "yeelight://192.0.2.42:1982",
+            "yeelight://bulb.invalid:55443",
+            "https://192.0.2.42:55443",
+        ] {
+            assert!(YeelightDevice::from_discovery_reply(&reply(location), source).is_none());
+        }
+    }
+
+    #[test]
+    fn yeelight_reply_limit_resets_at_each_newline() {
+        let mut bytes = vec![b' '; YEELIGHT_MAX_REPLY_BYTES - 2];
+        bytes.extend_from_slice(b"\r\n{\"id\":1,\"result\":[\"ok\"]}\r\n");
+        let mut reader = BufReader::with_capacity(32, bytes.as_slice());
+        drain_yeelight_replies(&mut reader).unwrap();
+        assert!(reader.fill_buf().unwrap().is_empty());
+    }
+
+    #[test]
+    fn yeelight_reply_limit_rejects_a_frame_before_reading_past_it() {
+        let mut bytes = vec![b' '; YEELIGHT_MAX_REPLY_BYTES];
+        bytes.push(b'\n');
+        let mut reader = BufReader::with_capacity(32, bytes.as_slice());
+        assert_eq!(
+            drain_yeelight_replies(&mut reader).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+        assert_eq!(*reader.get_ref(), b"\n");
     }
 
     fn openrgb_device_packet(include_active_mode: bool) -> Vec<u8> {
@@ -1027,7 +1103,7 @@ mod tests {
             id: "test".into(),
             name: String::new(),
             address,
-            stream: None,
+            connection: None,
             last_color: None,
             command_id: 1,
         };
@@ -1047,7 +1123,7 @@ mod tests {
             id: "test".into(),
             name: String::new(),
             address: listener.local_addr().unwrap(),
-            stream: None,
+            connection: None,
             last_color: None,
             command_id: 1,
         };

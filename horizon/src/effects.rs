@@ -882,7 +882,10 @@ impl Painter {
                 color.scaled(0.8 + (wave + 1.0) * 0.1),
             );
         } else {
-            let yaw = normalize_yaw(player.compass_yaw);
+            let Some(yaw) = normalize_yaw(f64::from(player.compass_yaw)) else {
+                return;
+            };
+            let yaw = yaw as f32;
             let sector = 360.0 / directions.len() as f32;
             let index = ((yaw + sector / 2.0).rem_euclid(360.0) / sector) as usize;
             paint_key(frame, layouts, &directions[index % directions.len()], color);
@@ -909,14 +912,18 @@ impl Painter {
     }
 }
 
-pub(super) fn normalize_yaw(mut yaw: f32) -> f32 {
-    while yaw <= -180.0 {
-        yaw += 360.0;
+pub(super) fn normalize_yaw(yaw: f64) -> Option<f64> {
+    if !yaw.is_finite() {
+        return None;
     }
-    while yaw > 180.0 {
-        yaw -= 360.0;
-    }
-    yaw
+    let yaw = yaw % 360.0;
+    Some(if yaw <= -180.0 {
+        yaw + 360.0
+    } else if yaw > 180.0 {
+        yaw - 360.0
+    } else {
+        yaw
+    })
 }
 
 fn packed(color: u32) -> Color {

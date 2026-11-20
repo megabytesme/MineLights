@@ -5,12 +5,14 @@ import megabytesme.minelights.effects.RGBColorDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,33 +34,35 @@ public class YeelightController {
             "ST: wifi_bulb\r\n";
     private static final String MULTICAST_ADDRESS = "239.255.255.250";
     private static final int MULTICAST_PORT = 1982;
+    private static final int COMMAND_PORT = 55443;
     private static final int DISCOVERY_TIMEOUT_MS = 3000;
     private static final int YEELIGHT_SMOOTH_DURATION = 400;
+    static final int MAX_REPLY_BYTES = 4096;
 
     private final List<YeelightDevice> devices = Collections.synchronizedList(new ArrayList<>());
 
     public static class YeelightDevice {
-        public String id;
-        public String location;
-        public String ip;
-        public int port;
-        public String model;
-        public String name;
-        Socket socket;
-        DataOutputStream out;
-        BufferedReader in;
-        final AtomicInteger commandId = new AtomicInteger(1);
-        final RGBColorDto lastColor = new RGBColorDto(-1, -1, -1);
+        public final String id;
+        public final String location;
+        public final String ip;
+        public final int port;
+        public final String model;
+        public final String name;
+        private final InetSocketAddress endpoint;
+        private Socket socket;
+        private DataOutputStream out;
+        private final AtomicInteger commandId = new AtomicInteger(1);
+        private final RGBColorDto lastColor = new RGBColorDto(-1, -1, -1);
         private final Object socketLock = new Object();
 
-        public YeelightDevice(String id, String location, String model, String name) {
+        private YeelightDevice(String id, String location, InetAddress sender, String model, String name) {
             this.id = id;
             this.location = location;
+            this.endpoint = new InetSocketAddress(sender, COMMAND_PORT);
+            this.ip = sender.getHostAddress();
+            this.port = endpoint.getPort();
             this.model = model;
             this.name = name;
-            String[] parts = location.replace("yeelight://", "").split(":");
-            this.ip = parts[0];
-            this.port = Integer.parseInt(parts[1]);
         }
 
         public boolean connect() {
@@ -68,24 +73,13 @@ public class YeelightController {
                 try {
                     disconnect();
                     socket = new Socket();
-                    socket.connect(new InetSocketAddress(ip, port), 1000);
+                    socket.connect(endpoint, 1000);
                     out = new DataOutputStream(socket.getOutputStream());
-                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    lastColor.r = lastColor.g = lastColor.b = -1;
                     LOGGER.info("Connected to Yeelight device: {}", id);
 
-                    Thread readerThread = new Thread(() -> {
-                        try {
-                            while (socket != null && !socket.isClosed() && in != null) {
-                                String line = in.readLine();
-                                if (line == null)
-                                    break;
-                                LOGGER.trace("[TCP-RECV {}] {}", id, line);
-                            }
-                        } catch (IOException ignored) {
-                        } finally {
-                            LOGGER.info("Reader thread for Yeelight {} stopping.", id);
-                        }
-                    });
+                    Socket connection = socket;
+                    Thread readerThread = new Thread(() -> drainReplies(connection));
                     readerThread.setDaemon(true);
                     readerThread.setName("Yeelight-Reader-" + id);
                     readerThread.start();
@@ -101,27 +95,52 @@ public class YeelightController {
 
         public void disconnect() {
             synchronized (socketLock) {
-                try {
-                    if (socket != null)
-                        socket.close();
-                } catch (IOException ignored) {
-                }
+                closeSocket(socket);
                 socket = null;
                 out = null;
-                in = null;
+            }
+        }
+
+        private void drainReplies(Socket connection) {
+            try {
+                InputStream replies = new BufferedInputStream(connection.getInputStream(), MAX_REPLY_BYTES);
+                byte[] frame = new byte[MAX_REPLY_BYTES];
+                String line;
+                while ((line = readReply(replies, frame)) != null) {
+                    LOGGER.trace("[TCP-RECV {}] {}", id, line);
+                }
+            } catch (IOException e) {
+                LOGGER.debug("Yeelight reply reader for {} stopped: {}", id, e.getMessage());
+            } finally {
+                closeSocket(connection);
+                synchronized (socketLock) {
+                    if (socket == connection) {
+                        socket = null;
+                        out = null;
+                    }
+                }
+                LOGGER.info("Reader thread for Yeelight {} stopping.", id);
+            }
+        }
+
+        private static void closeSocket(Socket connection) {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (IOException ignored) {
             }
         }
 
         public void setColor(int r, int g, int b) {
-            if (r == lastColor.r && g == lastColor.g && b == lastColor.b) {
-                return;
-            }
-
             synchronized (socketLock) {
                 if (socket == null || !socket.isConnected() || socket.isClosed()) {
                     if (!connect()) {
                         return;
                     }
+                }
+                if (r == lastColor.r && g == lastColor.g && b == lastColor.b) {
+                    return;
                 }
 
                 try {
@@ -178,16 +197,10 @@ public class YeelightController {
                             receivePacket.getPort());
                     LOGGER.trace("[UDP-RECV] Raw data:\n{}", response);
 
-                    Map<String, String> headers = parseDiscoveryResponse(response);
-                    String id = headers.get("id");
-                    String location = headers.get("Location");
-
-                    if (id != null && location != null && !foundDevices.containsKey(id)) {
-                        String model = headers.getOrDefault("model", "unknown");
-                        String name = headers.getOrDefault("name", "");
-                        LOGGER.info("SUCCESS: Discovered and parsed Yeelight device: id={}, name='{}', location={}", id,
-                                name, location);
-                        foundDevices.put(id, new YeelightDevice(id, location, model, name));
+                    YeelightDevice device = parseDiscoveryResponse(response, receivePacket.getAddress());
+                    if (device != null && foundDevices.putIfAbsent(device.id, device) == null) {
+                        LOGGER.info("Discovered Yeelight device: id={}, name='{}', location={}", device.id,
+                                device.name, device.location);
                     }
                 } catch (SocketTimeoutException e) {
                     LOGGER.debug("[UDP-RECV] Discovery listener timed out. Assuming all devices have responded.");
@@ -215,18 +228,47 @@ public class YeelightController {
         return true;
     }
 
-    private Map<String, String> parseDiscoveryResponse(String response) {
+    static YeelightDevice parseDiscoveryResponse(String response, InetAddress sender) {
+        if (!(sender instanceof Inet4Address)) {
+            return null;
+        }
         Map<String, String> headers = new HashMap<>();
         String[] lines = response.split("\r\n");
         for (String line : lines) {
             if (line.contains(":")) {
                 String[] parts = line.split(":", 2);
                 if (parts.length == 2) {
-                    headers.put(parts[0].trim(), parts[1].trim());
+                    headers.put(parts[0].trim().toLowerCase(Locale.ROOT), parts[1].trim());
                 }
             }
         }
-        return headers;
+        String id = headers.get("id");
+        String location = headers.get("location");
+        String expectedLocation = "yeelight://" + sender.getHostAddress() + ":" + COMMAND_PORT;
+        if (id == null || !expectedLocation.equals(location)) {
+            return null;
+        }
+        return new YeelightDevice(id, location, sender, headers.getOrDefault("model", "unknown"),
+                headers.getOrDefault("name", ""));
+    }
+
+    /** Read one LF-terminated reply, with the terminator included in the byte budget. */
+    static String readReply(InputStream replies, byte[] frame) throws IOException {
+        for (int length = 0; length < frame.length; length++) {
+            int value = replies.read();
+            if (value == -1) {
+                if (length == 0) {
+                    return null;
+                }
+                throw new EOFException("Incomplete Yeelight reply");
+            }
+            if (value == '\n') {
+                int payloadLength = length > 0 && frame[length - 1] == '\r' ? length - 1 : length;
+                return new String(frame, 0, payloadLength, StandardCharsets.UTF_8);
+            }
+            frame[length] = (byte) value;
+        }
+        throw new IOException("Yeelight reply exceeds " + frame.length + " bytes");
     }
 
     public List<YeelightDevice> getDevices() {

@@ -232,9 +232,10 @@ pub(super) fn compass(
         let dx = target[0] - position[0];
         let dz = target[2] - position[2];
         let distance_squared = dx * dx + dz * dz;
-        if distance_squared >= 1.0e-5 {
-            let heading = normalize_yaw((-dx).atan2(dz).to_degrees() as f32 - yaw);
-            return (kind, true, heading, distance_squared.sqrt() as f32);
+        if distance_squared >= 1.0e-5
+            && let Some(heading) = normalize_yaw((-dx).atan2(dz).to_degrees() - f64::from(yaw))
+        {
+            return (kind, true, heading as f32, distance_squared.sqrt() as f32);
         }
     }
     let kind = if settings.spin_compass_without_target {
@@ -262,12 +263,13 @@ fn waypoint(locator: &Locator, position: [f64; 3], eye_y: f64, yaw: f32) -> Opti
         LocatorTarget::Azimuth(_) => (0.0, 0.0, 0.0),
     };
     let angle = match locator.target {
-        LocatorTarget::Azimuth(angle) => angle.to_degrees(),
-        _ => (-dx).atan2(dz).to_degrees() as f32,
+        LocatorTarget::Azimuth(angle) => f64::from(angle).to_degrees(),
+        _ => (-dx).atan2(dz).to_degrees(),
     };
+    let relative_yaw = normalize_yaw(angle - f64::from(yaw))?;
     let [_, r, g, b] = locator.color.to_be_bytes();
     Some(Waypoint {
-        yaw_degrees: normalize_yaw(angle - yaw).round() as i16,
+        yaw_degrees: relative_yaw.round() as i16,
         color: Color(r, g, b),
         pitch: if dy > 1.0 {
             1
@@ -438,6 +440,26 @@ mod tests {
         clear_locators();
         assert!(colors().is_empty());
         LOCATORS.with(|locators| assert!(locators.borrow().is_empty()));
+    }
+
+    #[test]
+    fn waypoint_yaw_ignores_nonfinite_values_and_wraps_finite_values() {
+        let collect = |azimuth, camera_yaw| {
+            let locator = Locator {
+                id: LocatorId::Uuid(1),
+                target: LocatorTarget::Azimuth(azimuth),
+                color: 0x00112233,
+            };
+            waypoint(&locator, [0.0; 3], 1.5, camera_yaw).map(|dot| dot.yaw_degrees)
+        };
+        for invalid in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+            assert_eq!(collect(invalid, 0.0), None);
+            assert_eq!(collect(0.0, invalid), None);
+        }
+        assert_eq!(collect(std::f32::consts::FRAC_PI_2, 30.0), Some(60));
+        assert!((-180..=180).contains(&collect(f32::MAX, 0.0).unwrap()));
+        assert_eq!(normalize_yaw(-180.0), Some(180.0));
+        assert_eq!(normalize_yaw(360.0), Some(0.0));
     }
 
     #[test]

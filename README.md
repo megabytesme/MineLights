@@ -55,7 +55,7 @@ MineLights is a Minecraft Fabric, Quilt, Forge, NeoForge and Horizon mod that br
 
 ### Installation
 
-- On Fabric, Quilt, Forge or NeoForge, place the mod in your mods folder, then start Minecraft. On Windows, MineLights downloads MineLights Server when needed and checks for updates by default. To install it yourself, enable **Manage MineLights Server manually** in MineLights' server settings. This disables automatic downloads and replacements; configurable chat notices explain how to install or update the server. Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge and NeoForge, or the game's `MineLights` folder for Quilt. The mod can start an installed server automatically.
+- On Fabric, Quilt, Forge or NeoForge, place the mod in your mods folder, then start Minecraft. On Windows, MineLights downloads MineLights Server when needed and checks for updates by default. To install it yourself, enable **Manage MineLights Server manually** in MineLights' server settings. This disables automatic downloads and replacements. With **Check for MineLights Server updates** enabled, MineLights still fetches GitHub release metadata for an installed server and can show update notices in chat. Place `MineLights.exe` in the game's `mods/MineLights` folder for Fabric, Forge and NeoForge, or the game's `MineLights` folder for Quilt. The mod can start an installed server automatically.
   
 **Installing MineLights version 2.2**: Simply place the mod in your mods folder, then start Minecraft. Follow the on-screen instructions.
 
