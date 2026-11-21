@@ -96,6 +96,7 @@ public class MineLightsConfig {
 
     public List<String> ledOverrides = new ArrayList<>();
     public boolean restoreLightingOutsideWorld = true;
+    public boolean showOpenRgbRestoreWarning = true;
     public String outsideWorldProfile = "";
 
     public List<String> healthBarKeys = new ArrayList<>(Arrays.asList("F1", "F2", "F3", "F4"));
